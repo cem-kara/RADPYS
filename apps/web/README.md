@@ -1,15 +1,15 @@
 # apps/web
 
-Sprint-1 Adım-4 iskeleti.
+Next.js frontend for REPYS Next.
 
-## Amaç
-- React/Next.js tabanlı web arayüzü burada konumlanacak.
+## Quick start
 
-## Hedef başlangıç dosyaları (bir sonraki adım)
-- `app/` veya `pages/`
-- `components/`
-- `features/`
-- `lib/api-client.ts`
+```bash
+cd apps/web
+npm install
+npm run dev
+```
 
-## Not
-Bu klasör şu an sadece iskelet amaçlı oluşturuldu.
+## Environment
+
+Set `NEXT_PUBLIC_API_BASE_URL` to point at the API (see root `.env.example`).

@@ -1,16 +1,22 @@
 # apps/api
 
-Sprint-1 Adım-4 iskeleti.
+FastAPI backend for REPYS Next.
 
-## Amaç
-- FastAPI tabanlı backend uygulaması burada konumlanacak.
+## Quick start
 
-## Hedef başlangıç dosyaları (bir sonraki adım)
-- `main.py` (health endpoint)
-- `routers/`
-- `schemas/`
-- `services/`
-- `repositories/`
+```bash
+cd apps/api
+python -m venv .venv
+. .venv/bin/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
 
-## Not
-Bu klasör şu an sadece iskelet amaçlı oluşturuldu.
+## Health endpoints
+
+- `GET /health` returns basic service info.
+- `GET /ready` returns readiness status.
+
+## Notes
+
+- Environment variables are loaded from your shell. See the root `.env.example`.

@@ -1,15 +1,13 @@
-# apps/web
+# infra
 
-Sprint-1 Adım-4 iskeleti.
+Infrastructure notes and deployment helpers for REPYS Next.
 
-## Amaç
-- React/Next.js tabanlı web arayüzü burada konumlanacak.
+## Local orchestration
 
-## Hedef başlangıç dosyaları (bir sonraki adım)
-- `app/` veya `pages/`
-- `components/`
-- `features/`
-- `lib/api-client.ts`
+Use `docker-compose.yml` at the repo root to run API + web together.
 
-## Not
-Bu klasör şu an sadece iskelet amaçlı oluşturuldu.
+## Scope
+
+- Container build files
+- Local dev orchestration
+- Environment templates
