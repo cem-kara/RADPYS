@@ -1,4 +1,0 @@
-14:03:28 [DEBUG] asyncio: Using proactor: IocpProactor
-14:03:28 [INFO] httpx: HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
-14:03:28 [DEBUG] asyncio: Using proactor: IocpProactor
-14:03:28 [INFO] httpx: HTTP Request: GET http://testserver/ready "HTTP/1.1 200 OK"

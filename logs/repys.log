@@ -1,0 +1,24 @@
+2026-04-06 20:48:39,782 [INFO] repys: ============================================================
+2026-04-06 20:48:39,798 [INFO] repys: REPYS 2.0 başlatılıyor…
+2026-04-06 20:48:39,954 [INFO] repys.db: DB açıldı: c:\Users\user\Desktop\Python Program\RADPYS\data\repys.db
+2026-04-06 20:48:39,974 [INFO] repys.db.migration: Migration v1 uygulanıyor…
+2026-04-06 20:48:40,110 [INFO] repys.db.migration: v1: Tüm tablolar ve indeksler oluşturuldu.
+2026-04-06 20:48:40,138 [INFO] repys.db.seed: Seed data yüklendi.
+2026-04-06 20:48:40,208 [INFO] repys.db.migration: Migration v1 tamamlandı.
+2026-04-06 20:48:40,208 [INFO] repys.db.migration: DB v1 sürümüne getirildi.
+2026-04-06 21:21:45,401 [INFO] repys.db: DB kapatıldı: c:\Users\user\Desktop\Python Program\RADPYS\data\repys.db
+2026-04-06 21:47:17,006 [INFO] repys: ============================================================
+2026-04-06 21:47:17,006 [INFO] repys: REPYS 2.0 başlatılıyor…
+2026-04-06 21:47:17,053 [INFO] repys.db: DB açıldı: c:\Users\user\Desktop\Python Program\RADPYS\data\repys.db
+2026-04-06 21:47:17,053 [INFO] repys.db.migration: DB güncel (v1), migration gerek yok.
+2026-04-06 21:47:42,528 [INFO] repys.db: DB kapatıldı: c:\Users\user\Desktop\Python Program\RADPYS\data\repys.db
+2026-04-06 21:49:21,270 [INFO] repys: ============================================================
+2026-04-06 21:49:21,271 [INFO] repys: REPYS 2.0 başlatılıyor…
+2026-04-06 21:49:21,282 [INFO] repys.db: DB açıldı: c:\Users\user\Desktop\Python Program\RADPYS\data\repys.db
+2026-04-06 21:49:21,282 [INFO] repys.db.migration: DB güncel (v1), migration gerek yok.
+2026-04-06 21:49:41,333 [INFO] repys.db: DB kapatıldı: c:\Users\user\Desktop\Python Program\RADPYS\data\repys.db
+2026-04-06 21:55:42,850 [INFO] repys: ============================================================
+2026-04-06 21:55:42,850 [INFO] repys: REPYS 2.0 başlatılıyor…
+2026-04-06 21:55:42,859 [INFO] repys.db: DB açıldı: c:\Users\user\Desktop\Python Program\RADPYS\data\repys.db
+2026-04-06 21:55:42,859 [INFO] repys.db.migration: DB güncel (v1), migration gerek yok.
+2026-04-06 21:55:58,458 [INFO] repys.db: DB kapatıldı: c:\Users\user\Desktop\Python Program\RADPYS\data\repys.db
