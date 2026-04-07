@@ -29,7 +29,7 @@ class FormRow(QWidget):
         lbl.setFixedWidth(160)
         lbl.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         lbl.setStyleSheet(
-            f"color:{'#e6edf3' if zorunlu else T.text_secondary};"
+            f"color:{'#e6edf3' if zorunlu else T.text2};"
             f"font-size:12px;"
         )
 

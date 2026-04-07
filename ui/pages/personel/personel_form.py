@@ -50,11 +50,11 @@ class PersonelForm(QDialog):
 
         # Başlık
         hdr = QFrame()
-        hdr.setStyleSheet(f"background:{T.bg_panel}; border-bottom:1px solid {T.border};")
+        hdr.setStyleSheet(f"background:{T.bg1}; border-bottom:1px solid {T.border};")
         hdr_lay = QHBoxLayout(hdr)
         hdr_lay.setContentsMargins(20, 14, 20, 14)
         lbl = QLabel("Yeni Personel Ekle")
-        lbl.setStyleSheet(f"color:{T.text_primary}; font-size:16px; font-weight:600;")
+        lbl.setStyleSheet(f"color:{T.text}; font-size:16px; font-weight:600;")
         hdr_lay.addWidget(lbl)
         hdr_lay.addStretch()
         kok.addWidget(hdr)
@@ -116,7 +116,7 @@ class PersonelForm(QDialog):
 
         # Alt butonlar
         alt = QFrame()
-        alt.setStyleSheet(f"background:{T.bg_panel}; border-top:1px solid {T.border};")
+        alt.setStyleSheet(f"background:{T.bg1}; border-top:1px solid {T.border};")
         alt_lay = QHBoxLayout(alt)
         alt_lay.setContentsMargins(20, 12, 20, 12)
         alt_lay.addStretch()
@@ -136,7 +136,7 @@ class PersonelForm(QDialog):
         grid.setVerticalSpacing(6)
         for i, (key, etiket, _, placeholder) in enumerate(alanlar):
             lbl = QLabel(etiket)
-            lbl.setStyleSheet(f"color:{T.text_secondary}; font-size:12px;")
+            lbl.setStyleSheet(f"color:{T.text2}; font-size:12px;")
             lbl.setFixedWidth(140)
             lbl.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             edit = QLineEdit()
@@ -158,7 +158,7 @@ class PersonelForm(QDialog):
         satir = 0
         for key, etiket in combo_alan:
             lbl = QLabel(etiket)
-            lbl.setStyleSheet(f"color:{T.text_secondary}; font-size:12px;")
+            lbl.setStyleSheet(f"color:{T.text2}; font-size:12px;")
             lbl.setFixedWidth(140)
             lbl.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             cb = QComboBox()
@@ -168,7 +168,7 @@ class PersonelForm(QDialog):
             satir += 1
         for key, etiket, _, ph in (text_ek or []):
             lbl = QLabel(etiket)
-            lbl.setStyleSheet(f"color:{T.text_secondary}; font-size:12px;")
+            lbl.setStyleSheet(f"color:{T.text2}; font-size:12px;")
             lbl.setFixedWidth(140)
             lbl.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             edit = QLineEdit()

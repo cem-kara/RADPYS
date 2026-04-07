@@ -30,12 +30,12 @@ def _placeholder_sekme(baslik: str) -> QWidget:
     lbl = QLabel(baslik)
     lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
     lbl.setStyleSheet(
-        f"color:{T.text_muted}; font-size:18px; font-weight:600;"
+        f"color:{T.text3}; font-size:18px; font-weight:600;"
     )
     lay.addWidget(lbl)
     alt = QLabel("Bu sekme ilerleyen sprintlerde eklenecek.")
     alt.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    alt.setStyleSheet(f"color:{T.text_muted}; font-size:12px;")
+    alt.setStyleSheet(f"color:{T.text3}; font-size:12px;")
     lay.addWidget(alt)
     return w
 
@@ -71,7 +71,7 @@ class PersonelDetay(QWidget):
         hdr = QFrame()
         hdr.setFixedHeight(52)
         hdr.setStyleSheet(
-            f"background:{T.bg_panel}; border-bottom:1px solid {T.border};"
+            f"background:{T.bg1}; border-bottom:1px solid {T.border};"
         )
         hdr_lay = QHBoxLayout(hdr)
         hdr_lay.setContentsMargins(16, 0, 16, 0)
@@ -85,7 +85,7 @@ class PersonelDetay(QWidget):
         self._lbl_ad   = QLabel("—")
         f = QFont(); f.setPointSize(13); f.setBold(True)
         self._lbl_ad.setFont(f)
-        self._lbl_ad.setStyleSheet(f"color:{T.text_primary};")
+        self._lbl_ad.setStyleSheet(f"color:{T.text};")
 
         self._badge_durum = Badge("aktif")
 

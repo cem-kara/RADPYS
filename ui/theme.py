@@ -1,515 +1,372 @@
 # -*- coding: utf-8 -*-
-"""
-ui/theme.py
-───────────
-Tema sistemi — saf Python, QSS template yok.
-
-Kullanım:
-    from ui.theme import apply, T
-    apply(app)           # Ana pencere açılmadan önce
-    T.ACCENT             # "#4f8ef7" — renk sabitine erişim
-"""
+"""ui/theme.py — HTML referansından alınan renk paleti ve stylesheet"""
 from __future__ import annotations
 from dataclasses import dataclass
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QFont, QPalette, QColor
 
 
-# ══════════════════════════════════════════════════════════════════
-#  RENK PALETİ
-# ══════════════════════════════════════════════════════════════════
-
 @dataclass(frozen=True)
 class _Palette:
-
-    # ── Arka planlar ─────────────────────────────────────────────
-    bg_app:       str = "#0d1117"   # En koyu — uygulama zemini
-    bg_panel:     str = "#161b22"   # Panel, sidebar
-    bg_card:      str = "#1c2128"   # Kart, groupbox
-    bg_input:     str = "#21262d"   # Input, combobox
-    bg_hover:     str = "#2d333b"   # Hover
-    bg_selected:  str = "#1f3252"   # Seçili satır
+    # ── Arka planlar (HTML: --bg0 → --bg4) ──────────────────────
+    bg0: str = "#070b11"   # En derin — uygulama zemini
+    bg1: str = "#0c1320"   # Topbar, sidebar
+    bg2: str = "#101828"   # Kart, panel
+    bg3: str = "#162036"   # Hover, seçili
+    bg4: str = "#1c2a44"   # Input, progress track
 
     # ── Kenarlıklar ───────────────────────────────────────────────
-    border:       str = "#30363d"
-    border_focus: str = "#4f8ef7"
-
-    # ── Anlam renkleri ────────────────────────────────────────────
-    accent:       str = "#4f8ef7"   # Mavi — primary action
-    accent_hover: str = "#6ea8ff"
-    accent_dim:   str = "#1f3252"   # Accent'ın koyu arka planı
-
-    success:      str = "#3fb950"   # Yeşil
-    success_dim:  str = "#0f2d1a"
-
-    warning:      str = "#d29922"   # Sarı
-    warning_dim:  str = "#2d1f00"
-
-    danger:       str = "#f85149"   # Kırmızı
-    danger_dim:   str = "#2d0f0f"
-
-    info:         str = "#58a6ff"   # Açık mavi (link/bilgi)
+    border:  str = "rgba(90,130,200,0.10)"
+    border2: str = "rgba(90,130,200,0.22)"
 
     # ── Metin ─────────────────────────────────────────────────────
-    text_primary:   str = "#e6edf3"
-    text_secondary: str = "#8b949e"
-    text_muted:     str = "#484f58"
-    text_disabled:  str = "#484f58"
-    text_link:      str = "#58a6ff"
+    text:  str = "#cdd8f0"    # Birincil
+    text2: str = "#6e88b0"    # İkincil
+    text3: str = "#3a506e"    # Soluk
+    text4: str = "#1e3050"    # En soluk
+
+    # ── Anlam renkleri ────────────────────────────────────────────
+    accent:  str = "#3479ff"
+    accent2: str = "#5b9bff"
+    accent3: str = "#8cbfff"
+
+    green:   str = "#1db86a"
+    green2:  str = "#24e07f"
+    red:     str = "#e83a5a"
+    red2:    str = "#ff6080"
+    amber:   str = "#e8a020"
+    amber2:  str = "#ffbb40"
+    purple:  str = "#8b5cf6"
+    purple2: str = "#a78bfa"
+    teal:    str = "#0d9488"
+    teal2:   str = "#2dd4bf"
 
     # ── Layout ────────────────────────────────────────────────────
-    sidebar_width:  int = 72
-    border_radius:  int = 8
-    border_radius_sm: int = 6
+    sidebar_w: int = 200
+    topbar_h:  int = 44
+    radius:    int = 10
+    radius_sm: int = 7
 
 
-# Tek global tema örneği
 T = _Palette()
 
 
-# ══════════════════════════════════════════════════════════════════
-#  STYLESHEET
-# ══════════════════════════════════════════════════════════════════
-
-def _stylesheet(p: _Palette = T) -> str:
+def _qss(p: _Palette = T) -> str:
     return f"""
-/* ── Global ─────────────────────────────────────────────────── */
-* {{
-    outline: 0;
-}}
+/* ── Global ─────────────────────────────────────── */
+* {{ outline: 0; }}
 QWidget {{
-    background-color: {p.bg_app};
-    color: {p.text_primary};
-    font-family: "Segoe UI", "SF Pro Text", "Helvetica Neue",
-                 system-ui, -apple-system, sans-serif;
-    font-size: 13px;
+    background-color: {p.bg0};
+    color: {p.text};
+    font-family: "Segoe UI", "SF Pro Text", system-ui, sans-serif;
+    font-size: 12px;
     selection-background-color: {p.accent};
     selection-color: white;
 }}
 QMainWindow, QDialog {{
-    background-color: {p.bg_app};
+    background-color: {p.bg0};
 }}
 
-/* ── GroupBox / Kart ─────────────────────────────────────────── */
+/* ── Inputs ──────────────────────────────────────── */
+QLineEdit, QTextEdit, QPlainTextEdit {{
+    background-color: {p.bg2};
+    border: 1px solid rgba(90,130,200,0.15);
+    border-radius: {p.radius_sm}px;
+    padding: 6px 10px;
+    color: {p.text};
+}}
+QLineEdit:focus, QTextEdit:focus {{
+    border-color: {p.accent};
+}}
+QLineEdit:disabled {{ color: {p.text3}; background: {p.bg1}; }}
+
+/* ── ComboBox ────────────────────────────────────── */
+QComboBox {{
+    background-color: {p.bg2};
+    border: 1px solid rgba(90,130,200,0.15);
+    border-radius: {p.radius_sm}px;
+    padding: 6px 10px;
+    color: {p.text};
+    min-width: 80px;
+}}
+QComboBox:focus {{ border-color: {p.accent}; }}
+QComboBox::drop-down {{ border: none; width: 22px; }}
+QComboBox::down-arrow {{
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid {p.text2};
+    width: 0; height: 0; margin-right: 6px;
+}}
+QComboBox QAbstractItemView {{
+    background-color: {p.bg2};
+    border: 1px solid rgba(90,130,200,0.22);
+    border-radius: {p.radius_sm}px;
+    color: {p.text};
+    selection-background-color: {p.bg3};
+    outline: 0;
+    padding: 4px;
+}}
+QComboBox QAbstractItemView::item {{
+    padding: 6px 10px;
+    border-radius: 5px;
+    min-height: 26px;
+}}
+
+/* ── Butonlar ────────────────────────────────────── */
+QPushButton {{
+    background-color: {p.bg2};
+    border: 1px solid rgba(90,130,200,0.18);
+    border-radius: {p.radius_sm}px;
+    padding: 6px 14px;
+    color: {p.text2};
+    font-size: 11px;
+    min-height: 28px;
+}}
+QPushButton:hover {{
+    background-color: {p.bg3};
+    color: {p.text};
+    border-color: rgba(90,130,200,0.30);
+}}
+QPushButton:pressed {{ background-color: {p.bg4}; }}
+QPushButton:disabled {{ color: {p.text3}; }}
+
+QPushButton[primary="true"] {{
+    background-color: {p.accent};
+    border: none;
+    color: white;
+    font-weight: 600;
+}}
+QPushButton[primary="true"]:hover {{ background-color: {p.accent2}; }}
+
+QPushButton[danger="true"] {{
+    background-color: rgba(232,58,90,0.15);
+    border: 1px solid rgba(232,58,90,0.3);
+    color: {p.red2};
+}}
+QPushButton[danger="true"]:hover {{
+    background-color: rgba(232,58,90,0.25);
+}}
+
+QPushButton[ghost="true"] {{
+    background-color: transparent;
+    border-color: transparent;
+    color: {p.text3};
+}}
+QPushButton[ghost="true"]:hover {{
+    background-color: {p.bg3};
+    color: {p.text};
+}}
+
+/* ── GroupBox ────────────────────────────────────── */
 QGroupBox {{
-    background-color: {p.bg_card};
-    border: 1px solid {p.border};
-    border-radius: {p.border_radius}px;
+    background-color: {p.bg1};
+    border: 1px solid rgba(90,130,200,0.10);
+    border-radius: {p.radius}px;
     margin-top: 10px;
     padding: 14px 10px 10px 10px;
-    font-weight: 600;
-    font-size: 11px;
+    font-size: 10px;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: {p.text_secondary};
+    color: {p.text3};
 }}
 QGroupBox::title {{
     subcontrol-origin: margin;
     subcontrol-position: top left;
-    left: 12px;
-    top: -6px;
-    background-color: {p.bg_card};
+    left: 12px; top: -6px;
+    background-color: {p.bg1};
     padding: 0 4px;
 }}
 
-/* ── Frame ───────────────────────────────────────────────────── */
-QFrame[frameShape="4"],
-QFrame[frameShape="5"] {{
-    color: {p.border};
-}}
-
-/* ── Inputs ──────────────────────────────────────────────────── */
-QLineEdit, QTextEdit, QPlainTextEdit {{
-    background-color: {p.bg_input};
-    border: 1px solid {p.border};
-    border-radius: {p.border_radius_sm}px;
-    padding: 7px 10px;
-    color: {p.text_primary};
-}}
-QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {{
-    border-color: {p.border_focus};
-    background-color: {p.bg_card};
-}}
-QLineEdit:disabled, QTextEdit:disabled {{
-    color: {p.text_disabled};
-    background-color: {p.bg_panel};
-}}
-QLineEdit[readOnly=true] {{
-    color: {p.text_secondary};
-    background-color: {p.bg_panel};
-}}
-
-/* ── ComboBox ────────────────────────────────────────────────── */
-QComboBox {{
-    background-color: {p.bg_input};
-    border: 1px solid {p.border};
-    border-radius: {p.border_radius_sm}px;
-    padding: 7px 10px;
-    color: {p.text_primary};
-    min-width: 80px;
-}}
-QComboBox:focus {{
-    border-color: {p.border_focus};
-}}
-QComboBox::drop-down {{
-    border: none;
-    width: 24px;
-}}
-QComboBox::down-arrow {{
-    image: none;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid {p.text_secondary};
-    width: 0;
-    height: 0;
-    margin-right: 6px;
-}}
-QComboBox QAbstractItemView {{
-    background-color: {p.bg_card};
-    border: 1px solid {p.border};
-    border-radius: {p.border_radius_sm}px;
-    color: {p.text_primary};
-    selection-background-color: {p.accent_dim};
-    padding: 4px;
-    outline: 0;
-}}
-QComboBox QAbstractItemView::item {{
-    padding: 6px 10px;
-    border-radius: 4px;
-    min-height: 28px;
-}}
-QComboBox QAbstractItemView::item:hover {{
-    background-color: {p.bg_hover};
-}}
-
-/* ── SpinBox ─────────────────────────────────────────────────── */
-QSpinBox, QDoubleSpinBox {{
-    background-color: {p.bg_input};
-    border: 1px solid {p.border};
-    border-radius: {p.border_radius_sm}px;
-    padding: 7px 10px;
-    color: {p.text_primary};
-}}
-QSpinBox:focus, QDoubleSpinBox:focus {{
-    border-color: {p.border_focus};
-}}
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {{
-    border: none;
-    background: transparent;
-    width: 16px;
-}}
-
-/* ── DateEdit ────────────────────────────────────────────────── */
-QDateEdit {{
-    background-color: {p.bg_input};
-    border: 1px solid {p.border};
-    border-radius: {p.border_radius_sm}px;
-    padding: 7px 10px;
-    color: {p.text_primary};
-}}
-QDateEdit:focus {{ border-color: {p.border_focus}; }}
-
-/* ── Butonlar ────────────────────────────────────────────────── */
-QPushButton {{
-    background-color: {p.bg_input};
-    border: 1px solid {p.border};
-    border-radius: {p.border_radius_sm}px;
-    padding: 8px 18px;
-    color: {p.text_primary};
-    font-weight: 500;
-    min-height: 32px;
-}}
-QPushButton:hover {{
-    background-color: {p.bg_hover};
-    border-color: {p.text_muted};
-}}
-QPushButton:pressed {{
-    background-color: {p.bg_panel};
-}}
-QPushButton:disabled {{
-    color: {p.text_disabled};
-    border-color: {p.border};
-    background-color: {p.bg_panel};
-}}
-
-/* Primary (mavi) */
-QPushButton[primary="true"] {{
-    background-color: {p.accent};
-    border-color: {p.accent};
-    color: white;
-    font-weight: 600;
-}}
-QPushButton[primary="true"]:hover {{
-    background-color: {p.accent_hover};
-    border-color: {p.accent_hover};
-}}
-QPushButton[primary="true"]:pressed {{
-    background-color: {p.accent};
-}}
-QPushButton[primary="true"]:disabled {{
-    background-color: {p.accent_dim};
-    border-color: {p.accent_dim};
-    color: {p.text_muted};
-}}
-
-/* Danger (kırmızı) */
-QPushButton[danger="true"] {{
-    background-color: {p.danger};
-    border-color: {p.danger};
-    color: white;
-    font-weight: 600;
-}}
-QPushButton[danger="true"]:hover {{
-    background-color: #ff6b63;
-    border-color: #ff6b63;
-}}
-
-/* Ghost (çerçevesiz) */
-QPushButton[ghost="true"] {{
-    background-color: transparent;
-    border-color: transparent;
-    color: {p.text_secondary};
-}}
-QPushButton[ghost="true"]:hover {{
-    background-color: {p.bg_hover};
-    color: {p.text_primary};
-}}
-
-/* ── Checkbox / Radio ────────────────────────────────────────── */
-QCheckBox, QRadioButton {{
-    color: {p.text_primary};
-    spacing: 8px;
-}}
-QCheckBox::indicator, QRadioButton::indicator {{
-    width: 16px;
-    height: 16px;
-    border: 1px solid {p.border};
-    border-radius: 3px;
-    background-color: {p.bg_input};
-}}
-QRadioButton::indicator {{
-    border-radius: 8px;
-}}
-QCheckBox::indicator:checked, QRadioButton::indicator:checked {{
-    background-color: {p.accent};
-    border-color: {p.accent};
-}}
-QCheckBox::indicator:hover, QRadioButton::indicator:hover {{
-    border-color: {p.border_focus};
-}}
-
-/* ── Tablo ───────────────────────────────────────────────────── */
+/* ── Tablo ───────────────────────────────────────── */
 QTableView {{
-    background-color: {p.bg_card};
-    border: 1px solid {p.border};
-    border-radius: {p.border_radius}px;
-    gridline-color: {p.border};
-    alternate-background-color: {p.bg_input};
+    background-color: {p.bg1};
+    border: 1px solid rgba(90,130,200,0.10);
+    border-radius: {p.radius}px;
+    gridline-color: rgba(90,130,200,0.05);
+    alternate-background-color: {p.bg2};
     show-decoration-selected: 1;
 }}
 QTableView::item {{
-    padding: 6px 12px;
+    padding: 6px 10px;
     border: none;
+    color: {p.text2};
 }}
 QTableView::item:selected {{
-    background-color: {p.bg_selected};
-    color: {p.text_primary};
+    background-color: rgba(52,121,255,0.12);
+    color: {p.text};
 }}
 QTableView::item:hover:!selected {{
-    background-color: {p.bg_hover};
+    background-color: rgba(90,130,200,0.05);
 }}
 QHeaderView::section {{
-    background-color: {p.bg_panel};
-    color: {p.text_secondary};
+    background-color: {p.bg1};
+    color: {p.text3};
     border: none;
-    border-bottom: 1px solid {p.border};
-    border-right: 1px solid {p.border};
-    padding: 8px 12px;
-    font-size: 11px;
-    font-weight: 600;
+    border-bottom: 1px solid rgba(90,130,200,0.10);
+    border-right: 1px solid rgba(90,130,200,0.05);
+    padding: 7px 10px;
+    font-size: 9px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.8px;
 }}
-QHeaderView::section:last {{
-    border-right: none;
-}}
+QHeaderView::section:last {{ border-right: none; }}
 
-/* ── TabWidget ───────────────────────────────────────────────── */
+/* ── TabWidget ───────────────────────────────────── */
 QTabWidget::pane {{
-    border: 1px solid {p.border};
-    border-radius: {p.border_radius}px;
-    background-color: {p.bg_card};
+    border: 1px solid rgba(90,130,200,0.10);
+    border-radius: {p.radius}px;
+    background-color: {p.bg1};
     top: -1px;
 }}
+QTabBar {{
+    background: transparent;
+}}
 QTabBar::tab {{
-    background-color: {p.bg_panel};
-    border: 1px solid {p.border};
-    border-bottom: none;
-    border-radius: 6px 6px 0 0;
-    padding: 8px 20px;
-    color: {p.text_secondary};
-    font-weight: 500;
+    background-color: {p.bg2};
+    border: none;
+    border-radius: 5px;
+    padding: 5px 14px;
+    color: {p.text3};
+    font-size: 10.5px;
     margin-right: 2px;
+    font-family: "Consolas","Courier New",monospace;
 }}
 QTabBar::tab:selected {{
-    background-color: {p.bg_card};
-    color: {p.text_primary};
-    border-bottom: 2px solid {p.accent};
+    background-color: {p.bg3};
+    color: {p.text};
 }}
 QTabBar::tab:hover:!selected {{
-    color: {p.text_primary};
-    background-color: {p.bg_hover};
+    color: {p.text2};
+    background-color: {p.bg3};
 }}
 
-/* ── ScrollBar ───────────────────────────────────────────────── */
+/* ── ScrollBar ───────────────────────────────────── */
 QScrollBar:vertical {{
     background: transparent;
-    width: 8px;
-    margin: 2px;
+    width: 3px; margin: 2px;
 }}
 QScrollBar::handle:vertical {{
-    background-color: {p.border};
-    border-radius: 4px;
+    background-color: {p.bg4};
+    border-radius: 2px;
     min-height: 30px;
 }}
-QScrollBar::handle:vertical:hover {{
-    background-color: {p.text_muted};
-}}
-QScrollBar::add-line:vertical,
-QScrollBar::sub-line:vertical {{
-    height: 0;
-    background: none;
+QScrollBar::handle:vertical:hover {{ background-color: {p.text3}; }}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+    height: 0; background: none;
 }}
 QScrollBar:horizontal {{
     background: transparent;
-    height: 8px;
-    margin: 2px;
+    height: 3px; margin: 2px;
 }}
 QScrollBar::handle:horizontal {{
-    background-color: {p.border};
-    border-radius: 4px;
+    background-color: {p.bg4};
+    border-radius: 2px;
     min-width: 30px;
 }}
-QScrollBar::handle:horizontal:hover {{
-    background-color: {p.text_muted};
-}}
-QScrollBar::add-line:horizontal,
-QScrollBar::sub-line:horizontal {{
-    width: 0;
-    background: none;
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
+    width: 0; background: none;
 }}
 
-/* ── Splitter ────────────────────────────────────────────────── */
+/* ── Splitter ────────────────────────────────────── */
 QSplitter::handle {{
-    background-color: {p.border};
+    background-color: rgba(90,130,200,0.10);
 }}
 
-/* ── ToolTip ─────────────────────────────────────────────────── */
+/* ── ToolTip ─────────────────────────────────────── */
 QToolTip {{
-    background-color: {p.bg_card};
-    color: {p.text_primary};
-    border: 1px solid {p.border};
-    border-radius: 4px;
+    background-color: {p.bg3};
+    color: {p.text};
+    border: 1px solid rgba(90,130,200,0.22);
+    border-radius: 5px;
     padding: 4px 8px;
-    font-size: 12px;
+    font-size: 11px;
 }}
 
-/* ── Menu ────────────────────────────────────────────────────── */
+/* ── Menu ────────────────────────────────────────── */
 QMenu {{
-    background-color: {p.bg_card};
-    border: 1px solid {p.border};
-    border-radius: {p.border_radius_sm}px;
+    background-color: {p.bg2};
+    border: 1px solid rgba(90,130,200,0.22);
+    border-radius: {p.radius_sm}px;
     padding: 4px;
 }}
 QMenu::item {{
-    padding: 7px 20px;
+    padding: 6px 20px;
     border-radius: 4px;
-    color: {p.text_primary};
+    color: {p.text2};
+    font-size: 11.5px;
 }}
-QMenu::item:selected {{
-    background-color: {p.bg_hover};
-}}
+QMenu::item:selected {{ background-color: {p.bg3}; color: {p.text}; }}
 QMenu::separator {{
     height: 1px;
-    background-color: {p.border};
+    background-color: rgba(90,130,200,0.10);
     margin: 4px 8px;
 }}
 
-/* ── StatusBar ───────────────────────────────────────────────── */
-QStatusBar {{
-    background-color: {p.bg_panel};
-    color: {p.text_secondary};
-    border-top: 1px solid {p.border};
-    font-size: 12px;
-}}
-
-/* ── MessageBox ──────────────────────────────────────────────── */
-QMessageBox {{
-    background-color: {p.bg_card};
-    border: 1px solid {p.border};
-    border-radius: {p.border_radius}px;
-}}
-QMessageBox QLabel {{
-    color: {p.text_primary};
-    background: transparent;
-}}
-
-/* ── Dialog ──────────────────────────────────────────────────── */
+/* ── Dialog ──────────────────────────────────────── */
 QDialog {{
-    background-color: {p.bg_card};
-    border: 1px solid {p.border};
-    border-radius: {p.border_radius}px;
+    background-color: {p.bg1};
+    border: 1px solid rgba(90,130,200,0.22);
+    border-radius: {p.radius}px;
+}}
+
+/* ── Frame ───────────────────────────────────────── */
+QFrame[frameShape="4"], QFrame[frameShape="5"] {{
+    color: rgba(90,130,200,0.15);
+}}
+
+/* ── Checkbox ────────────────────────────────────── */
+QCheckBox {{ color: {p.text}; spacing: 8px; }}
+QCheckBox::indicator {{
+    width: 15px; height: 15px;
+    border: 1px solid rgba(90,130,200,0.25);
+    border-radius: 4px;
+    background-color: {p.bg2};
+}}
+QCheckBox::indicator:checked {{
+    background-color: {p.accent};
+    border-color: {p.accent};
+}}
+
+/* ── SpinBox ─────────────────────────────────────── */
+QSpinBox, QDoubleSpinBox {{
+    background-color: {p.bg2};
+    border: 1px solid rgba(90,130,200,0.15);
+    border-radius: {p.radius_sm}px;
+    padding: 6px 10px;
+    color: {p.text};
+}}
+QSpinBox:focus, QDoubleSpinBox:focus {{ border-color: {p.accent}; }}
+QSpinBox::up-button, QDoubleSpinBox::up-button,
+QSpinBox::down-button, QDoubleSpinBox::down-button {{
+    border: none; background: transparent; width: 16px;
 }}
 """
 
 
-# ══════════════════════════════════════════════════════════════════
-#  FONT
-# ══════════════════════════════════════════════════════════════════
-
-def _uygulama_fontu() -> QFont:
+def apply(app: QApplication) -> None:
+    app.setStyle("Fusion")
     font = QFont()
-    # Platform'a göre en iyi sistemi seç
     for aday in ("Segoe UI", "SF Pro Text", "Helvetica Neue", "Arial"):
         f = QFont(aday)
         if f.exactMatch():
             font = f
             break
-    font.setPointSize(10)
-    return font
+    font.setPointSize(9)
+    app.setFont(font)
+    app.setStyleSheet(_qss())
 
-
-# ══════════════════════════════════════════════════════════════════
-#  PUBLIC API
-# ══════════════════════════════════════════════════════════════════
-
-def apply(app: QApplication) -> None:
-    """
-    Temayı uygulamaya uygular.
-    main.py'de QApplication oluşturulduktan hemen sonra çağırılır.
-
-    Kullanım:
-        app = QApplication(sys.argv)
-        from ui.theme import apply
-        apply(app)
-    """
-    app.setStyle("Fusion")
-    app.setFont(_uygulama_fontu())
-    app.setStyleSheet(_stylesheet())
-
-    # Qt palette — sistem dialog'ları için de koyu tema
-    palette = QPalette()
-    palette.setColor(QPalette.ColorRole.Window,          QColor(T.bg_app))
-    palette.setColor(QPalette.ColorRole.WindowText,      QColor(T.text_primary))
-    palette.setColor(QPalette.ColorRole.Base,            QColor(T.bg_input))
-    palette.setColor(QPalette.ColorRole.AlternateBase,   QColor(T.bg_card))
-    palette.setColor(QPalette.ColorRole.Text,            QColor(T.text_primary))
-    palette.setColor(QPalette.ColorRole.Button,          QColor(T.bg_input))
-    palette.setColor(QPalette.ColorRole.ButtonText,      QColor(T.text_primary))
-    palette.setColor(QPalette.ColorRole.Highlight,       QColor(T.accent))
-    palette.setColor(QPalette.ColorRole.HighlightedText, QColor("#ffffff"))
-    palette.setColor(QPalette.ColorRole.Link,            QColor(T.text_link))
-    palette.setColor(QPalette.ColorRole.ToolTipBase,     QColor(T.bg_card))
-    palette.setColor(QPalette.ColorRole.ToolTipText,     QColor(T.text_primary))
-    app.setPalette(palette)
+    pal = QPalette()
+    pal.setColor(QPalette.ColorRole.Window,        QColor(T.bg0))
+    pal.setColor(QPalette.ColorRole.WindowText,    QColor(T.text))
+    pal.setColor(QPalette.ColorRole.Base,          QColor(T.bg2))
+    pal.setColor(QPalette.ColorRole.AlternateBase, QColor(T.bg1))
+    pal.setColor(QPalette.ColorRole.Text,          QColor(T.text))
+    pal.setColor(QPalette.ColorRole.Button,        QColor(T.bg2))
+    pal.setColor(QPalette.ColorRole.ButtonText,    QColor(T.text))
+    pal.setColor(QPalette.ColorRole.Highlight,     QColor(T.accent))
+    pal.setColor(QPalette.ColorRole.HighlightedText, QColor("#ffffff"))
+    pal.setColor(QPalette.ColorRole.ToolTipBase,   QColor(T.bg3))
+    pal.setColor(QPalette.ColorRole.ToolTipText,   QColor(T.text))
+    app.setPalette(pal)

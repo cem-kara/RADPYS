@@ -27,9 +27,9 @@ class _PersonelModel(_TableModel):
     def _foreground(self, key: str, deger, row: dict):
         if key == "durum":
             return {
-                "aktif":   T.success,
-                "pasif":   T.text_muted,
-                "ayrildi": T.danger,
+                "aktif":   T.green2,
+                "pasif":   T.text3,
+                "ayrildi": T.red,
             }.get(str(deger or ""), None)
         return None
 
@@ -81,7 +81,7 @@ class PersonelListesi(QWidget):
         # Üst araç çubuğu
         ara_frame = QFrame()
         ara_frame.setStyleSheet(
-            f"background:{T.bg_panel}; border-bottom:1px solid {T.border};"
+            f"background:{T.bg1}; border-bottom:1px solid {T.border};"
         )
         ara_lay = QVBoxLayout(ara_frame)
         ara_lay.setContentsMargins(12, 10, 12, 10)
@@ -90,10 +90,10 @@ class PersonelListesi(QWidget):
         ust = QHBoxLayout()
         lbl = QLabel("Personel")
         lbl.setStyleSheet(
-            f"color:{T.text_primary}; font-size:15px; font-weight:600;"
+            f"color:{T.text}; font-size:15px; font-weight:600;"
         )
         self._lbl_sayac = QLabel("0 kayıt")
-        self._lbl_sayac.setStyleSheet(f"color:{T.text_muted}; font-size:11px;")
+        self._lbl_sayac.setStyleSheet(f"color:{T.text3}; font-size:11px;")
         btn_yeni = PrimaryButton("+ Yeni")
         btn_yeni.setFixedHeight(30)
         btn_yeni.clicked.connect(self.yeni_istendi)

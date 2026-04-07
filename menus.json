@@ -1,0 +1,139 @@
+{
+  "_aciklama": [
+    "menus.json — Menü yapısı tanım dosyası.",
+    "Yeni modül eklemek için 'moduller' dizisine yeni bir nesne ekle.",
+    "page_cls: 'paket.alt_paket.DosyaAdi.SinifAdi' formatında.",
+    "Badge sayısı için app/badge_functions.py dosyasına bak.",
+    "Dinamik badge (DB sorgusu) olan modüller badge_id alanı kullanır.",
+    "bolum: 'ana_menu' | 'cihaz' | 'nobet' | 'sistem'"
+  ],
+
+  "bolumler": {
+    "ana_menu": { "label": "Ana Menü", "sira": 0 },
+    "cihaz":    { "label": "Cihaz",    "sira": 1 },
+    "nobet":    { "label": "Nöbet",    "sira": 2 },
+    "sistem":   { "label": "Sistem",   "sira": 3 }
+  },
+
+  "moduller": [
+    {
+      "id":        "dashboard",
+      "label":     "Dashboard",
+      "icon":      "⊞",
+      "bolum":     "ana_menu",
+      "sira":      0,
+      "page_cls":  "ui.pages.dashboard.dashboard_page.DashboardPage"
+    },
+    {
+      "id":         "personel",
+      "label":      "Personel",
+      "icon":       "👤",
+      "bolum":      "ana_menu",
+      "sira":       10,
+      "page_cls":   "ui.pages.personel.personel_page.PersonelPage",
+      "badge_id":   "personel_aktif",
+      "badge_renk": "#3479ff",
+      "varsayilan": true
+    },
+    {
+      "id":         "izin",
+      "label":      "İzin Takip",
+      "icon":       "📅",
+      "bolum":      "ana_menu",
+      "sira":       20,
+      "page_cls":   "ui.pages.placeholder.PlaceholderPage",
+      "badge_id":   "izin_aktif",
+      "badge_renk": "#e8a020"
+    },
+    {
+      "id":       "saglik",
+      "label":    "Sağlık Takip",
+      "icon":     "🏥",
+      "bolum":    "ana_menu",
+      "sira":     30,
+      "page_cls": "ui.pages.placeholder.PlaceholderPage"
+    },
+    {
+      "id":       "dozimetre",
+      "label":    "Dozimetre",
+      "icon":     "☢",
+      "bolum":    "ana_menu",
+      "sira":     40,
+      "page_cls": "ui.pages.placeholder.PlaceholderPage"
+    },
+    {
+      "id":       "cihaz",
+      "label":    "Cihaz Listesi",
+      "icon":     "⚙",
+      "bolum":    "cihaz",
+      "sira":     10,
+      "page_cls": "ui.pages.placeholder.PlaceholderPage"
+    },
+    {
+      "id":         "ariza",
+      "label":      "Arıza Takip",
+      "icon":       "🔧",
+      "bolum":      "cihaz",
+      "sira":       20,
+      "page_cls":   "ui.pages.placeholder.PlaceholderPage",
+      "badge_id":   "ariza_acik",
+      "badge_renk": "#e83a5a"
+    },
+    {
+      "id":       "bakim",
+      "label":    "Bakım & Kalibr.",
+      "icon":     "🔬",
+      "bolum":    "cihaz",
+      "sira":     30,
+      "page_cls": "ui.pages.placeholder.PlaceholderPage"
+    },
+    {
+      "id":       "rke",
+      "label":    "RKE Envanter",
+      "icon":     "🛡",
+      "bolum":    "cihaz",
+      "sira":     40,
+      "page_cls": "ui.pages.placeholder.PlaceholderPage"
+    },
+    {
+      "id":       "nobet",
+      "label":    "Nöbet Planı",
+      "icon":     "🌙",
+      "bolum":    "nobet",
+      "sira":     10,
+      "page_cls": "ui.pages.placeholder.PlaceholderPage"
+    },
+    {
+      "id":       "mesai",
+      "label":    "Fazla Mesai",
+      "icon":     "⏰",
+      "bolum":    "nobet",
+      "sira":     20,
+      "page_cls": "ui.pages.placeholder.PlaceholderPage"
+    },
+    {
+      "id":       "dokumanlar",
+      "label":    "Dökümanlar",
+      "icon":     "📁",
+      "bolum":    "sistem",
+      "sira":     10,
+      "page_cls": "ui.pages.placeholder.PlaceholderPage"
+    },
+    {
+      "id":       "rapor",
+      "label":    "Raporlar",
+      "icon":     "📈",
+      "bolum":    "sistem",
+      "sira":     20,
+      "page_cls": "ui.pages.placeholder.PlaceholderPage"
+    },
+    {
+      "id":       "ayarlar",
+      "label":    "Yönetim",
+      "icon":     "⚙",
+      "bolum":    "sistem",
+      "sira":     30,
+      "page_cls": "ui.pages.placeholder.PlaceholderPage"
+    }
+  ]
+}

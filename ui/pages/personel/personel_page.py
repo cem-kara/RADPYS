@@ -47,13 +47,13 @@ class _KarsilamaEkrani(QWidget):
         lbl = QLabel("Personel seçin")
         lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl.setStyleSheet(
-            f"color:{T.text_muted}; font-size:18px; font-weight:600;"
+            f"color:{T.text3}; font-size:18px; font-weight:600;"
         )
         lay.addWidget(lbl)
 
         alt = QLabel("Soldan bir personel seçerek\nbilgilerini görüntüleyebilirsiniz.")
         alt.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        alt.setStyleSheet(f"color:{T.text_muted}; font-size:12px;")
+        alt.setStyleSheet(f"color:{T.text3}; font-size:12px;")
         lay.addWidget(alt)
 
 

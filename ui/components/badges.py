@@ -16,27 +16,27 @@ class Badge(QLabel):
     """
 
     _DURUM_MAP = {
-        "aktif":         (T.success, T.bg_app),
-        "pasif":         (T.text_muted, T.bg_input),
-        "ayrildi":       (T.danger, T.bg_app),
-        "taslak":        (T.warning, T.bg_app),
-        "onaylandi":     (T.success, T.bg_app),
-        "iptal":         (T.text_muted, T.bg_input),
-        "uygun":         (T.success, T.bg_app),
-        "uygun_degil":   (T.danger, T.bg_app),
-        "takip":         (T.warning, T.bg_app),
-        "asim":          (T.danger, T.danger_dim),
-        "normal":        (T.success, T.bg_app),
-        "uyari":         (T.warning, T.warning_dim),
-        "tehlike":       (T.danger, T.danger_dim),
+        "aktif":         (T.green2, T.bg0),
+        "pasif":         (T.text3, T.bg4),
+        "ayrildi":       (T.red, T.bg0),
+        "taslak":        (T.amber, T.bg0),
+        "onaylandi":     (T.green2, T.bg0),
+        "iptal":         (T.text3, T.bg4),
+        "uygun":         (T.green2, T.bg0),
+        "uygun_degil":   (T.red, T.bg0),
+        "takip":         (T.amber, T.bg0),
+        "asim":          (T.red, "rgba(232,58,90,0.10)"),
+        "normal":        (T.green2, T.bg0),
+        "uyari":         (T.amber, "rgba(232,160,32,0.10)"),
+        "tehlike":       (T.red, "rgba(232,58,90,0.10)"),
     }
 
     _TUR_MAP = {
-        "success": (T.success, T.success_dim),
-        "warning": (T.warning, T.warning_dim),
-        "danger":  (T.danger,  T.danger_dim),
-        "info":    (T.info,    T.accent_dim),
-        "muted":   (T.text_muted, T.bg_input),
+        "success": (T.green2, "rgba(29,184,106,0.10)"),
+        "warning": (T.amber, "rgba(232,160,32,0.10)"),
+        "danger":  (T.red,  "rgba(232,58,90,0.10)"),
+        "info":    (T.accent2,    "rgba(52,121,255,0.12)"),
+        "muted":   (T.text3, T.bg4),
     }
 
     def __init__(self, etiket: str, tur: str = "", parent=None):
@@ -53,7 +53,7 @@ class Badge(QLabel):
         elif anahtar in self._DURUM_MAP:
             renk, arka = self._DURUM_MAP[anahtar]
         else:
-            renk, arka = T.text_secondary, T.bg_input
+            renk, arka = T.text2, T.bg4
 
         self.setStyleSheet(
             f"background-color:{arka};"

@@ -168,7 +168,7 @@ class KimlikPanel(QWidget):
 
         for i, (key, etiket, duzenlenebilir) in enumerate(alanlar):
             lbl = QLabel(etiket + ":")
-            lbl.setStyleSheet(f"color:{T.text_secondary}; font-size:12px;")
+            lbl.setStyleSheet(f"color:{T.text2}; font-size:12px;")
             lbl.setFixedWidth(150)
             lbl.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
 
@@ -176,8 +176,8 @@ class KimlikPanel(QWidget):
             edit.setReadOnly(True)
             edit.setProperty("_duzenlenebilir", duzenlenebilir)
             edit.setStyleSheet(
-                f"background:{T.bg_panel}; border:1px solid {T.border};"
-                f"border-radius:6px; padding:6px 10px; color:{T.text_primary};"
+                f"background:{T.bg1}; border:1px solid {T.border};"
+                f"border-radius:6px; padding:6px 10px; color:{T.text};"
             )
             grid.addWidget(lbl, i, 0)
             grid.addWidget(edit, i, 1)
@@ -199,7 +199,7 @@ class KimlikPanel(QWidget):
 
         for key, etiket in combo_alanlar:
             lbl = QLabel(etiket + ":")
-            lbl.setStyleSheet(f"color:{T.text_secondary}; font-size:12px;")
+            lbl.setStyleSheet(f"color:{T.text2}; font-size:12px;")
             lbl.setFixedWidth(150)
             lbl.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             combo = QComboBox()
@@ -211,15 +211,15 @@ class KimlikPanel(QWidget):
 
         for key, etiket in (text_alanlar or []):
             lbl = QLabel(etiket + ":")
-            lbl.setStyleSheet(f"color:{T.text_secondary}; font-size:12px;")
+            lbl.setStyleSheet(f"color:{T.text2}; font-size:12px;")
             lbl.setFixedWidth(150)
             lbl.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             edit = QLineEdit()
             edit.setReadOnly(True)
             edit.setProperty("_duzenlenebilir", True)
             edit.setStyleSheet(
-                f"background:{T.bg_panel}; border:1px solid {T.border};"
-                f"border-radius:6px; padding:6px 10px; color:{T.text_primary};"
+                f"background:{T.bg1}; border:1px solid {T.border};"
+                f"border-radius:6px; padding:6px 10px; color:{T.text};"
             )
             grid.addWidget(lbl, satir, 0)
             grid.addWidget(edit, satir, 1)
@@ -310,8 +310,8 @@ class KimlikPanel(QWidget):
                 if widget.property("_duzenlenebilir"):
                     widget.setReadOnly(False)
                     widget.setStyleSheet(
-                        f"background:{T.bg_input}; border:1px solid {T.border_focus};"
-                        f"border-radius:6px; padding:6px 10px; color:{T.text_primary};"
+                        f"background:{T.bg4}; border:1px solid {T.accent};"
+                        f"border-radius:6px; padding:6px 10px; color:{T.text};"
                     )
             elif isinstance(widget, QComboBox):
                 widget.setEnabled(True)
@@ -331,8 +331,8 @@ class KimlikPanel(QWidget):
             if isinstance(widget, QLineEdit):
                 widget.setReadOnly(True)
                 widget.setStyleSheet(
-                    f"background:{T.bg_panel}; border:1px solid {T.border};"
-                    f"border-radius:6px; padding:6px 10px; color:{T.text_primary};"
+                    f"background:{T.bg1}; border:1px solid {T.border};"
+                    f"border-radius:6px; padding:6px 10px; color:{T.text};"
                 )
             elif isinstance(widget, QComboBox):
                 widget.setEnabled(False)

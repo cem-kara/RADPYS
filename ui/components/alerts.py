@@ -21,10 +21,10 @@ class AlertBar(QFrame):
     """
 
     _STILLER = {
-        "danger":  (T.danger,  T.danger_dim,  "⛔"),
-        "warning": (T.warning, T.warning_dim, "⚠"),
-        "success": (T.success, T.success_dim, "✓"),
-        "info":    (T.info,    T.accent_dim,  "ℹ"),
+        "danger":  (T.red,  "rgba(232,58,90,0.10)",  "⛔"),
+        "warning": (T.amber, "rgba(232,160,32,0.10)", "⚠"),
+        "success": (T.green2, "rgba(29,184,106,0.10)", "✓"),
+        "info":    (T.accent2,    "rgba(52,121,255,0.12)",  "ℹ"),
     }
 
     def __init__(self, parent=None):

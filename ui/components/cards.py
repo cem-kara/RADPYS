@@ -31,7 +31,7 @@ class StatCard(QFrame):
     Kullanım:
         card = StatCard("Toplam Personel")
         card.set("42")
-        card.set("5", renk=T.warning, alt="Bu ay izinli")
+        card.set("5", renk=T.amber, alt="Bu ay izinli")
     """
 
     def __init__(self, baslik: str, parent=None):
@@ -44,7 +44,7 @@ class StatCard(QFrame):
 
         self._lbl_baslik = QLabel(baslik.upper())
         self._lbl_baslik.setStyleSheet(
-            f"color:{T.text_muted}; font-size:10px; font-weight:600;"
+            f"color:{T.text3}; font-size:10px; font-weight:600;"
             f"letter-spacing:0.5px;"
         )
 
@@ -55,7 +55,7 @@ class StatCard(QFrame):
         self._lbl_deger.setFont(font)
 
         self._lbl_alt = QLabel("")
-        self._lbl_alt.setStyleSheet(f"color:{T.text_secondary}; font-size:11px;")
+        self._lbl_alt.setStyleSheet(f"color:{T.text2}; font-size:11px;")
         self._lbl_alt.setVisible(False)
 
         lay.addWidget(self._lbl_baslik)
@@ -65,7 +65,7 @@ class StatCard(QFrame):
     def set(self, deger: str, renk: str = "", alt: str = "") -> None:
         self._lbl_deger.setText(deger)
         self._lbl_deger.setStyleSheet(
-            f"color:{renk if renk else T.text_primary};"
+            f"color:{renk if renk else T.text};"
         )
         if alt:
             self._lbl_alt.setText(alt)
