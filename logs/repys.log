@@ -78,3 +78,7 @@
 2026-04-07 12:01:03,763 [INFO] repys.db: DB açıldı: C:\Users\HP\Desktop\Yeni klasör\REPYS\RADPYS-1\data\repys.db
 2026-04-07 12:01:03,763 [INFO] repys.db.migration: DB güncel (v1), migration gerek yok.
 2026-04-07 12:01:08,088 [INFO] repys.db: DB kapatıldı: C:\Users\HP\Desktop\Yeni klasör\REPYS\RADPYS-1\data\repys.db
+2026-04-07 12:05:12,225 [INFO] repys: REPYS 2.0 başlatılıyor…
+2026-04-07 12:05:12,245 [INFO] repys.db: DB açıldı: C:\Users\HP\Desktop\Yeni klasör\REPYS\RADPYS-1\data\repys.db
+2026-04-07 12:05:12,245 [INFO] repys.db.migration: DB güncel (v1), migration gerek yok.
+2026-04-07 12:05:15,111 [INFO] repys.db: DB kapatıldı: C:\Users\HP\Desktop\Yeni klasör\REPYS\RADPYS-1\data\repys.db
