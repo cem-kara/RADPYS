@@ -59,7 +59,7 @@ radpys2/
 │           └── policy_repo.py
 │
 ├── ui/
-│   ├── theme.py             ← T nesnesi — tüm renkler buradan
+│   ├── styles/              ← Merkezi tema sistemi (T, DARK/LIGHT, ThemeManager, Icons)
 │   ├── app_window.py        ← AppWindow (registry-driven, dokunma)
 │   ├── components/          ← Reusable widget'lar
 │   │   ├── buttons.py       ← PrimaryButton, DangerButton, GhostButton, IconButton
@@ -67,10 +67,10 @@ radpys2/
 │   │   ├── badges.py        ← Badge
 │   │   ├── alerts.py        ← AlertBar
 │   │   ├── tables.py        ← DataTable
-│   │   ├── forms.py         ← FormRow, SearchBar, LookupCombo
+│   │   ├── forms.py         ← TextField/ComboField/FormGroup/SearchBar vb. alanlar
 │   │   └── async_runner.py  ← AsyncRunner (tek QThread implementasyonu)
 │   └── pages/
-│       ├── placeholder.py   ← Henüz yazılmamış modüller için
+│       ├── placeholder.py   ← Henüz yazılmamış modüller (registry'de menüden filtrelenir)
 │       ├── dashboard/
 │       └── personel/
 │           ├── panels/
@@ -343,11 +343,11 @@ from app.config import (
 
 ### 6.1 Tema Sistemi
 
-Tüm renkler `ui/theme.py` içindeki `T` nesnesinden gelir.
+Tüm renkler `ui/styles` içindeki `T` nesnesinden gelir.
 **Hiçbir yerde hex renk kodu veya inline CSS yazma.**
 
 ```python
-from ui.theme import T
+from ui.styles import T
 
 # DOĞRU
 label.setStyleSheet(f"color:{T.text2}; background:{T.bg2};")
@@ -420,8 +420,7 @@ from ui.components import (
     RadioGroup,      # Radyo grup alanı
     FormGroup,       # Form bölüm container'ı
     SearchBar,       # Arama kutusu (+ ikon)
-    FormRow,         # Legacy yatay satır (geriye uyumluluk)
-    LookupCombo,     # Legacy dropdown (geriye uyumluluk)
+    AsyncButton,     # Async işlem butonu
     AsyncRunner,     # Arkaplan işlem — TEK QThread implementasyonu
 )
 ```
@@ -477,7 +476,7 @@ QMessageBox.critical(self, "Hata", str(e))   # ← bunu yazma
 # ui/pages/ornek/ornek_page.py
 from __future__ import annotations
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
-from ui.theme import T
+from ui.styles import T
 from ui.components import PrimaryButton, SearchBar, DataTable, AlertBar
 from ui.components.async_runner import AsyncRunner
 from app.db.database import Database
