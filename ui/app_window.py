@@ -140,7 +140,7 @@ class _Topbar(QFrame):
             f"color:{T.text};font-size:13.5px;font-weight:700;"
             f"letter-spacing:0.04em;"
         )
-        sub = QLabel("Radyoloji Yönetim Sistemi")
+        sub = QLabel("Radyoloji Personel ve Cihaz Yönetim Sistemi")
         sub.setStyleSheet(f"color:{T.text3};font-size:9px;")
         col.addWidget(nm)
         col.addWidget(sub)

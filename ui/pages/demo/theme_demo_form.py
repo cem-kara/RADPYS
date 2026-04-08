@@ -122,22 +122,30 @@ class ThemeDemoForm(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._tabs: QTabWidget | None = None
+        self._palette_host: QWidget | None = None
+        self._palette_lay: QVBoxLayout | None = None
+
+        self._root = QVBoxLayout(self)
+        self._root.setContentsMargins(20, 16, 20, 16)
+        self._root.setSpacing(14)
+
+        ThemeManager.instance().theme_changed.connect(self._on_theme_changed)
+        self._rebuild_ui()
+
+    def _rebuild_ui(self, keep_tab: int = 0) -> None:
+        self.setStyleSheet(f"background:{T.bg0};")
+        self._clear_layout(self._root)
+
         self._palette_host = QWidget()
         self._palette_lay = QVBoxLayout(self._palette_host)
         self._palette_lay.setContentsMargins(0, 0, 0, 0)
         self._palette_lay.setSpacing(0)
-        self._build()
-        self._refresh_palette()
-
-    def _build(self) -> None:
-        root = QVBoxLayout(self)
-        root.setContentsMargins(16, 14, 16, 14)
-        root.setSpacing(12)
 
         top = QHBoxLayout()
         top.setSpacing(8)
         title = QLabel("RADPYS tema ve bilesen demosu")
-        title.setStyleSheet(f"color:{T.text}; font-size:16px; font-weight:700;")
+        title.setStyleSheet(f"color:{T.text}; font-size:18px; font-weight:700;")
         top.addWidget(title)
         top.addStretch()
 
@@ -147,24 +155,47 @@ class ThemeDemoForm(QWidget):
         light_btn.clicked.connect(lambda: self._set_theme("light"))
         top.addWidget(dark_btn)
         top.addWidget(light_btn)
-        root.addLayout(top)
+        self._root.addLayout(top)
+
+        subtitle = QLabel("Bu ekran, tema degisiminde ortak bilesenlerin gorunur sonucunu test etmek icin tasarlanmistir.")
+        subtitle.setStyleSheet(f"color:{T.text2}; font-size:12px;")
+        self._root.addWidget(subtitle)
 
         self._alert = AlertBar(self)
         self._alert.goster("Bu ekran guncel tema tokenlari ve ortak UI bilesenlerini gosterir.", "info")
-        root.addWidget(self._alert)
+        self._root.addWidget(self._alert)
 
-        tabs = QTabWidget()
-        tabs.addTab(self._build_components_tab(), "Bilesenler")
-        tabs.addTab(self._build_form_tab(), "Form")
-        tabs.addTab(self._build_table_tab(), "Tablo")
-        tabs.addTab(self._palette_host, "Renkler")
-        root.addWidget(tabs, 1)
+        self._tabs = QTabWidget()
+        self._tabs.addTab(self._build_components_tab(), "Bilesenler")
+        self._tabs.addTab(self._build_form_tab(), "Form")
+        self._tabs.addTab(self._build_table_tab(), "Tablo")
+        self._tabs.addTab(self._palette_host, "Renkler")
+        self._tabs.setCurrentIndex(max(0, min(keep_tab, self._tabs.count() - 1)))
+        self._root.addWidget(self._tabs, 1)
+
+        self._refresh_palette()
+
+    @staticmethod
+    def _clear_layout(layout: QVBoxLayout) -> None:
+        while layout.count() > 0:
+            item = layout.takeAt(0)
+            child = item.widget()
+            if child is not None:
+                child.deleteLater()
+                continue
+            child_layout = item.layout()
+            if child_layout is not None:
+                while child_layout.count() > 0:
+                    sub = child_layout.takeAt(0)
+                    sub_widget = sub.widget()
+                    if sub_widget is not None:
+                        sub_widget.deleteLater()
 
     def _build_components_tab(self) -> QWidget:
         page = QWidget()
         lay = QVBoxLayout(page)
-        lay.setContentsMargins(8, 8, 8, 8)
-        lay.setSpacing(12)
+        lay.setContentsMargins(12, 12, 12, 12)
+        lay.setSpacing(14)
 
         stats_row = QHBoxLayout()
         stats_row.setSpacing(10)
@@ -207,8 +238,8 @@ class ThemeDemoForm(QWidget):
     def _build_form_tab(self) -> QWidget:
         page = QWidget()
         lay = QVBoxLayout(page)
-        lay.setContentsMargins(8, 8, 8, 8)
-        lay.setSpacing(12)
+        lay.setContentsMargins(12, 12, 12, 12)
+        lay.setSpacing(14)
 
         grp = FormGroup("Ornek personel formu")
         self._ad = TextField("Ad Soyad", zorunlu=True, placeholder="Orn: Ayse Yilmaz")
@@ -235,7 +266,15 @@ class ThemeDemoForm(QWidget):
         actions.addWidget(btn_preview)
         actions.addWidget(btn_clear)
         actions.addStretch()
-        lay.addLayout(actions)
+        action_wrap = QFrame()
+        action_wrap.setStyleSheet(
+            f"background:{T.bg1}; border:1px solid {T.border}; border-radius:{T.radius}px;"
+        )
+        action_lay = QHBoxLayout(action_wrap)
+        action_lay.setContentsMargins(12, 10, 12, 10)
+        action_lay.setSpacing(8)
+        action_lay.addLayout(actions)
+        lay.addWidget(action_wrap)
 
         btn_preview.clicked.connect(self._show_preview)
         btn_clear.clicked.connect(self._clear_form)
@@ -245,11 +284,18 @@ class ThemeDemoForm(QWidget):
     def _build_table_tab(self) -> QWidget:
         page = QWidget()
         lay = QVBoxLayout(page)
-        lay.setContentsMargins(8, 8, 8, 8)
-        lay.setSpacing(10)
+        lay.setContentsMargins(12, 12, 12, 12)
+        lay.setSpacing(12)
 
+        search_wrap = QFrame()
+        search_wrap.setStyleSheet(
+            f"background:{T.bg1}; border:1px solid {T.border}; border-radius:{T.radius}px;"
+        )
+        search_lay = QHBoxLayout(search_wrap)
+        search_lay.setContentsMargins(10, 8, 10, 8)
         self._search = SearchBar("Ad, birim veya durum ara")
-        lay.addWidget(self._search)
+        search_lay.addWidget(self._search)
+        lay.addWidget(search_wrap)
 
         self._table = DataTable()
         self._table.kur_kolonlar(
@@ -272,6 +318,8 @@ class ThemeDemoForm(QWidget):
         return page
 
     def _refresh_palette(self) -> None:
+        if self._palette_lay is None:
+            return
         while self._palette_lay.count() > 0:
             item = self._palette_lay.takeAt(0)
             if item and item.widget():
@@ -291,7 +339,10 @@ class ThemeDemoForm(QWidget):
             ThemeManager.apply_light(app)
         else:
             ThemeManager.apply_dark(app)
-        self._refresh_palette()
+
+    def _on_theme_changed(self, _theme_name: str) -> None:
+        idx = self._tabs.currentIndex() if self._tabs is not None else 0
+        self._rebuild_ui(keep_tab=idx)
 
     def _show_preview(self) -> None:
         if not self._ad.deger():
