@@ -5,6 +5,7 @@ Başlangıçta hardcoded policy kullanılır.
 `init_dari_db(db)` çağrıldıktan sonra DB'deki izinler aktif olur.
 """
 from __future__ import annotations
+from app.security.permissions import has_permission
 
 # ── DB'den yüklenen dinamik policy (başlangıçta None) ─────────────
 _db_moduller: dict[str, set[str] | None] | None = None
@@ -90,8 +91,7 @@ def modul_gorunur_mu(oturum: dict | None, modul_id: str) -> bool:
 
 
 def yetki_var_mi(oturum: dict | None, eylem: str) -> bool:
-    izinler = _ROLE_ACTIONS.get(rol(oturum), set())
-    return eylem in izinler
+    return has_permission(oturum, eylem)
 
 
 def kullanici_kisa_ad(oturum: dict | None) -> str:
@@ -112,17 +112,10 @@ def kullanici_avatar(oturum: dict | None) -> str:
 def rol_modul_haritasi() -> dict[str, set[str] | None]:
     """Mevcut (DB veya hardcoded) modul izin haritasını döner."""
     if _db_moduller is not None:
-        return dict(_db_moduller)
-    return dict(_ROLE_MODULES)
-
-
-def rol_eylem_haritasi() -> dict[str, set[str]]:
-    """Hardcoded eylem izin haritasını döner."""
-    return {r: set(e) for r, e in _ROLE_ACTIONS.items()}
-
-
-def rol_modul_haritasi() -> dict[str, set[str] | None]:
-    """Rollere gore gorunur modul haritasi (salt-okunur kopya)."""
+        sonuc: dict[str, set[str] | None] = {}
+        for r, moduller in _db_moduller.items():
+            sonuc[r] = None if moduller is None else set(moduller)
+        return sonuc
     sonuc: dict[str, set[str] | None] = {}
     for r, moduller in _ROLE_MODULES.items():
         sonuc[r] = None if moduller is None else set(moduller)
@@ -130,5 +123,5 @@ def rol_modul_haritasi() -> dict[str, set[str] | None]:
 
 
 def rol_eylem_haritasi() -> dict[str, set[str]]:
-    """Rollere gore eylem/yetki haritasi (salt-okunur kopya)."""
-    return {r: set(eylemler) for r, eylemler in _ROLE_ACTIONS.items()}
+    """Hardcoded eylem izin haritasını döner."""
+    return {r: set(e) for r, e in _ROLE_ACTIONS.items()}

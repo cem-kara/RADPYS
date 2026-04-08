@@ -184,3 +184,18 @@
 2026-04-07 15:32:51,654 [INFO] repys: REPYS 2.0 başlatılıyor…
 2026-04-07 15:32:51,662 [INFO] repys.db: DB açıldı: c:\Users\HP\Desktop\Yeni klasör\REPYS\RADPYS-1\data\repys.db
 2026-04-07 15:32:51,662 [INFO] repys.db.migration: DB güncel (v2), migration gerek yok.
+2026-04-08 08:04:23,316 [INFO] repys: REPYS 2.0 başlatılıyor…
+2026-04-08 08:04:23,345 [INFO] repys.db: DB açıldı: c:\Users\HP\Desktop\Yeni klasör\REPYS\RADPYS-1\data\repys.db
+2026-04-08 08:04:23,345 [INFO] repys.db.migration: DB güncel (v2), migration gerek yok.
+2026-04-08 08:06:44,342 [INFO] repys: REPYS 2.0 başlatılıyor…
+2026-04-08 08:06:44,349 [INFO] repys.db: DB açıldı: c:\Users\HP\Desktop\Yeni klasör\REPYS\RADPYS-1\data\repys.db
+2026-04-08 08:06:44,350 [INFO] repys.db.migration: DB güncel (v2), migration gerek yok.
+2026-04-08 08:07:28,041 [INFO] repys.db: DB kapatıldı: c:\Users\HP\Desktop\Yeni klasör\REPYS\RADPYS-1\data\repys.db
+2026-04-08 08:11:06,984 [INFO] repys: REPYS 2.0 başlatılıyor…
+2026-04-08 08:11:06,991 [INFO] repys.db: DB açıldı: c:\Users\HP\Desktop\Yeni klasör\REPYS\RADPYS-1\data\repys.db
+2026-04-08 08:11:06,991 [INFO] repys.db.migration: DB güncel (v2), migration gerek yok.
+2026-04-08 08:14:35,171 [INFO] repys.db: DB kapatıldı: c:\Users\HP\Desktop\Yeni klasör\REPYS\RADPYS-1\data\repys.db
+2026-04-08 08:54:50,112 [INFO] repys: REPYS 2.0 baslatiliyor...
+2026-04-08 08:54:50,134 [INFO] repys.db: DB açıldı: c:\Users\HP\Desktop\Yeni klasör\REPYS\RADPYS-1\data\repys.db
+2026-04-08 08:54:50,135 [INFO] repys.db.migration: DB güncel (v2), migration gerek yok.
+2026-04-08 08:54:54,218 [INFO] repys.db: DB kapatıldı: c:\Users\HP\Desktop\Yeni klasör\REPYS\RADPYS-1\data\repys.db

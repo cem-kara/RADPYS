@@ -4,7 +4,13 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.rbac import modul_gorunur_mu, yetki_var_mi
+from app.rbac import (
+    modul_gorunur_mu,
+    rol,
+    rol_eylem_haritasi,
+    rol_modul_haritasi,
+    yetki_var_mi,
+)
 
 
 class TestRbacModul:
@@ -32,3 +38,27 @@ class TestRbacEylem:
 
     def test_kullanici_personel_guncelleyemez(self):
         assert yetki_var_mi({"rol": "kullanici"}, "personel.guncelle") is False
+
+
+class TestRbacYardimcilar:
+
+    def test_rol_yoksa_kullanici_doner(self):
+        assert rol(None) == "kullanici"
+        assert rol({}) == "kullanici"
+
+    def test_modul_haritasi_kopya_doner(self):
+        harita = rol_modul_haritasi()
+        assert "admin" in harita
+        assert "kullanici" in harita
+        kullanici_once = set(harita["kullanici"] or set())
+        harita["kullanici"].add("ayarlar")
+        tekrar = rol_modul_haritasi()
+        assert set(tekrar["kullanici"] or set()) == kullanici_once
+
+    def test_eylem_haritasi_kopya_doner(self):
+        harita = rol_eylem_haritasi()
+        assert "admin" in harita
+        assert "kullanici" in harita
+        harita["kullanici"].add("personel.ekle")
+        tekrar = rol_eylem_haritasi()
+        assert "personel.ekle" not in tekrar["kullanici"]

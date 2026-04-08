@@ -96,6 +96,23 @@ IKONLAR: dict[str, str] = {
 
 # ── İkon önbelleği ────────────────────────────────────────────────
 _cache: dict[tuple, QIcon] = {}
+_qta = None
+_qta_yok = False
+
+
+def _qtawesome_modulu():
+    """qtawesome modülünü varsa yükler, yoksa None döner."""
+    global _qta, _qta_yok
+    if _qta_yok:
+        return None
+    if _qta is None:
+        try:
+            import qtawesome as qta
+        except ModuleNotFoundError:
+            _qta_yok = True
+            return None
+        _qta = qta
+    return _qta
 
 
 def ic(isim: str,
@@ -114,8 +131,6 @@ def ic(isim: str,
     Returns:
         QIcon
     """
-    import qtawesome as qta
-
     renk = renk or T.text2
     cache_key = (isim, renk, boyut)
 
@@ -128,10 +143,14 @@ def ic(isim: str,
             opts: dict = {"color": renk, "scale_factor": boyut / 16}
             if aktif_renk:
                 opts["color_active"] = aktif_renk
-            try:
-                _cache[cache_key] = qta.icon(mdi_kodu, **opts)
-            except Exception:
+            qta = _qtawesome_modulu()
+            if qta is None:
                 _cache[cache_key] = QIcon()
+            else:
+                try:
+                    _cache[cache_key] = qta.icon(mdi_kodu, **opts)
+                except Exception:
+                    _cache[cache_key] = QIcon()
 
     return _cache[cache_key]
 

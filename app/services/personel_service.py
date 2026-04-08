@@ -14,14 +14,8 @@ from __future__ import annotations
 from app.db.database import Database
 from app.db.repos.personel_repo import PersonelRepo
 from app.db.repos.lookup_repo import LookupRepo, GorevYeriRepo
-from app.exceptions import (
-    KayitBulunamadi, KayitZatenVar,
-    DogrulamaHatasi, PasifPersonelHatasi,
-)
-from app.validators import (
-    tc_dogrula_veya_hata, zorunlu,
-    parse_tarih_veya_hata, format_tarih, bugun,
-)
+from app.exceptions import KayitBulunamadi
+from app.usecases.personel import personel_ekle, personel_guncelle, personel_pasife_al
 from app.config import LookupKategori
 
 
@@ -99,19 +93,7 @@ class PersonelService:
             DogrulamaHatasi    — zorunlu alan boş
             KayitZatenVar      — TC zaten kayıtlı
         """
-        tc = tc_dogrula_veya_hata(veri.get("tc_kimlik", ""))
-        zorunlu(veri.get("ad"), "Ad")
-        zorunlu(veri.get("soyad"), "Soyad")
-
-        if self._repo.tc_var_mi(tc):
-            raise KayitZatenVar(f"Bu TC Kimlik No zaten kayıtlı: {tc}")
-
-        # Görev yeri ID'sini çöz (ad geldiyse ID'ye çevir)
-        veri = dict(veri)
-        if "gorev_yeri_ad" in veri and "gorev_yeri_id" not in veri:
-            veri["gorev_yeri_id"] = self._gy_id_bul(veri.pop("gorev_yeri_ad"))
-
-        return self._repo.ekle(veri)
+        return personel_ekle(self._repo, self._gy_repo, veri)
 
     def guncelle(self, personel_id: str, veri: dict) -> None:
         """
@@ -121,16 +103,7 @@ class PersonelService:
         Raises: KayitBulunamadi
         """
         self.getir(personel_id)   # Varlık kontrolü
-
-        veri = dict(veri)
-        if "gorev_yeri_ad" in veri and "gorev_yeri_id" not in veri:
-            veri["gorev_yeri_id"] = self._gy_id_bul(veri.pop("gorev_yeri_ad"))
-
-        # tc_kimlik güncellenmesini engelle
-        veri.pop("tc_kimlik", None)
-        veri.pop("id", None)
-
-        self._repo.guncelle(personel_id, veri)
+        personel_guncelle(self._repo, self._gy_repo, personel_id, veri)
 
     def pasife_al(self, personel_id: str,
                   ayrilik_tarihi: str,
@@ -141,25 +114,10 @@ class PersonelService:
         Raises: KayitBulunamadi
         """
         p = self.getir(personel_id)
-        if p.get("durum") == "ayrildi":
-            raise PasifPersonelHatasi("Bu personel zaten ayrılmış.")
-
-        parse_tarih_veya_hata(ayrilik_tarihi, "Ayrılış tarihi")
-
-        self._repo.guncelle(personel_id, {
-            "durum":          "ayrildi",
-            "ayrilik_tarihi": ayrilik_tarihi,
-            "ayrilik_nedeni": ayrilik_nedeni or "",
-        })
-
-    # ── Özel ──────────────────────────────────────────────────────
-
-    def _gy_id_bul(self, gorev_yeri_ad: str) -> str | None:
-        """Görev yeri adından ID döner. Bulunamazsa None."""
-        if not gorev_yeri_ad:
-            return None
-        yerler = self._gy_repo.listele()
-        for gy in yerler:
-            if gy["ad"].strip().lower() == gorev_yeri_ad.strip().lower():
-                return gy["id"]
-        return None
+        personel_pasife_al(
+            self._repo,
+            p,
+            personel_id,
+            ayrilik_tarihi,
+            ayrilik_nedeni,
+        )

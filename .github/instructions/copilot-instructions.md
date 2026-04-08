@@ -29,11 +29,24 @@ repys2/
 ├── menus.json               ← Sidebar menü tanımları (BURAYA ekle yeni modül)
 │
 ├── app/
+│   ├── bootstrap.py         ← Başlatma omurgası (dizin/logging/db/qt)
 │   ├── config.py            ← Tüm sabitler (iş kuralları dahil)
 │   ├── exceptions.py        ← Exception hiyerarşisi
 │   ├── validators.py        ← TC, tarih, zorunlu alan doğrulayıcıları
 │   ├── module_registry.py   ← menus.json okuyucu + lazy sayfa yükleyici
 │   ├── badge_functions.py   ← Sidebar badge DB sorguları
+│   ├── security/            ← Yetki/policy/oturum yardımcıları
+│   │   ├── permissions.py
+│   │   ├── policy.py
+│   │   └── session.py
+│   ├── usecases/            ← İş akışları (service delegasyonu)
+│   │   ├── personel/
+│   │   ├── auth/
+│   │   └── policy/
+│   ├── services/
+│   │   ├── personel_service.py
+│   │   ├── auth_service.py
+│   │   └── policy_service.py
 │   └── db/
 │       ├── database.py      ← Database sınıfı (tek bağlantı)
 │       ├── migrations.py    ← Versiyonlu migration sistemi
@@ -41,10 +54,9 @@ repys2/
 │       └── repos/
 │           ├── base.py      ← BaseRepo (sadece _db ve _new_id)
 │           ├── personel_repo.py
-│           └── lookup_repo.py
-│
-├── app/services/
-│   └── personel_service.py  ← İş mantığı buraya
+│           ├── lookup_repo.py
+│           ├── kullanici_repo.py
+│           └── policy_repo.py
 │
 ├── ui/
 │   ├── theme.py             ← T nesnesi — tüm renkler buradan
@@ -71,7 +83,13 @@ repys2/
 └── tests/
     ├── test_validators.py
     ├── test_database.py
-    └── test_personel_service.py
+    ├── test_personel_service.py
+    ├── test_auth_service.py
+    ├── test_policy_service.py
+    ├── test_personel_usecases.py
+    ├── test_auth_usecases.py
+    ├── test_policy_usecases.py
+    └── test_security_permissions.py
 ```
 
 ---
@@ -81,12 +99,13 @@ repys2/
 ### Katman sırası (yukarıdan aşağıya veri akar)
 
 ```
-UI Widget  →  Service  →  Repository  →  Database
+UI Widget  →  Service  →  UseCase  →  Repository  →  Database
 ```
 
 **Kesin kurallar:**
 - UI, Repository'e **hiç** erişmez. Sadece Service çağırır.
-- Service, ham SQL yazmaz. Sadece Repository çağırır.
+- Service, ham SQL yazmaz. UseCase/Repository delegasyonu yapar.
+- UseCase, ham SQL yazmaz. Sadece Repository çağırır.
 - Repository, iş mantığı içermez. Sadece SQL çalıştırır.
 - `Database` sınıfı uygulama genelinde **tek** bağlantıdır.
 
@@ -244,6 +263,7 @@ def getir(self, pk: str) -> dict | None:
 # app/services/ornek_service.py
 from app.db.database import Database
 from app.db.repos.ornek_repo import OrnekRepo
+from app.usecases.ornek.ornek_ekle import execute as ornek_ekle
 from app.exceptions import KayitBulunamadi, KayitZatenVar, DogrulamaHatasi
 from app.validators import zorunlu
 
@@ -263,14 +283,26 @@ class OrnekService:
         return row
 
     def ekle(self, veri: dict) -> str:
-        zorunlu(veri.get("ad"), "Ad")
-        if self._repo.var_mi(veri["benzersiz_alan"]):
-            raise KayitZatenVar("Bu kayıt zaten mevcut.")
-        return self._repo.ekle(veri)
+        return ornek_ekle(self._repo, veri)
 
     def guncelle(self, pk: str, veri: dict) -> None:
         self.getir(pk)          # varlık kontrolü
         self._repo.guncelle(pk, veri)
+```
+
+### 5.4 UseCase Şablonu
+
+```python
+# app/usecases/ornek/ornek_ekle.py
+from app.exceptions import KayitZatenVar
+from app.validators import zorunlu
+
+
+def execute(repo, veri: dict) -> str:
+    zorunlu(veri.get("ad"), "Ad")
+    if repo.var_mi(veri["benzersiz_alan"]):
+        raise KayitZatenVar("Bu kayıt zaten mevcut.")
+    return repo.ekle(veri)
 ```
 
 ### 5.3 İş Kuralı Sabitleri
@@ -494,9 +526,18 @@ app/db/repos/stok_repo.py
 ```
 app/services/stok_service.py
 ```
-Şablon: constructor'da sadece `StokRepo(db)`, iş mantığı metodlar.
+Şablon: service, use-case fonksiyonlarına delege eder.
 
-### Adım 4 — Sayfa yaz
+### Adım 4 — UseCase yaz
+
+```
+app/usecases/stok/__init__.py
+app/usecases/stok/stok_ekle.py
+app/usecases/stok/stok_guncelle.py
+```
+Şablon: iş akışları burada toplanır; SQL yok, sadece repo çağrısı.
+
+### Adım 5 — Sayfa yaz
 
 ```
 ui/pages/stok/__init__.py
@@ -504,14 +545,15 @@ ui/pages/stok/stok_page.py
 ```
 Şablon: `QWidget`, constructor'da `StokService(db)`, `AsyncRunner` ile yükle.
 
-### Adım 5 — Test yaz
+### Adım 6 — Test yaz
 
 ```
 tests/test_stok_service.py
+tests/test_stok_usecases.py
 ```
-Her public metod için en az bir test.
+Service + use-case public akışları için test yaz.
 
-### Badge gerekiyorsa — Adım 6
+### Badge gerekiyorsa — Adım 7
 
 `app/badge_functions.py`'e ekle:
 ```python
@@ -528,7 +570,8 @@ BADGE_FN["stok_kritik"] = stok_kritik
 "badge_renk": "#e83a5a"
 ```
 
-**`app_window.py`, `main.py`, `module_registry.py` — HİÇBİRİNE DOKUNMA.**
+**`app_window.py`, `main.py` — normal modül ekleme akışında dokunma.**
+`module_registry.py` sadece kayıt sistemiyle ilgili zorunlu ihtiyaçta güncellenir.
 
 ---
 
@@ -554,6 +597,11 @@ def getir(self, pk) -> dict | None:
 class OrnekService:
     def listele(self):
         return self._db.fetchall("SELECT ...")  # SQL servise girmez
+
+# ❌ Serviste ağır iş akışı
+def ekle(self, veri):
+    # 80+ satır doğrulama, dönüşüm, kural
+    ...  # use-case katmanına taşı
 
 # ❌ UI'da repo erişimi
 class OrnekPage(QWidget):
@@ -616,6 +664,12 @@ rows = db.fetchall(
     "FROM personel p "
     "LEFT JOIN gorev_yeri gy ON p.gorev_yeri_id = gy.id"
 )
+
+# ✅ Service -> UseCase delegasyonu
+from app.usecases.personel.personel_ekle import execute as personel_ekle
+
+def ekle(self, veri: dict) -> str:
+    return personel_ekle(self._repo, self._gy_repo, veri)
 ```
 
 ---
@@ -662,6 +716,8 @@ class TestGetir:
 Her public servis metodu için en az 2 test yazılır:
 - Başarılı senaryo
 - Hata/edge case senaryosu
+
+Use-case katmanı için de aynı kural geçerlidir.
 
 ---
 

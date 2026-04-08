@@ -4,14 +4,18 @@ from __future__ import annotations
 from datetime import datetime
 import bcrypt
 
-from app.config import RBAC_ROL_YETKILERI, RBAC_ROLLER
 from app.db.database import Database
 from app.db.repos.kullanici_repo import KullaniciRepo
 from app.exceptions import (
     DogrulamaHatasi,
     KayitBulunamadi,
-    KayitZatenVar,
-    YetkiHatasi,
+)
+from app.security.permissions import require_permission
+from app.security.session import build_session
+from app.usecases.auth import (
+    kullanici_aktiflik_guncelle,
+    kullanici_ekle,
+    kullanici_rol_guncelle,
 )
 from app.validators import zorunlu
 
@@ -41,8 +45,7 @@ class AuthService:
         return self._oturum(row)
 
     def yetki_kontrol(self, oturum: dict, yetki: str) -> None:
-        if yetki not in set(oturum.get("yetkiler", [])):
-            raise YetkiHatasi(f"Bu işlem için yetkiniz yok: {yetki}")
+        require_permission(oturum, yetki)
 
     # ── Kullanici Yonetimi ────────────────────────────────────────
 
@@ -52,46 +55,22 @@ class AuthService:
 
     def kullanici_ekle(self, oturum: dict, veri: dict) -> str:
         self.yetki_kontrol(oturum, "kullanici.olustur")
-
-        ad = zorunlu(veri.get("ad"), "Kullanıcı adı")
-        parola = zorunlu(veri.get("parola"), "Parola")
-        rol = zorunlu(veri.get("rol"), "Rol")
-
-        if rol not in RBAC_ROLLER:
-            raise DogrulamaHatasi(f"Geçersiz rol: {rol}")
-
-        if len(parola) < 6:
-            raise DogrulamaHatasi("Parola en az 6 karakter olmalıdır.")
-
-        if self._repo.ad_var_mi(ad):
-            raise KayitZatenVar(f"Bu kullanıcı adı zaten kayıtlı: {ad}")
-
-        return self._repo.ekle({
-            "ad": ad,
-            "sifre_hash": self._parola_hashle(parola),
-            "rol": rol,
-            "aktif": bool(veri.get("aktif", True)),
-            "personel_id": veri.get("personel_id"),
-        })
+        return kullanici_ekle(self._repo, self._parola_hashle, veri)
 
     def kullanici_rol_guncelle(self, oturum: dict, kullanici_id: str, rol: str) -> None:
         self.yetki_kontrol(oturum, "kullanici.guncelle")
-
-        if rol not in RBAC_ROLLER:
-            raise DogrulamaHatasi(f"Geçersiz rol: {rol}")
-
         self._kullanici_getir(kullanici_id)
-        self._repo.guncelle(kullanici_id, {"rol": rol})
+        kullanici_rol_guncelle(self._repo, kullanici_id, rol)
 
     def kullanici_pasife_al(self, oturum: dict, kullanici_id: str) -> None:
         self.yetki_kontrol(oturum, "kullanici.pasife_al")
         self._kullanici_getir(kullanici_id)
-        self._repo.guncelle(kullanici_id, {"aktif": 0})
+        kullanici_aktiflik_guncelle(self._repo, kullanici_id, False)
 
     def kullanici_aktif_et(self, oturum: dict, kullanici_id: str) -> None:
         self.yetki_kontrol(oturum, "kullanici.pasife_al")
         self._kullanici_getir(kullanici_id)
-        self._repo.guncelle(kullanici_id, {"aktif": 1})
+        kullanici_aktiflik_guncelle(self._repo, kullanici_id, True)
 
     def kullanici_getir(self, oturum: dict, kullanici_id: str) -> dict:
         self.yetki_kontrol(oturum, "kullanici.goruntule")
@@ -106,14 +85,7 @@ class AuthService:
         return row
 
     def _oturum(self, row: dict) -> dict:
-        rol = row["rol"]
-        return {
-            "id": row["id"],
-            "ad": row["ad"],
-            "rol": rol,
-            "yetkiler": sorted(RBAC_ROL_YETKILERI.get(rol, set())),
-            "son_giris": row.get("son_giris"),
-        }
+        return build_session(row)
 
     @staticmethod
     def _simdi() -> str:

@@ -53,6 +53,8 @@ def _yukle() -> None:
         return
 
     data = json.loads(_MENUS_JSON.read_text(encoding="utf-8"))
+    _moduller.clear()
+    _bolumler.clear()
 
     # Bölümleri yükle
     for bid, bveri in data["bolumler"].items():
@@ -105,7 +107,7 @@ def get_bolumler() -> list[tuple[BolumDef, list[ModuleDef]]]:
         (_bolumler[bid], modlar)
         for bid, modlar in sorted(
             gruplar.items(),
-            key=lambda x: _bolumler[x[0]].sira
+            key=lambda x: _bolumler.get(x[0], BolumDef("", "", 99)).sira
         )
     ]
 
@@ -119,7 +121,6 @@ def get_varsayilan_id() -> str:
     return lst[0].id if lst else ""
 
 
-#{def sayfa_olustur(mod_id: str, db) -> "QWidget":
 def sayfa_olustur(mod_id: str, db, oturum: dict | None = None) -> "QWidget":
     """Lazy import ile sayfa widget'ı oluşturur."""
     _yukle()
@@ -128,6 +129,8 @@ def sayfa_olustur(mod_id: str, db, oturum: dict | None = None) -> "QWidget":
         raise KeyError(f"Modül bulunamadı: '{mod_id}'")
 
     parcalar   = mod.page_cls.rsplit(".", 1)
+    if len(parcalar) != 2:
+        raise ValueError(f"Geçersiz page_cls tanımı: '{mod.page_cls}'")
     import importlib
     modul  = importlib.import_module(parcalar[0])
     sinif  = getattr(modul, parcalar[1])

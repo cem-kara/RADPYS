@@ -1,35 +1,43 @@
 # REPYS 2.0
 
-REPYS 2.0 is a desktop management system for radiology departments.
-It is built with Python 3.12, PySide6, and SQLite.
+REPYS 2.0, radyoloji bolumu operasyonlarini yoneten Python tabanli masaustu uygulamadir.
 
-## Features
-
-- Personnel records and identity details
-- Leave and shift planning workflows
-- Device, maintenance, and failure tracking modules
-- Dosimeter and health follow-up support
-- Modular page loading via menu registry
-
-## Tech Stack
-
+Temel teknolojiler:
 - Python 3.12
 - PySide6
 - SQLite (WAL)
 - pytest
 
-## Project Structure
+## Mimari
 
-- `main.py`: application entry point
-- `app/`: domain logic, services, database, validators
-- `ui/`: PySide6 widgets, shared components, pages
-- `modules/`: legacy/module pages
-- `tests/`: automated tests
-- `docs/`: design and usage documentation
+Proje cekirdegi katmanli yapiya gore organize edilir:
 
-## Quick Start
+UI Widget -> Service -> UseCase -> Repository -> Database
 
-### 1. Create and activate virtual environment
+Temel kurallar:
+- UI, repository katmanina dogrudan erismez.
+- Service SQL yazmaz, use-case ve repository uzerinden ilerler.
+- Repository sadece SQL calistirir, is kurali barindirmez.
+- Database sinifi uygulama genelinde tek baglanti merkezidir.
+
+## Iskelet Dizin Yapisi
+
+- main.py: uygulama giris noktasi
+- app/bootstrap.py: baslatma omurgasi (dizin, logging, db, Qt hazirlik)
+- app/config.py: sabitler ve is kurali konfigurasyonu
+- app/exceptions.py: uygulama hata hiyerarsisi
+- app/validators.py: dogrulama yardimcilari
+- app/security/: yetki, policy ve oturum yardimcilari
+- app/usecases/: is akisi katmani
+- app/services/: UI'nin kullandigi servis API katmani
+- app/db/: database, migration ve repository katmani
+- app/module_registry.py + menus.json: modul kayit sistemi
+- ui/: PySide6 bileşenleri ve sayfalar
+- tests/: servis/use-case/cekirdek regresyon testleri
+
+## Kurulum
+
+### 1) Sanal ortam
 
 ```powershell
 uv python install 3.12
@@ -37,32 +45,35 @@ uv venv .venv --python 3.12
 .\.venv\Scripts\activate
 ```
 
-### 2. Install dependencies
+### 2) Bagimliliklar
 
 ```powershell
 python -m pip install -r requirements.txt
 ```
 
-### 3. Run the app
+### 3) Uygulamayi calistirma
 
 ```powershell
 python main.py
 ```
 
-## Running Tests
+## Test Calistirma
 
 ```powershell
-python -m pytest -q
+python -m pytest -v
 ```
 
-## Contributing
+## Dokumanlar
 
-See `CONTRIBUTING.md` for contribution workflow and standards.
+- docs/REPYS_ISKELET_GOREVLERI.md: cekirdek iskelet dosyalarinin gorevleri
+- docs/REPYS_ISKELET_DEGISIKLIK_NOTLARI.md: faz bazli mimari degisiklik notlari
+- docs/REPYS2_Tam_Tasarim.md: kapsamli tasarim dokumani
 
-## Security
+## Katki ve Guvenlik
 
-See `SECURITY.md` for reporting vulnerabilities.
+- Katki sureci: CONTRIBUTING.md
+- Guvenlik bildirimi: SECURITY.md
 
-## License
+## Lisans
 
-This project is licensed under the MIT License. See `LICENSE`.
+MIT License. Ayrinti icin LICENSE dosyasina bakiniz.
