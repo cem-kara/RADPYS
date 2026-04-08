@@ -22,8 +22,11 @@ def test_dizinleri_olustur(tmp_path):
 
 def test_logging_kur_log_dosyasini_olusturur(tmp_path):
     log_path = logging_kur(tmp_path)
-    assert log_path.name == "radpys.log"
+    assert log_path.name == "app.log"
     assert log_path.parent == tmp_path
+    assert (tmp_path / "sync.log").exists()
+    assert (tmp_path / "errors.log").exists()
+    assert (tmp_path / "ui.log").exists()
 
 
 def test_veri_katmanini_hazirla_migration_ve_tablolar(tmp_path):

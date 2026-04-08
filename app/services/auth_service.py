@@ -6,6 +6,7 @@ import bcrypt
 
 from app.db.database import Database
 from app.db.repos.kullanici_repo import KullaniciRepo
+from app.db.repos.policy_repo import PolicyRepo
 from app.exceptions import (
     DogrulamaHatasi,
     KayitBulunamadi,
@@ -25,6 +26,7 @@ class AuthService:
 
     def __init__(self, db: Database):
         self._repo = KullaniciRepo(db)
+        self._policy_repo = PolicyRepo(db)
 
     # ── Login / Oturum ────────────────────────────────────────────
 
@@ -39,10 +41,33 @@ class AuthService:
         if not self._parola_dogrula(parola, row["sifre_hash"]):
             raise DogrulamaHatasi("Kullanıcı adı veya parola hatalı.")
 
+        if int(row.get("sifre_degismeli", 0)):
+            return self._oturum(row)
+
         an = self._simdi()
         self._repo.son_giris_guncelle(row["id"], an)
         row["son_giris"] = an
         return self._oturum(row)
+
+    def ilk_giris_parola_degistir(self, kullanici_id: str, yeni_parola: str) -> None:
+        """İlk girişte zorunlu parola değişimini tamamlar."""
+        row = self._kullanici_getir(kullanici_id)
+        parola = zorunlu(yeni_parola, "Yeni parola")
+
+        if len(parola) < 6:
+            raise DogrulamaHatasi("Parola en az 6 karakter olmalıdır.")
+
+        if not int(row.get("sifre_degismeli", 0)):
+            return
+
+        self._repo.guncelle(
+            kullanici_id,
+            {
+                "sifre_hash": self._parola_hashle(parola),
+                "sifre_degismeli": 0,
+                "son_giris": self._simdi(),
+            },
+        )
 
     def yetki_kontrol(self, oturum: dict, yetki: str) -> None:
         require_permission(oturum, yetki)
@@ -55,7 +80,12 @@ class AuthService:
 
     def kullanici_ekle(self, oturum: dict, veri: dict) -> str:
         self.yetki_kontrol(oturum, "kullanici.olustur")
-        return kullanici_ekle(self._repo, self._parola_hashle, veri)
+        return kullanici_ekle(
+            self._repo,
+            self._parola_hashle,
+            self._rol_var_mi,
+            veri,
+        )
 
     def kullanici_rol_guncelle(self, oturum: dict, kullanici_id: str, rol: str) -> None:
         self.yetki_kontrol(oturum, "kullanici.guncelle")
@@ -104,3 +134,6 @@ class AuthService:
             )
         except Exception:
             return False
+
+    def _rol_var_mi(self, rol: str) -> bool:
+        return self._policy_repo.rol_var_mi(str(rol))

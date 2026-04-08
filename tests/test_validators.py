@@ -9,6 +9,9 @@ from app.validators import (
     tc_dogrula, tc_dogrula_veya_hata,
     parse_tarih, format_tarih, bitis_hesapla, is_gunu_say,
     zorunlu, pozitif_sayi, to_float, to_int,
+    email_dogrula, telefon_dogrula, bos_degil,
+    uzunluk_dogrula, sayisal_dogrula, alfasayisal_dogrula,
+    tarih_format_dogrula,
 )
 from app.exceptions import TCHatasi, DogrulamaHatasi
 
@@ -141,3 +144,41 @@ class TestGenel:
         assert to_int("5")  == 5
         assert to_int(None) == 0
         assert to_int("")   == 0
+
+
+class TestEkDogrulayicilar:
+
+    def test_email_dogrula(self):
+        assert email_dogrula("test@example.com") is True
+        assert email_dogrula("") is True
+        assert email_dogrula("gecersiz-email") is False
+
+    def test_telefon_dogrula(self):
+        assert telefon_dogrula("05551234567") is True
+        assert telefon_dogrula("5551234567") is True
+        assert telefon_dogrula("123456") is False
+
+    def test_bos_degil(self):
+        assert bos_degil("Ali") is True
+        assert bos_degil("   ") is False
+        assert bos_degil(None) is False
+
+    def test_uzunluk_dogrula(self):
+        assert uzunluk_dogrula("abc", min_uzunluk=2, max_uzunluk=4) is True
+        assert uzunluk_dogrula("a", min_uzunluk=2) is False
+        assert uzunluk_dogrula("abcde", max_uzunluk=4) is False
+
+    def test_sayisal_dogrula(self):
+        assert sayisal_dogrula("12345") is True
+        assert sayisal_dogrula("") is True
+        assert sayisal_dogrula("12a45") is False
+
+    def test_alfasayisal_dogrula(self):
+        assert alfasayisal_dogrula("Ali Veli 123") is True
+        assert alfasayisal_dogrula("") is True
+        assert alfasayisal_dogrula("Ali-Veli") is False
+
+    def test_tarih_format_dogrula(self):
+        assert tarih_format_dogrula("15.01.2026") is True
+        assert tarih_format_dogrula("") is True
+        assert tarih_format_dogrula("2026-01-15") is False

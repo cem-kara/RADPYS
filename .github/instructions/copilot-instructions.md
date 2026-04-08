@@ -33,6 +33,10 @@ radpys2/
 │   ├── config.py            ← Tüm sabitler (iş kuralları dahil)
 │   ├── exceptions.py        ← Exception hiyerarşisi
 │   ├── validators.py        ← TC, tarih, zorunlu alan doğrulayıcıları
+│   ├── text_utils.py        ← Türkçe metin formatlama yardımcıları
+│   ├── date_utils.py        ← Tarih parse/format/normalize yardımcıları
+│   ├── logger.py            ← Merkezi logging kurulumu ve yardımcı fonksiyonlar
+│   ├── log_manager.py       ← Log temizleme, istatistik ve sağlık izleme
 │   ├── module_registry.py   ← menus.json okuyucu + lazy sayfa yükleyici
 │   ├── badge_functions.py   ← Sidebar badge DB sorguları
 │   ├── security/            ← Yetki/policy/oturum yardımcıları
@@ -640,6 +644,24 @@ self._repo.sil(pid)   # pasife_al() kullan
 # ❌ AdSoyad DB'ye kopyalama
 db.execute("INSERT INTO fhsz (..., ad_soyad) VALUES (..., ?)", (personel["ad"],))
 # JOIN kullan, kopyalama
+
+# ❌ Türkçe metin dönüşümü için yerleşik str metotları — text_utils kullan
+ad.upper()                  # ← bunu yazma (İ/I hatası üretir)
+ad.lower()                  # ← bunu yazma
+ad.title()                  # ← bunu yazma
+
+# ❌ Elle tarih string dönüşümü — date_utils kullan
+tarih_str.replace(".", "-")   # ← bunu yazma
+datetime.strptime(tarih_str, "%d.%m.%Y").strftime("%Y-%m-%d")  # ← bunu yazma
+
+# ❌ Doğrudan logging çağrısı veya print — app/logger kullan
+import logging
+logging.basicConfig(...)   # ← bunu yazma
+print(f"[HATA] {e}")       # ← bunu yazma
+
+# ❌ Exception'ı sessizce yutma
+except Exception:
+    pass   # ← exc_logla ile logla
 ```
 
 ---
@@ -688,7 +710,141 @@ from app.usecases.personel.personel_ekle import execute as personel_ekle
 
 def ekle(self, veri: dict) -> str:
     return personel_ekle(self._repo, self._gy_repo, veri)
+
+# ✅ Türkçe metin formatlama
+from app.text_utils import turkish_title_case, turkish_upper, turkish_lower
+ad     = turkish_title_case("ahmet cem kara")   # "Ahmet Cem Kara"
+buyuk  = turkish_upper("istanbul")              # "İSTANBUL"
+kucuk  = turkish_lower("İSTANBUL")              # "istanbul"
+
+# ✅ Tarih normalize / format
+from app.date_utils import to_db_date, to_ui_date, normalize_date_fields
+db_str = to_db_date("08.04.2026")               # "2026-04-08"
+ui_str = to_ui_date("2026-04-08")               # "08.04.2026"
+veri   = normalize_date_fields(                 # seçili alanları DB formatına çevirir
+    veri, ["baslama_tarih", "bitis_tarih"]
+)
+
+# ✅ Loglama — sadece app/logger
+from app.logger import logger, exc_logla
+logger.info("İşlem tamamlandı.")
+logger.warning(f"Uyarı: {mesaj}")
+
+# ✅ Exception logla ve AlertBar'a yansıt
+except Exception as exc:
+    exc_logla("OrnekPage._kaydet", exc)
+    self._alert.goster(str(exc), "danger")
 ```
+
+---
+
+## 13. YARDIMCI MODÜLLER
+
+### 13.1 `app/text_utils.py` — Türkçe Metin Formatlama
+
+Yerleşik `str.upper()`, `str.lower()`, `str.title()` Türkçe İ/I/ş/ğ karakterlerini
+yanlış işler. **Her zaman `app/text_utils`'i kullan.**
+
+```python
+from app.text_utils import (
+    turkish_title_case,       # Her kelimenin ilk harfi büyük
+    turkish_upper,            # Tüm harfler büyük (Türkçe)
+    turkish_lower,            # Tüm harfler küçük (Türkçe)
+    capitalize_first_letter,  # Yalnızca ilk harf büyük
+    normalize_whitespace,     # Fazla boşlukları temizle
+    format_phone_number,      # 05XX XXX XX XX formatı
+    sanitize_filename,        # Geçersiz dosya adı karakterlerini temizle
+)
+
+title = turkish_title_case("ahmet cem kara")   # "Ahmet Cem Kara"
+buyuk = turkish_upper("istanbul")              # "İSTANBUL"
+kucuk = turkish_lower("IŞIK")                 # "ışık"
+tel   = format_phone_number("5551234567")      # "0555 123 45 67"
+```
+
+### 13.2 `app/date_utils.py` — Tarih Yardımcıları
+
+`app/validators`'daki `parse_tarih` / `format_tarih` bu modüle delege eder.
+Tablo satırlarını toplu normalize etmek için `normalize_date_fields` tercih edilir.
+
+```python
+from app.date_utils import (
+    parse_date,             # str | date | datetime → date | None
+    to_db_date,             # herhangi → "YYYY-MM-DD" (parse başarısızsa orijinali döner)
+    to_ui_date,             # herhangi → "DD.MM.YYYY"
+    looks_like_date_column, # kolon adından tarih tespiti
+    normalize_date_fields,  # dict içindeki tarih alanlarını toplu DB formatına çevirir
+)
+
+# Repo'ya kaydetmeden önce:
+veri = normalize_date_fields(veri, ["baslama_tarih", "bitis_tarih", "ayrilik_tarihi"])
+
+# UI etiketine göstermek için:
+label.setText(to_ui_date(row["baslama_tarih"]))  # "08.04.2026"
+```
+
+**Kural:** `normalize_date_fields` kullanımı `to_db_date` döngüsünün yerine geçer.
+Elde tarih string'i işleme yasaktır — her zaman bu fonksiyonları kullan.
+
+### 13.3 `app/logger.py` — Merkezi Loglama
+
+Proje genelinde `logging.basicConfig` veya `print` kullanılmaz.
+**Her modül `from app.logger import logger` ile aynı logger'a yazar.**
+
+```python
+from app.logger import logger, exc_logla
+
+# Genel mesajlar
+logger.info("Personel eklendi.")
+logger.warning(f"Limit yaklaşıyor: {kalan} gün")
+logger.error(f"DB bağlantı hatası: {exc}")
+
+# Exception + tam traceback → errors.log'a yazar, dialog açmaz
+except Exception as exc:
+    exc_logla("PersonelForm._kaydet", exc)   # "Sayfa.metod" formatı
+    self._alert.goster(str(exc), "danger")
+
+# Sync bağlamı için
+from app.logger import log_sync_start, log_sync_step, log_sync_error, log_sync_complete
+log_sync_start("personel")
+log_sync_step("personel", "pull", count=42)
+log_sync_complete("personel", {"pushed": 0, "pulled": 42})
+
+# UI hata bağlamı için (ui.log'a yazar)
+from app.logger import log_ui_error
+log_ui_error("kaydet", exc, group="form", page="personel")
+```
+
+**Log dosyaları** (`logs/` dizini, boyut tabanlı rotasyon):
+
+| Dosya | İçerik |
+|---|---|
+| `app.log` | Genel uygulama mesajları |
+| `errors.log` | Yalnızca ERROR ve üstü |
+| `sync.log` | `sync_context` içeren kayıtlar |
+| `ui.log` | `ui_context` içeren kayıtlar |
+
+### 13.4 `app/log_manager.py` — Log Bakımı
+
+Uygulama açılışında `temel_baslatma_hazirligi()` bu modülü otomatik çağırır.
+Gerektiğinde elle de kullanılabilir.
+
+```python
+from app.log_manager import LogStatistics, LogCleanup, LogMonitor
+
+# Boyut bilgisi
+toplam_mb = LogStatistics.get_total_log_size()   # float
+istatistik = LogStatistics.get_log_stats()        # dict[filename, info]
+
+# Temizlik
+LogCleanup.cleanup_old_logs(days=7)    # 7+ gün eski backup'ları sil
+LogCleanup.cleanup_by_space(max_size_mb=100)  # toplam 100 MB üstüne çıkınca
+
+# Sağlık kontrolü
+saglik = LogMonitor.check_log_health()   # {"status": "OK"|"WARNING", "messages": [...]}
+```
+
+**Kural:** `log_manager` yalnızca bakım/izleme içindir — iş mantığına dokunmaz.
 
 ---
 
@@ -782,3 +938,10 @@ _MIGRATIONS = {1: _v1, 2: _v2}   # buraya da ekle
 | DB skaler | `db.fetchval(sql, params)` |
 | Atomik yazma | `with db.transaction():` |
 | İş kuralı sabiti | `from app.config import ...` |
+| Türkçe title case | `turkish_title_case(metin)` → `"Ahmet Cem Kara"` |
+| Türkçe büyük harf | `turkish_upper(metin)` → `"İSTANBUL"` |
+| Tarih → DB formatı | `to_db_date(deger)` → `"2026-04-08"` |
+| Tarih → UI formatı | `to_ui_date(deger)` → `"08.04.2026"` |
+| Tarih alanları normalize | `normalize_date_fields(veri, ["baslama_tarih"])` |
+| Exception logla | `exc_logla("Sayfa._metod", exc)` |
+| Genel loglama | `from app.logger import logger` → `logger.info(...)` |

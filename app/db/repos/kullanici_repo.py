@@ -34,8 +34,8 @@ class KullaniciRepo(BaseRepo):
     def ekle(self, veri: dict) -> str:
         kid = self._new_id()
         self._db.execute(
-            "INSERT INTO kullanici (id, ad, sifre_hash, personel_id, rol, aktif) "
-            "VALUES (?,?,?,?,?,?)",
+            "INSERT INTO kullanici (id, ad, sifre_hash, personel_id, rol, aktif, sifre_degismeli) "
+            "VALUES (?,?,?,?,?,?,?)",
             (
                 kid,
                 veri["ad"],
@@ -43,6 +43,7 @@ class KullaniciRepo(BaseRepo):
                 veri.get("personel_id"),
                 veri["rol"],
                 1 if veri.get("aktif", True) else 0,
+                1 if veri.get("sifre_degismeli", True) else 0,
             ),
         )
         return kid

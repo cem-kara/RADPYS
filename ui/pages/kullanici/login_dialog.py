@@ -29,6 +29,7 @@ class LoginDialog(QDialog):
         super().__init__(parent)
         self._svc = AuthService(db)
         self.oturum: dict | None = None
+        self._bekleyen_kullanici_id: str | None = None
 
         self.setModal(True)
         self.setWindowTitle("RADPYS Giris")
@@ -65,6 +66,20 @@ class LoginDialog(QDialog):
         self._inp_parola.setMinimumHeight(34)
         self._inp_parola.returnPressed.connect(self._giris)
 
+        self._inp_yeni_parola = QLineEdit(self)
+        self._inp_yeni_parola.setPlaceholderText("Yeni parola")
+        self._inp_yeni_parola.setEchoMode(QLineEdit.EchoMode.Password)
+        self._inp_yeni_parola.setMinimumHeight(34)
+        self._inp_yeni_parola.setVisible(False)
+        self._inp_yeni_parola.returnPressed.connect(self._giris)
+
+        self._inp_yeni_parola_tekrar = QLineEdit(self)
+        self._inp_yeni_parola_tekrar.setPlaceholderText("Yeni parola (tekrar)")
+        self._inp_yeni_parola_tekrar.setEchoMode(QLineEdit.EchoMode.Password)
+        self._inp_yeni_parola_tekrar.setMinimumHeight(34)
+        self._inp_yeni_parola_tekrar.setVisible(False)
+        self._inp_yeni_parola_tekrar.returnPressed.connect(self._giris)
+
         btn_lay = QHBoxLayout()
         btn_lay.setSpacing(8)
 
@@ -85,6 +100,8 @@ class LoginDialog(QDialog):
         lay.addWidget(self._alert)
         lay.addWidget(self._inp_ad)
         lay.addWidget(self._inp_parola)
+        lay.addWidget(self._inp_yeni_parola)
+        lay.addWidget(self._inp_yeni_parola_tekrar)
         lay.addLayout(btn_lay)
 
         self._inp_ad.setFocus()
@@ -166,6 +183,11 @@ class LoginDialog(QDialog):
     def _giris(self) -> None:
         self._alert.clear()
         self._alert.setVisible(False)
+
+        if self._bekleyen_kullanici_id:
+            self._ilk_sifre_degistir()
+            return
+
         try:
             self.oturum = self._svc.giris_yap(self._inp_ad.text(), self._inp_parola.text())
         except AppHatasi as e:
@@ -177,4 +199,49 @@ class LoginDialog(QDialog):
             self._show_alert(f"Beklenmeyen hata: {e}", "danger")
             return
 
+        if self.oturum and self.oturum.get("sifre_degismeli"):
+            self._bekleyen_kullanici_id = str(self.oturum["id"])
+            self._btn_giris.setText("Sifreyi Degistir")
+            self._inp_yeni_parola.setVisible(True)
+            self._inp_yeni_parola_tekrar.setVisible(True)
+            self._show_alert(
+                "Ilk giriste sifre degistirmeniz zorunludur.",
+                "info",
+            )
+            self._inp_yeni_parola.setFocus()
+            return
+
+        self.accept()
+
+    def _ilk_sifre_degistir(self) -> None:
+        if not self._bekleyen_kullanici_id:
+            return
+
+        yeni = self._inp_yeni_parola.text()
+        tekrar = self._inp_yeni_parola_tekrar.text()
+        if not yeni or not tekrar:
+            self._show_alert("Yeni parola alanlari zorunludur.", "warning")
+            return
+        if yeni != tekrar:
+            self._show_alert("Yeni parola alanlari uyusmuyor.", "warning")
+            self._inp_yeni_parola_tekrar.selectAll()
+            self._inp_yeni_parola_tekrar.setFocus()
+            return
+        if yeni == self._inp_parola.text():
+            self._show_alert("Yeni parola mevcut parola ile ayni olamaz.", "warning")
+            self._inp_yeni_parola.selectAll()
+            self._inp_yeni_parola.setFocus()
+            return
+
+        try:
+            self._svc.ilk_giris_parola_degistir(self._bekleyen_kullanici_id, yeni)
+        except AppHatasi as e:
+            self._show_alert(str(e), "warning")
+            return
+        except Exception as e:
+            self._show_alert(f"Beklenmeyen hata: {e}", "danger")
+            return
+
+        if self.oturum is not None:
+            self.oturum["sifre_degismeli"] = False
         self.accept()

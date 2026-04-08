@@ -3,14 +3,18 @@
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
+import pytest
 
 from app.rbac import (
+    kullanici_avatar,
     modul_gorunur_mu,
     rol,
     rol_eylem_haritasi,
     rol_modul_haritasi,
+    yetki_gerektir,
     yetki_var_mi,
 )
+from app.exceptions import YetkiHatasi
 
 
 class TestRbacModul:
@@ -62,3 +66,10 @@ class TestRbacYardimcilar:
         harita["kullanici"].add("personel.ekle")
         tekrar = rol_eylem_haritasi()
         assert "personel.ekle" not in tekrar["kullanici"]
+
+    def test_kullanici_avatar_turkce_buyutme_kullanir(self):
+        assert kullanici_avatar({"ad": "ilker in"}) == "İİ"
+
+    def test_yetki_gerektir_yetki_yoksa_hata_firlatir(self):
+        with pytest.raises(YetkiHatasi):
+            yetki_gerektir({"rol": "kullanici"}, "kullanici.guncelle")

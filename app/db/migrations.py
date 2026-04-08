@@ -22,7 +22,7 @@ from app.db.database import Database
 logger = logging.getLogger("radpys.db.migration")
 
 # Hedef şema versiyonu — her migration eklenince artır
-HEDEF_VERSIYON = 2
+HEDEF_VERSIYON = 4
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -323,6 +323,7 @@ def _v1(db: Database) -> None:
         rol         TEXT NOT NULL DEFAULT 'kullanici'
                         CHECK (rol IN ('admin','yonetici','kullanici')),
         aktif       INTEGER NOT NULL DEFAULT 1,
+        sifre_degismeli INTEGER NOT NULL DEFAULT 1,
         son_giris   TEXT,
         olusturuldu TEXT NOT NULL DEFAULT (date('now'))
     )
@@ -398,6 +399,59 @@ def _v2(db: Database) -> None:
     logger.info("v2: rbac_modul_izin tablosu oluşturuldu ve seed edildi.")
 
 
+def _v3(db: Database) -> None:
+    """v3 — İlk girişte şifre değişimi için kullanici.sifre_degismeli alanı."""
+    if not _kolon_var_mi(db, "kullanici", "sifre_degismeli"):
+        db.execute(
+            "ALTER TABLE kullanici "
+            "ADD COLUMN sifre_degismeli INTEGER NOT NULL DEFAULT 1"
+        )
+
+    # Daha önce giriş yapmış kullanıcıları zorlamayalım.
+    db.execute(
+        "UPDATE kullanici "
+        "SET sifre_degismeli = CASE WHEN son_giris IS NULL THEN 1 ELSE 0 END"
+    )
+    logger.info("v3: kullanici.sifre_degismeli alanı hazırlandı.")
+
+
+def _v4(db: Database) -> None:
+    """v4 — kullanici.rol alanındaki sabit CHECK kısıtını kaldırır."""
+    sql = db.fetchval(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='kullanici'"
+    ) or ""
+    if "CHECK (rol IN ('admin','yonetici','kullanici'))" not in str(sql):
+        logger.info("v4: kullanici tablosu zaten dinamik rol destekli.")
+        return
+
+    db.execute("""
+    CREATE TABLE kullanici_yeni (
+        id          TEXT PRIMARY KEY,
+        ad          TEXT NOT NULL UNIQUE,
+        sifre_hash  TEXT NOT NULL,
+        personel_id TEXT REFERENCES personel(id),
+        rol         TEXT NOT NULL DEFAULT 'kullanici',
+        aktif       INTEGER NOT NULL DEFAULT 1,
+        sifre_degismeli INTEGER NOT NULL DEFAULT 1,
+        son_giris   TEXT,
+        olusturuldu TEXT NOT NULL DEFAULT (date('now'))
+    )
+    """)
+
+    db.execute(
+        "INSERT INTO kullanici_yeni ("
+        "id, ad, sifre_hash, personel_id, rol, aktif, sifre_degismeli, son_giris, olusturuldu"
+        ") "
+        "SELECT "
+        "id, ad, sifre_hash, personel_id, rol, aktif, COALESCE(sifre_degismeli, 1), son_giris, olusturuldu "
+        "FROM kullanici"
+    )
+
+    db.execute("DROP TABLE kullanici")
+    db.execute("ALTER TABLE kullanici_yeni RENAME TO kullanici")
+    logger.info("v4: kullanici tablosu dinamik rol desteği için yeniden oluşturuldu.")
+
+
 def _rbac_modul_izin_seed(db: Database) -> None:
     from uuid import uuid4
     for rol_adi, izinler in _VARSAYILAN_MODUL_IZINLERI.items():
@@ -417,7 +471,7 @@ def _rbac_modul_izin_seed(db: Database) -> None:
 
 # ── Migration kaydı ───────────────────────────────────────────────
 
-_MIGRATIONS = {1: _v1, 2: _v2}   # Yeni migration eklenince buraya da ekle
+_MIGRATIONS = {1: _v1, 2: _v2, 3: _v3, 4: _v4}   # Yeni migration eklenince buraya da ekle
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -445,3 +499,9 @@ def _versiyon_yaz(db: Database, versiyon: int) -> None:
         "INSERT INTO _db_versiyon (versiyon, aciklama) VALUES (?, ?)",
         (versiyon, f"Migration v{versiyon} uygulandı"),
     )
+
+
+def _kolon_var_mi(db: Database, tablo: str, kolon: str) -> bool:
+    """Tabloda kolon varlığını kontrol eder."""
+    rows = db.fetchall(f"PRAGMA table_info({tablo})")
+    return any(str(r.get("name") or "") == kolon for r in rows)

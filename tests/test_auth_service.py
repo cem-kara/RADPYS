@@ -10,6 +10,7 @@ from app.db.database import Database
 from app.db.migrations import run as migrate
 from app.exceptions import DogrulamaHatasi, KayitZatenVar, YetkiHatasi
 from app.services.auth_service import AuthService
+from app.services.policy_service import PolicyService
 
 
 @pytest.fixture
@@ -32,6 +33,20 @@ class TestGiris:
         assert oturum["ad"] == "admin"
         assert oturum["rol"] == "admin"
         assert "kullanici.olustur" in oturum["yetkiler"]
+        assert oturum["sifre_degismeli"] is True
+
+    def test_ilk_giris_sifre_degistirme_sonrasi_yeni_parola_ile_girer(self, svc):
+        ilk = svc.giris_yap("admin", "admin123")
+        assert ilk["sifre_degismeli"] is True
+
+        svc.ilk_giris_parola_degistir(ilk["id"], "yeniparola123")
+
+        with pytest.raises(DogrulamaHatasi):
+            svc.giris_yap("admin", "admin123")
+
+        ikinci = svc.giris_yap("admin", "yeniparola123")
+        assert ikinci["sifre_degismeli"] is False
+        assert ikinci["son_giris"]
 
     def test_hatali_parola(self, svc):
         with pytest.raises(DogrulamaHatasi):
@@ -110,3 +125,29 @@ class TestKullaniciYonetimi:
         svc.kullanici_aktif_et(admin, kid)
         row2 = svc.kullanici_getir(admin, kid)
         assert int(row2["aktif"]) == 1
+
+    def test_yeni_kullanici_ilk_giriste_sifre_degistirir(self, svc):
+        admin = svc.giris_yap("admin", "admin123")
+        svc.ilk_giris_parola_degistir(admin["id"], "adminYENI123")
+
+        kid = svc.kullanici_ekle(admin, {
+            "ad": "ilklogin",
+            "parola": "guclu123",
+            "rol": "kullanici",
+        })
+
+        ilk = svc.giris_yap("ilklogin", "guclu123")
+        assert ilk["id"] == kid
+        assert ilk["sifre_degismeli"] is True
+
+    def test_yeni_eklenen_role_kullanici_eklenebilir(self, db, svc):
+        admin = svc.giris_yap("admin", "admin123")
+        PolicyService(db).rol_ekle(admin, "teknik_sorumlu", kopyala_rol="kullanici")
+
+        kid = svc.kullanici_ekle(admin, {
+            "ad": "teknikrol",
+            "parola": "guclu123",
+            "rol": "teknik_sorumlu",
+        })
+        row = svc.kullanici_getir(admin, kid)
+        assert row["rol"] == "teknik_sorumlu"

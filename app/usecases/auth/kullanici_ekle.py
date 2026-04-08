@@ -2,18 +2,17 @@
 """Kullanici ekleme is akisi."""
 from __future__ import annotations
 
-from app.config import RBAC_ROLLER
 from app.exceptions import DogrulamaHatasi, KayitZatenVar
 from app.validators import zorunlu
 
 
-def execute(kullanici_repo, hash_fn, veri: dict) -> str:
+def execute(kullanici_repo, hash_fn, role_exists_fn, veri: dict) -> str:
     """Yeni kullanici olusturur ve ID dondurur."""
     ad = zorunlu(veri.get("ad"), "Kullanıcı adı")
     parola = zorunlu(veri.get("parola"), "Parola")
     rol = zorunlu(veri.get("rol"), "Rol")
 
-    if rol not in RBAC_ROLLER:
+    if not role_exists_fn(rol):
         raise DogrulamaHatasi(f"Geçersiz rol: {rol}")
     if len(parola) < 6:
         raise DogrulamaHatasi("Parola en az 6 karakter olmalıdır.")
@@ -26,6 +25,7 @@ def execute(kullanici_repo, hash_fn, veri: dict) -> str:
             "sifre_hash": hash_fn(parola),
             "rol": rol,
             "aktif": bool(veri.get("aktif", True)),
+            "sifre_degismeli": True,
             "personel_id": veri.get("personel_id"),
         }
     )

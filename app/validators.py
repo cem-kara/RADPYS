@@ -5,9 +5,14 @@ app/validators.py
 Doğrulama fonksiyonları ve tarih yardımcıları.
 """
 from __future__ import annotations
-from datetime import date, datetime
-from app.config import TARIH_FORMAT, TARIH_UI
+import re
+from datetime import date
+from app.config import TARIH_FORMAT
+from app.date_utils import parse_date, to_db_date, to_ui_date
 from app.exceptions import DogrulamaHatasi, TCHatasi
+
+
+_EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
 
 # ── TC Kimlik No ──────────────────────────────────────────────────
@@ -49,6 +54,82 @@ def tc_dogrula_veya_hata(tc: str) -> str:
     return tc
 
 
+def email_dogrula(email: str | None) -> bool:
+    """Email formatını doğrular. Boş değer opsiyonel kabul edilir."""
+    if not email:
+        return True
+    return bool(_EMAIL_PATTERN.match(str(email).strip()))
+
+
+def telefon_dogrula(telefon: str | None) -> bool:
+    """Türkiye GSM numaralarını 10 veya 11 hane olarak doğrular."""
+    if not telefon:
+        return True
+
+    digits = "".join(char for char in str(telefon) if char.isdigit())
+    if len(digits) == 10:
+        return digits.startswith("5")
+    if len(digits) == 11:
+        return digits.startswith("05")
+    return False
+
+
+def bos_degil(deger: str | None) -> bool:
+    """Değerin boş veya sadece boşluk olmadığını döndürür."""
+    return bool(str(deger or "").strip())
+
+
+def uzunluk_dogrula(
+    deger: str | None,
+    min_uzunluk: int = 0,
+    max_uzunluk: int | None = None,
+) -> bool:
+    """Metin uzunluğunu alt ve üst sınıra göre doğrular."""
+    if not deger:
+        return min_uzunluk == 0
+
+    uzunluk = len(deger)
+    if uzunluk < min_uzunluk:
+        return False
+    if max_uzunluk is not None and uzunluk > max_uzunluk:
+        return False
+    return True
+
+
+def sayisal_dogrula(deger: str | None) -> bool:
+    """Değerin yalnızca rakamlardan oluştuğunu doğrular."""
+    if not deger:
+        return True
+    return str(deger).isdigit()
+
+
+def alfasayisal_dogrula(deger: str | None) -> bool:
+    """Değerin harf, rakam ve boşluklardan oluştuğunu doğrular."""
+    if not deger:
+        return True
+    return str(deger).replace(" ", "").isalnum()
+
+
+def tarih_format_dogrula(
+    deger: str | None,
+    desen: str = r"^\d{2}\.\d{2}\.\d{4}$",
+) -> bool:
+    """Metnin verilen tarih desenine uyup uymadığını döndürür."""
+    if not deger:
+        return True
+    return bool(re.match(desen, str(deger).strip()))
+
+
+validate_tc_kimlik_no = tc_dogrula
+validate_email = email_dogrula
+validate_phone_number = telefon_dogrula
+validate_not_empty = bos_degil
+validate_length = uzunluk_dogrula
+validate_numeric = sayisal_dogrula
+validate_alphanumeric = alfasayisal_dogrula
+validate_date_format = tarih_format_dogrula
+
+
 # ── Tarih ─────────────────────────────────────────────────────────
 
 def parse_tarih(deger: str | date | None) -> date | None:
@@ -63,17 +144,7 @@ def parse_tarih(deger: str | date | None) -> date | None:
     Returns:
         date nesnesi veya None (parse edilemezse)
     """
-    if deger is None or deger == "":
-        return None
-    if isinstance(deger, date):
-        return deger
-    deger = str(deger).strip()
-    for fmt in (TARIH_FORMAT, TARIH_UI, "%d/%m/%Y", "%Y/%m/%d"):
-        try:
-            return datetime.strptime(deger, fmt).date()
-        except ValueError:
-            continue
-    return None
+    return parse_date(deger)
 
 
 def parse_tarih_veya_hata(deger: str | None, alan_adi: str = "Tarih") -> date:
@@ -98,13 +169,10 @@ def format_tarih(d: date | str | None, ui: bool = False) -> str:
     Returns:
         Format string veya "" (None ise)
     """
-    if d is None:
-        return ""
-    if isinstance(d, str):
-        d = parse_tarih(d)
-        if d is None:
-            return ""
-    return d.strftime(TARIH_UI if ui else TARIH_FORMAT)
+    if ui:
+        return to_ui_date(d, fallback="")
+    normalized = to_db_date(d)
+    return "" if normalized is None else normalized
 
 
 def bugun() -> str:

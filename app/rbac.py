@@ -5,7 +5,9 @@ Başlangıçta hardcoded policy kullanılır.
 `init_dari_db(db)` çağrıldıktan sonra DB'deki izinler aktif olur.
 """
 from __future__ import annotations
-from app.security.permissions import has_permission
+from app.config import RBAC_ROL_YETKILERI
+from app.security.permissions import has_permission, require_permission
+from app.text_utils import turkish_upper
 
 # ── DB'den yüklenen dinamik policy (başlangıçta None) ─────────────
 _db_moduller: dict[str, set[str] | None] | None = None
@@ -51,25 +53,6 @@ _ROLE_MODULES = {
     },
 }
 
-_ROLE_ACTIONS = {
-    "admin": {
-        "personel.ekle",
-        "personel.guncelle",
-        "personel.pasife_al",
-        "kullanici.goruntule",
-        "kullanici.olustur",
-        "kullanici.guncelle",
-        "kullanici.pasife_al",
-    },
-    "yonetici": {
-        "personel.ekle",
-        "personel.guncelle",
-        "kullanici.goruntule",
-        "kullanici.guncelle",
-    },
-    "kullanici": set(),
-}
-
 
 def rol(oturum: dict | None) -> str:
     return str((oturum or {}).get("rol") or "kullanici")
@@ -94,6 +77,10 @@ def yetki_var_mi(oturum: dict | None, eylem: str) -> bool:
     return has_permission(oturum, eylem)
 
 
+def yetki_gerektir(oturum: dict | None, eylem: str) -> None:
+    require_permission(oturum, eylem)
+
+
 def kullanici_kisa_ad(oturum: dict | None) -> str:
     ad = str((oturum or {}).get("ad") or "Kullanici")
     return ad
@@ -105,8 +92,8 @@ def kullanici_avatar(oturum: dict | None) -> str:
         return "KU"
     parcalar = [p for p in ad.replace("_", " ").split() if p]
     if len(parcalar) >= 2:
-        return (parcalar[0][0] + parcalar[1][0]).upper()
-    return ad[:2].upper()
+        return turkish_upper(parcalar[0][0] + parcalar[1][0])
+    return turkish_upper(ad[:2])
 
 
 def rol_modul_haritasi() -> dict[str, set[str] | None]:
@@ -123,5 +110,5 @@ def rol_modul_haritasi() -> dict[str, set[str] | None]:
 
 
 def rol_eylem_haritasi() -> dict[str, set[str]]:
-    """Hardcoded eylem izin haritasını döner."""
-    return {r: set(e) for r, e in _ROLE_ACTIONS.items()}
+    """Config tabanlı eylem izin haritasını döner."""
+    return {r: set(e) for r, e in RBAC_ROL_YETKILERI.items()}

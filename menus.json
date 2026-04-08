@@ -5,133 +5,143 @@
     "badge_id: app/badge_functions.py'deki BADGE_FN anahtarı.",
     "bolum: 'ana_menu' | 'cihaz' | 'nobet' | 'sistem'"
   ],
-
   "bolumler": {
-    "ana_menu": { "label": "Ana Menü", "sira": 0 },
-    "cihaz":    { "label": "Cihaz",    "sira": 1 },
-    "nobet":    { "label": "Nöbet",    "sira": 2 },
-    "sistem":   { "label": "Sistem",   "sira": 3 }
+    "ana_menu": {
+      "label": "Ana Menü",
+      "sira": 0
+    },
+    "cihaz": {
+      "label": "Cihaz",
+      "sira": 1
+    },
+    "nobet": {
+      "label": "Nöbet",
+      "sira": 2
+    },
+    "sistem": {
+      "label": "Sistem",
+      "sira": 3
+    }
   },
-
   "moduller": [
     {
-      "id":       "dashboard",
-      "label":    "Dashboard",
-      "icon":     "dashboard",
-      "bolum":    "ana_menu",
-      "sira":     0,
+      "id": "dashboard",
+      "label": "Dashboard",
+      "icon": "dashboard",
+      "bolum": "ana_menu",
+      "sira": 0,
       "page_cls": "ui.pages.dashboard.dashboard_page.DashboardPage"
     },
     {
-      "id":         "personel",
-      "label":      "Personel",
-      "icon":       "personel",
-      "bolum":      "ana_menu",
-      "sira":       10,
-      "page_cls":   "ui.pages.personel.personel_page.PersonelPage",
-      "badge_id":   "personel_aktif",
+      "id": "personel",
+      "label": "Personel",
+      "icon": "personel",
+      "bolum": "ana_menu",
+      "sira": 10,
+      "page_cls": "ui.pages.personel.personel_page.PersonelPage",
+      "badge_id": "personel_aktif",
       "badge_renk": "#3479ff",
       "varsayilan": true
     },
     {
-      "id":         "izin",
-      "label":      "İzin Takip",
-      "icon":       "izin",
-      "bolum":      "ana_menu",
-      "sira":       20,
-      "page_cls":   "ui.pages.placeholder.PlaceholderPage",
-      "badge_id":   "izin_aktif",
+      "id": "izin",
+      "label": "İzin Takip",
+      "icon": "izin",
+      "bolum": "ana_menu",
+      "sira": 20,
+      "page_cls": "ui.pages.placeholder.PlaceholderPage",
+      "badge_id": "izin_aktif",
       "badge_renk": "#e8a020"
     },
     {
-      "id":       "saglik",
-      "label":    "Sağlık Takip",
-      "icon":     "saglik",
-      "bolum":    "ana_menu",
-      "sira":     30,
+      "id": "saglik",
+      "label": "Sağlık Takip",
+      "icon": "saglik",
+      "bolum": "ana_menu",
+      "sira": 30,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
     },
     {
-      "id":       "dozimetre",
-      "label":    "Dozimetre",
-      "icon":     "dozimetre",
-      "bolum":    "ana_menu",
-      "sira":     40,
+      "id": "dozimetre",
+      "label": "Dozimetre",
+      "icon": "dozimetre",
+      "bolum": "ana_menu",
+      "sira": 40,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
     },
     {
-      "id":       "cihaz",
-      "label":    "Cihaz Listesi",
-      "icon":     "cihaz",
-      "bolum":    "cihaz",
-      "sira":     10,
+      "id": "cihaz",
+      "label": "Cihaz Listesi",
+      "icon": "cihaz",
+      "bolum": "cihaz",
+      "sira": 10,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
     },
     {
-      "id":         "ariza",
-      "label":      "Arıza Takip",
-      "icon":       "ariza",
-      "bolum":      "cihaz",
-      "sira":       20,
-      "page_cls":   "ui.pages.placeholder.PlaceholderPage",
-      "badge_id":   "ariza_acik",
+      "id": "ariza",
+      "label": "Arıza Takip",
+      "icon": "ariza",
+      "bolum": "cihaz",
+      "sira": 20,
+      "page_cls": "ui.pages.placeholder.PlaceholderPage",
+      "badge_id": "ariza_acik",
       "badge_renk": "#e83a5a"
     },
     {
-      "id":       "bakim",
-      "label":    "Bakım & Kalibr.",
-      "icon":     "bakim",
-      "bolum":    "cihaz",
-      "sira":     30,
+      "id": "bakim",
+      "label": "Bakım & Kalibr.",
+      "icon": "bakim",
+      "bolum": "cihaz",
+      "sira": 30,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
     },
     {
-      "id":       "rke",
-      "label":    "RKE Envanter",
-      "icon":     "rke",
-      "bolum":    "cihaz",
-      "sira":     40,
+      "id": "rke",
+      "label": "RKE Envanter",
+      "icon": "rke",
+      "bolum": "cihaz",
+      "sira": 40,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
     },
     {
-      "id":       "nobet",
-      "label":    "Nöbet Planı",
-      "icon":     "nobet",
-      "bolum":    "nobet",
-      "sira":     10,
+      "id": "nobet",
+      "label": "Nöbet Planı",
+      "icon": "nobet",
+      "bolum": "nobet",
+      "sira": 10,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
     },
     {
-      "id":       "mesai",
-      "label":    "Fazla Mesai",
-      "icon":     "mesai",
-      "bolum":    "nobet",
-      "sira":     20,
+      "id": "mesai",
+      "label": "Fazla Mesai",
+      "icon": "mesai",
+      "bolum": "nobet",
+      "sira": 20,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
     },
     {
-      "id":       "dokumanlar",
-      "label":    "Dökümanlar",
-      "icon":     "dokumanlar",
-      "bolum":    "sistem",
-      "sira":     10,
+      "id": "dokumanlar",
+      "label": "Dökümanlar",
+      "icon": "dokumanlar",
+      "bolum": "sistem",
+      "sira": 10,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
     },
     {
-      "id":       "rapor",
-      "label":    "Raporlar",
-      "icon":     "rapor",
-      "bolum":    "sistem",
-      "sira":     20,
+      "id": "rapor",
+      "label": "Raporlar",
+      "icon": "rapor",
+      "bolum": "sistem",
+      "sira": 20,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
     },
     {
-      "id":       "ayarlar",
-      "label":    "Yönetim",
-      "icon":     "ayarlar",
-      "bolum":    "sistem",
-      "sira":     30,
-      "page_cls": "ui.pages.placeholder.PlaceholderPage"
+      "id": "ayarlar",
+      "label": "Yönetim",
+      "icon": "ayarlar",
+      "bolum": "sistem",
+      "sira": 30,
+      "page_cls": "ui.pages.yonetim.yonetim_page.YonetimPage"
     }
   ]
 }

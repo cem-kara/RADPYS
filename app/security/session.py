@@ -13,5 +13,6 @@ def build_session(row: dict) -> dict:
         "ad": row["ad"],
         "rol": rol,
         "yetkiler": sorted(RBAC_ROL_YETKILERI.get(rol, set())),
+        "sifre_degismeli": bool(int(row.get("sifre_degismeli", 0))),
         "son_giris": row.get("son_giris"),
     }

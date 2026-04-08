@@ -35,24 +35,31 @@ def _hash(parola: str) -> str:
     return "HASH:" + parola
 
 
+def _rol_var_mi(rol: str) -> bool:
+    return rol in {"admin", "yonetici", "kullanici"}
+
+
 class TestKullaniciEkleUseCase:
 
     def test_basarili(self, repo):
         kid = kullanici_ekle(
             repo,
             _hash,
+            _rol_var_mi,
             {"ad": "ucase1", "parola": "guclu123", "rol": "kullanici"},
         )
         row = repo.id_ile_getir(kid)
         assert row is not None
         assert row["ad"] == "ucase1"
         assert row["sifre_hash"] == "HASH:guclu123"
+        assert int(row["sifre_degismeli"]) == 1
 
     def test_gecersiz_rol(self, repo):
         with pytest.raises(DogrulamaHatasi):
             kullanici_ekle(
                 repo,
                 _hash,
+                _rol_var_mi,
                 {"ad": "ucase2", "parola": "guclu123", "rol": "x"},
             )
 
@@ -60,12 +67,14 @@ class TestKullaniciEkleUseCase:
         kullanici_ekle(
             repo,
             _hash,
+            _rol_var_mi,
             {"ad": "ucase3", "parola": "guclu123", "rol": "kullanici"},
         )
         with pytest.raises(KayitZatenVar):
             kullanici_ekle(
                 repo,
                 _hash,
+                _rol_var_mi,
                 {"ad": "ucase3", "parola": "guclu123", "rol": "kullanici"},
             )
 
@@ -76,6 +85,7 @@ class TestKullaniciGuncelleUseCase:
         kid = kullanici_ekle(
             repo,
             _hash,
+            _rol_var_mi,
             {"ad": "ucase4", "parola": "guclu123", "rol": "kullanici"},
         )
         kullanici_rol_guncelle(repo, kid, "yonetici")
@@ -87,6 +97,7 @@ class TestKullaniciGuncelleUseCase:
         kid = kullanici_ekle(
             repo,
             _hash,
+            _rol_var_mi,
             {"ad": "ucase5", "parola": "guclu123", "rol": "kullanici"},
         )
         kullanici_aktiflik_guncelle(repo, kid, False)

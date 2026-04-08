@@ -82,3 +82,11 @@ RBAC_ROL_YETKILERI: dict[str, set] = {
 # ── Tarih Formatı ─────────────────────────────────────────────────
 TARIH_FORMAT = "%Y-%m-%d"   # ISO-8601, veritabanında kullanılan format
 TARIH_UI     = "%d.%m.%Y"   # Kullanıcıya gösterilen format
+
+# ── Logging ───────────────────────────────────────────────────────
+LOG_MAX_BYTES        = 10 * 1024 * 1024
+LOG_BACKUP_COUNT     = 5
+LOG_CLEANUP_DAYS     = 7
+LOG_MAX_TOTAL_MB     = 100
+LOG_WARN_FILE_MB     = 8
+LOG_WARN_TOTAL_MB    = 80

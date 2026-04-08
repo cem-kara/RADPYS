@@ -9,7 +9,7 @@ from app.db.database import Database
 from app.db.migrations import run as migrate
 from app.services.auth_service import AuthService
 from app.services.policy_service import PolicyService
-from app.exceptions import YetkiHatasi
+from app.exceptions import KayitZatenVar, YetkiHatasi
 
 
 @pytest.fixture
@@ -102,3 +102,23 @@ class TestTumRolModulleri:
         # Herhangi bir falsy olmayan değer veya None kabul edilir
         # (admin için tüm modüller izinli)
         assert admin_izin is None or len(admin_izin) > 0
+
+
+class TestRolEkle:
+
+    def test_admin_yeni_rol_ekleyebilir(self, svc, admin_oturum):
+        yeni = svc.rol_ekle(admin_oturum, "teknik_sorumlu")
+        assert yeni == "teknik_sorumlu"
+        assert svc.rol_var_mi("teknik_sorumlu") is True
+
+    def test_yeni_rol_kopya_rol_ile_eklenebilir(self, svc, admin_oturum):
+        yeni = svc.rol_ekle(admin_oturum, "yardimci", kopyala_rol="kullanici")
+        assert yeni == "yardimci"
+        izinler = svc.modul_seti_getir("yardimci")
+        assert izinler is not None
+        assert "dashboard" in izinler
+
+    def test_ayni_rol_iki_kez_eklenemez(self, svc, admin_oturum):
+        svc.rol_ekle(admin_oturum, "teknik_sorumlu")
+        with pytest.raises(KayitZatenVar):
+            svc.rol_ekle(admin_oturum, "teknik_sorumlu")
