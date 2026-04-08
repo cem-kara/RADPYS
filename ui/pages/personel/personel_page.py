@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """
 ui/pages/personel/personel_page.py
-────────────────────────────────────
-Personel modülünün ana sayfası.
+ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?
+Personel modÃ¼lÃ¼nÃ¼n ana sayfasÄ±.
 
-Görünüm:
-  ┌──────────────────┬────────────────────────────────┐
-  │  PersonelListesi │     PersonelDetay (tab'lar)     │
-  │    (sol panel)   │     veya boş karşılama ekranı   │
-  └──────────────────┴────────────────────────────────┘
+GÃ¶rÃ¼nÃ¼m:
+  ï¿½"Oï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"ï¿½ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"ï¿½
+  ï¿½",  PersonelListesi ï¿½",     PersonelDetay (tab'lar)     ï¿½",
+  ï¿½",    (sol panel)   ï¿½",     veya boï¿½Y karï¿½YÄ±lama ekranÄ±   ï¿½",
+  ï¿½""ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"ï¿½ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"~
 
 Routing:
-  - Listede satıra tıklanınca → sağda PersonelDetay açılır
-  - "Geri" butonuna basınca   → sağda karşılama ekranı
-  - "Yeni" butonuna basınca   → PersonelForm dialog
+  - Listede satÄ±ra tÄ±klanÄ±nca ï¿½?' saï¿½Yda PersonelDetay aÃ§Ä±lÄ±r
+  - "Geri" butonuna basÄ±nca   ï¿½?' saï¿½Yda karï¿½YÄ±lama ekranÄ±
+  - "Yeni" butonuna basÄ±nca   ï¿½?' PersonelForm dialog
 """
 from __future__ import annotations
 from PySide6.QtWidgets import (
@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QLabel, QFrame,
 )
 from PySide6.QtCore import Qt
-from ui.theme import T
+from ui.styles import T
 from ui.components.async_runner import AsyncRunner
 from ui.pages.personel.personel_listesi import PersonelListesi
 from ui.pages.personel.personel_detay import PersonelDetay
@@ -31,7 +31,7 @@ from app.db.database import Database
 
 
 class _KarsilamaEkrani(QWidget):
-    """Henüz personel seçilmemişken gösterilen ekran."""
+    """HenÃ¼z personel seÃ§ilmemiï¿½Yken gÃ¶sterilen ekran."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -39,20 +39,20 @@ class _KarsilamaEkrani(QWidget):
         lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lay.setSpacing(12)
 
-        from ui.icons import Icon as _Icon
+        from ui.styles.icons import Icons as _Icon
         ikon = _Icon.label("personel", T.text3, 48)
         ikon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         ikon.setFixedSize(64, 64)
         lay.addWidget(ikon)
 
-        lbl = QLabel("Personel seçin")
+        lbl = QLabel("Personel seÃ§in")
         lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl.setStyleSheet(
             f"color:{T.text3}; font-size:18px; font-weight:600;"
         )
         lay.addWidget(lbl)
 
-        alt = QLabel("Soldan bir personel seçerek\nbilgilerini görüntüleyebilirsiniz.")
+        alt = QLabel("Soldan bir personel seÃ§erek\nbilgilerini gÃ¶rÃ¼ntÃ¼leyebilirsiniz.")
         alt.setAlignment(Qt.AlignmentFlag.AlignCenter)
         alt.setStyleSheet(f"color:{T.text3}; font-size:12px;")
         lay.addWidget(alt)
@@ -60,9 +60,9 @@ class _KarsilamaEkrani(QWidget):
 
 class PersonelPage(QWidget):
     """
-    Personel modülü ana sayfası.
+    Personel modÃ¼lÃ¼ ana sayfasÄ±.
 
-    Kullanım:
+    KullanÄ±m:
         page = PersonelPage(db)
         # AppWindow'un stack'ine ekle
     """
@@ -73,28 +73,28 @@ class PersonelPage(QWidget):
         self._svc = PersonelService(db)
         self._build()
 
-    # ── UI ────────────────────────────────────────────────────────
+    # ï¿½"?ï¿½"? UI ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?
 
     def _build(self):
         kok = QHBoxLayout(self)
         kok.setContentsMargins(0, 0, 0, 0)
         kok.setSpacing(0)
 
-        # Splitter: sol liste | sağ detay
+        # Splitter: sol liste | saï¿½Y detay
         self._splitter = QSplitter(Qt.Orientation.Horizontal)
         self._splitter.setHandleWidth(1)
         self._splitter.setStyleSheet(
             f"QSplitter::handle {{ background:{T.border}; }}"
         )
 
-        # Sol panel — liste
+        # Sol panel ï¿½?" liste
         self._liste = PersonelListesi(self._svc)
         self._liste.setMinimumWidth(280)
         self._liste.secildi.connect(self._personel_sec)
         self._liste.yeni_istendi.connect(self._yeni_dialog)
         self._splitter.addWidget(self._liste)
 
-        # Sağ panel — başlangıçta karşılama, tıklanınca detay
+        # Saï¿½Y panel ï¿½?" baï¿½YlangÄ±Ã§ta karï¿½YÄ±lama, tÄ±klanÄ±nca detay
         self._sag = QFrame()
         self._sag_lay = QVBoxLayout(self._sag)
         self._sag_lay.setContentsMargins(0, 0, 0, 0)
@@ -109,33 +109,35 @@ class PersonelPage(QWidget):
         self._sag_lay.addWidget(self._detay)
         self._splitter.addWidget(self._sag)
 
-        # Başlangıç oranı: %28 liste, %72 detay
+        # Baï¿½YlangÄ±Ã§ oranÄ±: %28 liste, %72 detay
         self._splitter.setSizes([300, 900])
         kok.addWidget(self._splitter)
 
-    # ── Routing ───────────────────────────────────────────────────
+    # ï¿½"?ï¿½"? Routing ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?
 
     def _personel_sec(self, personel_id: str):
-        """Listeden personel seçildi → detayı göster."""
+        """Listeden personel seÃ§ildi ï¿½?' detayÄ± gÃ¶ster."""
         self._karsilama.setVisible(False)
         self._detay.setVisible(True)
         self._detay.yukle(personel_id)
 
     def _detay_kapat(self):
-        """Geri butonuna basıldı → karşılama ekranını göster."""
+        """Geri butonuna basÄ±ldÄ± ï¿½?' karï¿½YÄ±lama ekranÄ±nÄ± gÃ¶ster."""
         self._detay.setVisible(False)
         self._karsilama.setVisible(True)
 
     def _yeni_dialog(self):
-        """Yeni personel formu aç."""
+        """Yeni personel formu aÃ§."""
         dlg = PersonelForm(self._svc, parent=self)
         dlg.kaydedildi.connect(self._yeni_personel_eklendi)
         dlg.exec()
 
     def _yeni_personel_eklendi(self, personel_id: str):
-        """Form kaydedildi → listeyi yenile + yeni kaydı seç."""
+        """Form kaydedildi ï¿½?' listeyi yenile + yeni kaydÄ± seÃ§."""
         self._liste.yenile()
-        # Listenin yüklenmesi async — küçük gecikme sonrası seç
+        # Listenin yÃ¼klenmesi async ï¿½?" kÃ¼Ã§Ã¼k gecikme sonrasÄ± seÃ§
         from PySide6.QtCore import QTimer
         QTimer.singleShot(400, lambda: self._liste.sec(personel_id))
         self._personel_sec(personel_id)
+
+

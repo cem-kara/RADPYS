@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 ui/pages/placeholder.py
-────────────────────────
+------------------------
 Henüz yazılmamış modüller için geçici sayfa.
-PlaceholderPage(db) imzasına uyar — modül kayıt sistemiyle uyumlu.
+PlaceholderPage(db) imzasına uyar �?" modül kayıt sistemiyle uyumlu.
 """
 from __future__ import annotations
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PySide6.QtCore import Qt
-from ui.theme import T
+from ui.styles import T
 
 
 class PlaceholderPage(QWidget):
@@ -19,7 +19,7 @@ class PlaceholderPage(QWidget):
         lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lay.setSpacing(14)
 
-        from ui.icons import Icon as _Ico
+        from ui.styles.icons import Icons as _Ico
         ikon = _Ico.label("bakim", T.text3, 48)
         ikon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         ikon.setFixedSize(64, 64)
@@ -40,3 +40,5 @@ class PlaceholderPage(QWidget):
         lay.addWidget(ikon)
         lay.addWidget(tit)
         lay.addWidget(alt)
+
+

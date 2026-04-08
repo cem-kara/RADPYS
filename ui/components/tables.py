@@ -1,17 +1,17 @@
-# -*- coding: utf-8 -*-
-"""ui/components/tables.py — Standart veri tablosu"""
+﻿# -*- coding: utf-8 -*-
+"""ui/components/tables.py �?" Standart veri tablosu"""
 from __future__ import annotations
 from PySide6.QtWidgets import (
     QTableView, QAbstractItemView, QHeaderView,
 )
 from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex, QSortFilterProxyModel
 from PySide6.QtGui import QColor
-from ui.theme import T
+from ui.styles import T
 
 
 class _TableModel(QAbstractTableModel):
     """
-    list[dict] veriyi QTableView'a bağlayan model.
+    list[dict] veriyi QTableView'a ba�Ylayan model.
 
     Kullanım:
         model = _TableModel(
@@ -77,7 +77,7 @@ class _TableModel(QAbstractTableModel):
         return str(deger)
 
     def _foreground(self, key: str, deger, row: dict) -> str | None:
-        """Subclass'ta override edilebilir — renk kodu veya None."""
+        """Subclass'ta override edilebilir �?" renk kodu veya None."""
         return None
 
     def _alignment(self, key: str) -> int:
@@ -118,7 +118,7 @@ class DataTable(QTableView):
     def kur_kolonlar(self, kolonlar: list[tuple],
                      geren: int | str = -1) -> None:
         """
-        Kolonları ayarla ve genişlikleri uygula.
+        Kolonları ayarla ve geni�Ylikleri uygula.
 
         kolonlar: [(key, baslik, genislik), ...]
         geren: Bu indeksteki kolon kalan alanı doldurur (-1 = son kolon)
@@ -156,3 +156,5 @@ class DataTable(QTableView):
         if not idx.isValid():
             return -1
         return self._proxy.mapToSource(idx).row()
+
+

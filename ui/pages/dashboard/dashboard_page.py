@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 ui/pages/dashboard/dashboard_page.py
-─────────────────────────────────────
-Dashboard ana sayfası — Sprint 6'da detaylandırılacak.
+�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+Dashboard ana sayfası �?" Sprint 6'da detaylandırılacak.
 """
 from __future__ import annotations
 from PySide6.QtWidgets import (
@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QGridLayout, QFrame, QScrollArea,
 )
 from PySide6.QtCore import Qt
-from ui.theme import T
+from ui.styles import T
 from app.db.database import Database
 
 
@@ -34,7 +34,7 @@ class _StatKart(QFrame):
             f"color:{T.text3};font-size:9px;font-weight:700;"
             f"letter-spacing:0.1em;font-family:'Consolas','Courier New',monospace;"
         )
-        from ui.icons import Icon as _Ico
+        from ui.styles.icons import Icons as _Ico
         ikon_lbl = _Ico.label(ikon, renk, 20)
         ikon_lbl.setFixedSize(22, 22)
         baslik_lay.addWidget(b)
@@ -84,7 +84,7 @@ class DashboardPage(QWidget):
         lay.setContentsMargins(20, 20, 20, 20)
         lay.setSpacing(16)
 
-        # Başlık
+        # Ba�Ylık
         hdr = QHBoxLayout()
         tit = QLabel("Dashboard")
         tit.setStyleSheet(
@@ -99,10 +99,10 @@ class DashboardPage(QWidget):
         grid.setSpacing(10)
 
         self._kartlar = [
-            _StatKart("personel", "Aktif Personel",   "—", "yükleniyor...", T.accent2),
-            _StatKart("izin",     "Bugün İzinli",     "—", "aktif izin",   T.amber),
-            _StatKart("saglik",   "Yaklaşan Muayene", "—", "30 gün içinde", T.teal2),
-            _StatKart("dozimetre","Doz Aşımı",        "—", "son periyot",  T.red2),
+            _StatKart("personel", "Aktif Personel",   "�?"", "yükleniyor...", T.accent2),
+            _StatKart("izin",     "Bugün İzinli",     "�?"", "aktif izin",   T.amber),
+            _StatKart("saglik",   "Yakla�Yan Muayene", "�?"", "30 gün içinde", T.teal2),
+            _StatKart("dozimetre","Doz A�Yımı",        "�?"", "son periyot",  T.red2),
         ]
         for i, k in enumerate(self._kartlar):
             grid.addWidget(k, 0, i)
@@ -125,3 +125,5 @@ class DashboardPage(QWidget):
             self._kartlar[0].findChild(QLabel, "").setText(str(aktif))
         except Exception:
             pass
+
+

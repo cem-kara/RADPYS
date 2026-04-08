@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""main.py — REPYS 2.0 giriş noktası."""
+"""main.py — RADPYS 2.0 giriş noktası."""
 from __future__ import annotations
 import sys
 from pathlib import Path

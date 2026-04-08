@@ -1,4 +1,4 @@
-# REPYS 2.0 — GitHub Copilot Yönergesi
+# RADPYS 2.0 — GitHub Copilot Yönergesi
 
 Bu dosya Copilot'a projenin tüm kurallarını, mimarisini ve
 kod üretim beklentilerini anlatır.
@@ -8,7 +8,7 @@ kod üretim beklentilerini anlatır.
 
 ## 1. PROJE KİMLİĞİ
 
-**REPYS 2.0** — Radyoloji Bölümü Yönetim Sistemi.
+**RADPYS 2.0** — Radyoloji Bölümü Yönetim Sistemi.
 Python 3.12 + PySide6 masaüstü uygulaması.
 Hastane radyoloji birimindeki personel, cihaz, nöbet,
 izin ve dozimetre takibini yönetir.
@@ -16,7 +16,7 @@ izin ve dozimetre takibini yönetir.
 ```
 Teknoloji: Python 3.12 · PySide6 6.6+ · SQLite 3.40+
 Test:      pytest
-Veritabanı: data/repys.db (SQLite, WAL modu)
+Veritabanı: data/radpys.db (SQLite, WAL modu)
 ```
 
 ---
@@ -24,7 +24,7 @@ Veritabanı: data/repys.db (SQLite, WAL modu)
 ## 2. KLASÖR YAPISI
 
 ```
-repys2/
+radpys2/
 ├── main.py                  ← Giriş noktası
 ├── menus.json               ← Sidebar menü tanımları (BURAYA ekle yeni modül)
 │
@@ -118,7 +118,7 @@ UI Widget  →  Service  →  UseCase  →  Repository  →  Database
 ```python
 from app.db.database import Database
 
-db = Database("data/repys.db")
+db = Database("data/radpys.db")
 
 # Tek kayıt — dict | None döner
 row = db.fetchone("SELECT * FROM personel WHERE id=?", (pid,))
@@ -361,31 +361,33 @@ label.setStyleSheet("color:#6e88b0;")   # ← bunu yazma
 
 | Değişken | Hex | Kullanım |
 |---|---|---|
-| `T.bg0` | `#070b11` | Uygulama zemini |
-| `T.bg1` | `#0c1320` | Topbar, sidebar |
-| `T.bg2` | `#101828` | Kart, panel |
-| `T.bg3` | `#162036` | Hover, seçili satır |
-| `T.bg4` | `#1c2a44` | Input, progress track |
-| `T.border` | `rgba(90,130,200,0.10)` | İnce kenarlık |
-| `T.border2` | `rgba(90,130,200,0.22)` | Hover kenarlık |
-| `T.text` | `#cdd8f0` | Birincil metin |
-| `T.text2` | `#6e88b0` | İkincil metin |
-| `T.text3` | `#3a506e` | Soluk metin |
-| `T.text4` | `#1e3050` | En soluk metin |
-| `T.accent` | `#3479ff` | Mavi — primary action |
-| `T.accent2` | `#5b9bff` | Mavi açık |
-| `T.green2` | `#24e07f` | Başarı |
-| `T.red` | `#e83a5a` | Tehlike/hata |
-| `T.red2` | `#ff6080` | Tehlike açık |
-| `T.amber` | `#e8a020` | Uyarı |
-| `T.amber2` | `#ffbb40` | Uyarı açık |
-| `T.purple` | `#8b5cf6` | Vurgu |
-| `T.teal2` | `#2dd4bf` | Bilgi/sağlık |
+| `T.bg0` | `#0b0f14` | Uygulama zemini |
+| `T.bg1` | `#101722` | Topbar, sidebar |
+| `T.bg2` | `#141e2b` | Kart, panel |
+| `T.bg3` | `#1a2636` | Hover, seçili satır |
+| `T.bg4` | `#223247` | Input, progress track |
+| `T.border` | `rgba(255,255,255,0.06)` | İnce kenarlık |
+| `T.border2` | `rgba(255,255,255,0.12)` | Hover kenarlık |
+| `T.text` | `#e6edf6` | Birincil metin |
+| `T.text2` | `#b6c2d2` | İkincil metin |
+| `T.text3` | `#7e8ca3` | Soluk metin |
+| `T.text4` | `#4a5b73` | En soluk metin |
+| `T.accent` | `#23c5b8` | Teal — primary action |
+| `T.accent2` | `#45d7cd` | Teal açık |
+| `T.green2` | `#34e58b` | Başarı |
+| `T.red` | `#e24d5f` | Tehlike/hata |
+| `T.red2` | `#ff6f84` | Tehlike açık |
+| `T.amber` | `#e0a73a` | Uyarı |
+| `T.amber2` | `#f6c356` | Uyarı açık |
+| `T.purple` | `#2f7dd1` | Mavi vurgu |
+| `T.teal2` | `#2cc8bf` | Bilgi/sağlık |
 
-**`T.radius` ve `T.radius_sm`** — border-radius için:
+**`T.radius`, `T.radius_sm`, `T.input_h`, `T.icon_md`:**
 ```python
-f"border-radius:{T.radius}px;"     # büyük kart: 10px
-f"border-radius:{T.radius_sm}px;"  # buton/input: 7px
+f"border-radius:{T.radius}px;"     # büyük kart: 12px
+f"border-radius:{T.radius_sm}px;"  # buton/input: 9px
+# T.input_h = 34  — tüm input kontrolleri bu yüksekliği kullanır
+# T.icon_sm = 14, T.icon_md = 16, T.icon_lg = 20
 ```
 
 ### 6.2 Hazır Bileşenler
@@ -394,18 +396,32 @@ f"border-radius:{T.radius_sm}px;"  # buton/input: 7px
 
 ```python
 from ui.components import (
-    PrimaryButton,   # Mavi aksiyon butonu (primary=true)
-    DangerButton,    # Kırmızı silme/iptal butonu
-    GhostButton,     # Şeffaf arka plan butonu
+    PrimaryButton,   # Primary aksiyon
+    DangerButton,    # Tehlikeli işlem
+    SuccessButton,   # Onay/tamamlama
+    GhostButton,     # İkincil/şeffaf işlem
     IconButton,      # Kare ikon butonu
-    Card,            # Kenarlıklı kart container
+    Card,            # Basit kart container
+    SectionCard,     # Başlık + içerik bölüm kartı
+    InfoCard,        # Etiket-değer satır kartı
     StatCard,        # İstatistik kartı (başlık + büyük sayı)
     Badge,           # Durum rozeti (aktif/pasif/uyarı...)
     AlertBar,        # Satır içi uyarı bandı (dialog açmaz)
     DataTable,       # Sıralanabilir + filtrelenebilir tablo
-    FormRow,         # Etiket + input çifti
-    SearchBar,       # Arama kutusu
-    LookupCombo,     # Dropdown
+    TextField,       # Metin girişi (+ ikon)
+    PasswordField,   # Şifre alanı (göster/gizle)
+    DateField,       # Tarih alanı (QDateEdit)
+    ComboField,      # Standart seçim alanı
+    TextAreaField,   # Çok satırlı metin
+    IntField,        # QSpinBox
+    FloatField,      # QDoubleSpinBox
+    ReadonlyField,   # Salt-okunur alan
+    CheckField,      # QCheckBox alanı
+    RadioGroup,      # Radyo grup alanı
+    FormGroup,       # Form bölüm container'ı
+    SearchBar,       # Arama kutusu (+ ikon)
+    FormRow,         # Legacy yatay satır (geriye uyumluluk)
+    LookupCombo,     # Legacy dropdown (geriye uyumluluk)
     AsyncRunner,     # Arkaplan işlem — TEK QThread implementasyonu
 )
 ```
@@ -507,7 +523,7 @@ class OrnekPage(QWidget):
 {
   "id":       "stok",
   "label":    "Stok Takip",
-  "icon":     "📦",
+    "icon":     "belgeler",
   "bolum":    "sistem",
   "sira":     15,
   "page_cls": "ui.pages.stok.stok_page.StokPage"
@@ -597,6 +613,9 @@ def getir(self, pk) -> dict | None:
 class OrnekService:
     def listele(self):
         return self._db.fetchall("SELECT ...")  # SQL servise girmez
+
+# ❌ Menüde emoji ikon kullanımı
+{"icon": "📦"}  # menus.json için yasak, ui/icons.py anahtarı kullan
 
 # ❌ Serviste ağır iş akışı
 def ekle(self, veri):

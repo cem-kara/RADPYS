@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-"""ui/components/badges.py — Durum rozetleri"""
+﻿# -*- coding: utf-8 -*-
+"""ui/components/badges.py �?" Durum rozetleri"""
 from __future__ import annotations
 from PySide6.QtWidgets import QLabel
 from PySide6.QtCore import Qt
-from ui.theme import T
+from ui.styles import T
 
 
 class Badge(QLabel):
@@ -64,3 +64,5 @@ class Badge(QLabel):
             f"font-size:11px;"
             f"font-weight:600;"
         )
+
+

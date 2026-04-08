@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 ui/pages/personel/personel_form.py
-────────────────────────────────────
+�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 Yeni personel ekleme formu (QDialog).
 """
 from __future__ import annotations
@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     QScrollArea, QFrame, QWidget,
 )
 from PySide6.QtCore import Qt, Signal
-from ui.theme import T
+from ui.styles import T
 from ui.components.buttons import PrimaryButton, GhostButton
 from ui.components.alerts import AlertBar
 
@@ -21,7 +21,7 @@ class PersonelForm(QDialog):
     Yeni personel ekleme dialog'u.
 
     Sinyal:
-        kaydedildi(personel_id) — başarılı ekleme sonrası
+        kaydedildi(personel_id) �?" ba�Yarılı ekleme sonrası
 
     Kullanım:
         dlg = PersonelForm(svc, parent=self)
@@ -41,22 +41,21 @@ class PersonelForm(QDialog):
         self._build()
         self._dropdown_doldur()
 
-    # ── UI ────────────────────────────────────────────────────────
+    # �"?�"? UI �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 
     def _build(self):
         kok = QVBoxLayout(self)
         kok.setContentsMargins(0, 0, 0, 0)
         kok.setSpacing(0)
 
-        # Başlık
+        # Ba�Ylık
         hdr = QFrame()
         hdr.setStyleSheet(f"background:{T.bg1}; border-bottom:1px solid {T.border};")
         hdr_lay = QHBoxLayout(hdr)
         hdr_lay.setContentsMargins(20, 14, 20, 14)
-        from ui.icons import ic as _icf
-        from PySide6.QtCore import QSize as _QSf
+        from ui.styles.icons import pixmap as _ipxf
         ikon_lbl = QLabel()
-        ikon_lbl.setPixmap(_icf("ekle", T.accent2, 16).pixmap(_QSf(16,16)))
+        ikon_lbl.setPixmap(_ipxf("ekle", size=16, color=T.accent2))
         hdr_lay.addWidget(ikon_lbl)
         lbl = QLabel("Yeni Personel Ekle")
         lbl.setStyleSheet(f"color:{T.text}; font-size:16px; font-weight:600;")
@@ -68,7 +67,7 @@ class PersonelForm(QDialog):
         self._alert = AlertBar(self)
         kok.addWidget(self._alert)
 
-        # Form içeriği
+        # Form içeri�Yi
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
@@ -84,8 +83,8 @@ class PersonelForm(QDialog):
             ("tc_kimlik",  "TC Kimlik No *",    True,  "11 haneli TC"),
             ("ad",         "Ad *",              True,  ""),
             ("soyad",      "Soyad *",           True,  ""),
-            ("dogum_tarihi","Doğum Tarihi",     True,  "YYYY-MM-DD"),
-            ("dogum_yeri", "Doğum Yeri",        True,  ""),
+            ("dogum_tarihi","Do�Yum Tarihi",     True,  "YYYY-MM-DD"),
+            ("dogum_yeri", "Do�Yum Yeri",        True,  ""),
         ])
         inner_lay.addWidget(gb1)
 
@@ -96,19 +95,19 @@ class PersonelForm(QDialog):
             ("gorev_yeri_ad",     "Görev Yeri"),
         ], text_ek=[
             ("sicil_no",          "Sicil No",         True, ""),
-            ("memuriyet_baslama", "Mem. Başlama",     True, "YYYY-MM-DD"),
+            ("memuriyet_baslama", "Mem. Ba�Ylama",     True, "YYYY-MM-DD"),
         ])
         inner_lay.addWidget(gb2)
 
-        # İletişim
-        gb3 = self._grup("İletişim", [
+        # İleti�Yim
+        gb3 = self._grup("İleti�Yim", [
             ("telefon", "Telefon", True, "05XX XXX XX XX"),
             ("e_posta", "E-posta", True, ""),
         ])
         inner_lay.addWidget(gb3)
 
-        # Eğitim
-        gb4 = self._grup("1. Eğitim", [
+        # E�Yitim
+        gb4 = self._grup("1. E�Yitim", [
             ("okul_1",       "Okul",       True, ""),
             ("fakulte_1",    "Fakülte",    True, ""),
             ("mezuniyet_1",  "Mezuniyet",  True, "YYYY-MM-DD"),
@@ -185,14 +184,14 @@ class PersonelForm(QDialog):
         grid.setColumnStretch(1, 1)
         return gb
 
-    # ── Dropdown ──────────────────────────────────────────────────
+    # �"?�"? Dropdown �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 
     def _dropdown_doldur(self):
         def _cb(key: str, liste: list[str]):
             cb = self._alanlar.get(key)
             if not isinstance(cb, QComboBox):
                 return
-            cb.addItem("— Seçiniz —", "")
+            cb.addItem("�?" Seçiniz �?"", "")
             for d in liste:
                 cb.addItem(d, d)
 
@@ -200,7 +199,7 @@ class PersonelForm(QDialog):
         _cb("kadro_unvani",  self._svc.kadro_unvanlari())
         _cb("gorev_yeri_ad", self._svc.gorev_yeri_adlari())
 
-    # ── Kaydet ────────────────────────────────────────────────────
+    # �"?�"? Kaydet �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 
     def _kaydet(self):
         self._alert.temizle()
@@ -212,7 +211,7 @@ class PersonelForm(QDialog):
                 veri[key] = widget.currentData() or ""
 
         self._btn_kaydet.setEnabled(False)
-        self._btn_kaydet.setText("Kaydediliyor…")
+        self._btn_kaydet.setText("Kaydediliyor�?�")
         try:
             self.yeni_id = self._svc.ekle(veri)
             self.kaydedildi.emit(self.yeni_id)
@@ -221,3 +220,5 @@ class PersonelForm(QDialog):
             self._alert.goster(str(e))
             self._btn_kaydet.setEnabled(True)
             self._btn_kaydet.setText("Personel Ekle")
+
+

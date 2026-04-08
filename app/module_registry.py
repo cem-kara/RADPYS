@@ -14,7 +14,10 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable
+from typing import Callable, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from PySide6.QtWidgets import QWidget
 
 _MENUS_JSON = Path(__file__).parent.parent / "menus.json"
 
@@ -45,6 +48,7 @@ class ModuleDef:
 _moduller:   list[ModuleDef] = []
 _bolumler:   dict[str, BolumDef] = {}
 _yuklendi    = False
+_PLACEHOLDER_PAGE = "ui.pages.placeholder.PlaceholderPage"
 
 
 def _yukle() -> None:
@@ -69,6 +73,11 @@ def _yukle() -> None:
 
     # Modülleri yükle
     for m in data["moduller"]:
+        # Taslak moduller menude gosterilmez; temel iskelette sadece gercek
+        # ekranlarin gorunur olmasi ileriki refactor maliyetini azaltir.
+        if m.get("page_cls") == _PLACEHOLDER_PAGE:
+            continue
+
         bolum_sira = _bolumler.get(m["bolum"], BolumDef("", "", 99)).sira
         badge_id   = m.get("badge_id")
         badge_fn   = BADGE_FN.get(badge_id) if badge_id else None

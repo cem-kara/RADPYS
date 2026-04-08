@@ -22,7 +22,7 @@ def test_dizinleri_olustur(tmp_path):
 
 def test_logging_kur_log_dosyasini_olusturur(tmp_path):
     log_path = logging_kur(tmp_path)
-    assert log_path.name == "repys.log"
+    assert log_path.name == "radpys.log"
     assert log_path.parent == tmp_path
 
 

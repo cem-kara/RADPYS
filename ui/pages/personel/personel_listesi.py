@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 ui/pages/personel/personel_listesi.py
-───────────────────────────────────────
+�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 Sol panel: arama + filtre + personel tablosu.
 """
 from __future__ import annotations
@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QLabel, QComboBox, QFrame,
 )
 from PySide6.QtCore import Qt, Signal
-from ui.theme import T
+from ui.styles import T
 from ui.components.buttons import PrimaryButton, GhostButton
 from ui.components.forms import SearchBar
 from ui.components.tables import DataTable, _TableModel
@@ -19,7 +19,7 @@ from ui.components.alerts import AlertBar
 from PySide6.QtGui import QColor
 
 
-# ── Renklendirilmiş tablo modeli ──────────────────────────────────
+# �"?�"? Renklendirilmi�Y tablo modeli �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 
 class _PersonelModel(_TableModel):
     """Durum sütununu renklendirir."""
@@ -42,15 +42,15 @@ class _PersonelModel(_TableModel):
         return str(deger or "")
 
 
-# ── Ana widget ────────────────────────────────────────────────────
+# �"?�"? Ana widget �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 
 class PersonelListesi(QWidget):
     """
     Personel listesi paneli.
 
     Sinyaller:
-        secildi(personel_id) — tabloda bir satıra tıklanınca
-        yeni_istendi()       — "+" butonuna basılınca
+        secildi(personel_id) �?" tabloda bir satıra tıklanınca
+        yeni_istendi()       �?" "+" butonuna basılınca
     """
 
     secildi      = Signal(str)
@@ -71,14 +71,14 @@ class PersonelListesi(QWidget):
         self._build()
         self._yukle()
 
-    # ── UI ────────────────────────────────────────────────────────
+    # �"?�"? UI �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 
     def _build(self):
         kok = QVBoxLayout(self)
         kok.setContentsMargins(0, 0, 0, 0)
         kok.setSpacing(0)
 
-        # Üst araç çubuğu
+        # �ost araç çubu�Yu
         ara_frame = QFrame()
         ara_frame.setStyleSheet(
             f"background:{T.bg1}; border-bottom:1px solid {T.border};"
@@ -106,7 +106,7 @@ class PersonelListesi(QWidget):
         # Arama + filtre satırı
         filtre_lay = QHBoxLayout()
         filtre_lay.setSpacing(8)
-        self._arama = SearchBar("İsim, TC, unvan ara…")
+        self._arama = SearchBar("İsim, TC, unvan ara�?�")
         self._arama.textChanged.connect(self._filtrele)
 
         self._cb_durum = QComboBox()
@@ -115,9 +115,9 @@ class PersonelListesi(QWidget):
         self._cb_durum.currentTextChanged.connect(self._filtrele)
 
         btn_yenile = GhostButton("")
-        from ui.icons import ic as _ic
+        from ui.styles.icons import ic as _ic
         from PySide6.QtCore import QSize as _QS
-        btn_yenile.setIcon(_ic("yenile", T.text2, 15))
+        btn_yenile.setIcon(_ic("yenile", size=15, color=T.text2))
         btn_yenile.setIconSize(_QS(15, 15))
         btn_yenile.setFixedSize(32, 32)
         btn_yenile.setToolTip("Yenile")
@@ -143,7 +143,7 @@ class PersonelListesi(QWidget):
         self._tablo.clicked.connect(self._satir_secildi)
         kok.addWidget(self._tablo, 1)
 
-    # ── Veri ──────────────────────────────────────────────────────
+    # �"?�"? Veri �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 
     def _yukle(self):
         def _cek():
@@ -192,7 +192,7 @@ class PersonelListesi(QWidget):
         if satir:
             self.secildi.emit(satir["id"])
 
-    # ── Dışarıdan Kontrol ─────────────────────────────────────────
+    # �"?�"? Dı�Yarıdan Kontrol �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 
     def yenile(self):
         """Listeyi yeniden yükler."""
@@ -209,3 +209,5 @@ class PersonelListesi(QWidget):
                 self._tablo.setCurrentIndex(proxy_idx)
                 self._tablo.scrollTo(proxy_idx)
                 break
+
+

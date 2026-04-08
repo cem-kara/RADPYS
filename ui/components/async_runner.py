@@ -1,12 +1,12 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 ui/components/async_runner.py
-─────────────────────────────
+�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 Tek generic QThread implementasyonu.
-Projenin her yerinde bu kullanılır — başka QThread subclass'ı yazılmaz.
+Projenin her yerinde bu kullanılır �?" ba�Yka QThread subclass'ı yazılmaz.
 
 Eski kodda 20+ farklı _Loader/_Worker/_DbSaver vardı.
-Hepsi bu sınıfla değiştirildi.
+Hepsi bu sınıfla de�Yi�Ytirildi.
 
 Kullanım:
     from ui.components.async_runner import AsyncRunner
@@ -24,11 +24,11 @@ Kullanım:
     def _on_error(self, mesaj):
         self._alert.goster(mesaj)
 
-Özellikler:
+�-zellikler:
     - fn() sonucu done sinyaliyle döner
     - Exception mesajı error sinyaliyle döner
-    - is_running() ile çalışıp çalışmadığı sorgulanabilir
-    - cancel() ile çalışan thread durdurulamaz (async cancel yok)
+    - is_running() ile çalı�Yıp çalı�Ymadı�Yı sorgulanabilir
+    - cancel() ile çalı�Yan thread durdurulamaz (async cancel yok)
       ama sonuç sinyali emit edilmez
 """
 from __future__ import annotations
@@ -38,8 +38,8 @@ from PySide6.QtCore import QThread, Signal
 
 class AsyncRunner(QThread):
     """
-    Tek kullanımlık arkaplan işçisi.
-    Servis metodunu UI thread'ini dondurmadan çalıştırır.
+    Tek kullanımlık arkaplan i�Yçisi.
+    Servis metodunu UI thread'ini dondurmadan çalı�Ytırır.
     """
 
     done  = Signal(object)   # fn() sonucu
@@ -78,7 +78,7 @@ class AsyncRunner(QThread):
 class AsyncButton:
     """
     Buton + AsyncRunner kombinasyonu.
-    Buton tıklandığında arkaplan işlemi başlatır,
+    Buton tıklandı�Yında arkaplan i�Ylemi ba�Ylatır,
     bitince butonu tekrar aktif eder.
 
     Kullanım:
@@ -103,7 +103,7 @@ class AsyncButton:
         if self._runner and self._runner.isRunning():
             return
         self._btn.setEnabled(False)
-        self._btn.setText("Yükleniyor…")
+        self._btn.setText("Yükleniyor�?�")
         self._runner = AsyncRunner(
             fn=self._fn,
             on_done=self._bitti,
@@ -122,3 +122,4 @@ class AsyncButton:
         self._btn.setText(self._btn.toolTip() or "Yükle")
         if self._on_error:
             self._on_error(mesaj)
+

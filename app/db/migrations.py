@@ -12,14 +12,14 @@ Her migration:
 
 Kullanım:
     from app.db.migrations import run
-    db = Database("repys.db")
+    db = Database("radpys.db")
     run(db)   # Gerekli tüm migration'ları uygular
 """
 from __future__ import annotations
 import logging
 from app.db.database import Database
 
-logger = logging.getLogger("repys.db.migration")
+logger = logging.getLogger("radpys.db.migration")
 
 # Hedef şema versiyonu — her migration eklenince artır
 HEDEF_VERSIYON = 2

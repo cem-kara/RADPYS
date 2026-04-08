@@ -1,4 +1,4 @@
-# Contributing to REPYS 2.0
+# Contributing to RADPYS 2.0
 
 Thanks for contributing.
 

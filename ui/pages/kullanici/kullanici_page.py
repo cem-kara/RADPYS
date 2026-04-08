@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
-"""ui/pages/kullanici/kullanici_page.py — RBAC kullanici giris modulu"""
+﻿# -*- coding: utf-8 -*-
+"""ui/pages/kullanici/kullanici_page.py �?" RBAC kullanici giris modulu"""
 from __future__ import annotations
 
 from PySide6.QtCore import Qt
@@ -24,7 +24,7 @@ from ui.components import (
     GhostButton,
     PrimaryButton,
 )
-from ui.theme import T
+from ui.styles import T
 
 
 class KullaniciPage(QWidget):
@@ -133,7 +133,7 @@ class KullaniciPage(QWidget):
 
         parent_lay.addWidget(kart, 1)
 
-    # ── Aksiyonlar ────────────────────────────────────────────────
+    # �"?�"? Aksiyonlar �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 
     def _giris(self) -> None:
         self._alert.temizle()
@@ -211,3 +211,5 @@ class KullaniciPage(QWidget):
         self._inp_ad.setText(self._oturum["ad"])
         self._btn_ekle.setEnabled(yetki_var_mi(self._oturum, "kullanici.olustur"))
         self._kullanici_listesi_yukle()
+
+

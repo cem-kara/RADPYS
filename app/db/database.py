@@ -5,7 +5,7 @@ import sqlite3, time, logging
 from pathlib import Path
 from contextlib import contextmanager
 
-logger = logging.getLogger("repys.db")
+logger = logging.getLogger("radpys.db")
 
 
 class Database:

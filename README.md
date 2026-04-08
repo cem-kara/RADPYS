@@ -1,6 +1,6 @@
-# REPYS 2.0
+# RADPYS 2.0
 
-REPYS 2.0, radyoloji bolumu operasyonlarini yoneten Python tabanli masaustu uygulamadir.
+RADPYS 2.0, radyoloji bolumu operasyonlarini yoneten Python tabanli masaustu uygulamadir.
 
 Temel teknolojiler:
 - Python 3.12
@@ -65,9 +65,9 @@ python -m pytest -v
 
 ## Dokumanlar
 
-- docs/REPYS_ISKELET_GOREVLERI.md: cekirdek iskelet dosyalarinin gorevleri
-- docs/REPYS_ISKELET_DEGISIKLIK_NOTLARI.md: faz bazli mimari degisiklik notlari
-- docs/REPYS2_Tam_Tasarim.md: kapsamli tasarim dokumani
+- docs/RADPYS_ISKELET_GOREVLERI.md: cekirdek iskelet dosyalarinin gorevleri
+- docs/RADPYS_ISKELET_DEGISIKLIK_NOTLARI.md: faz bazli mimari degisiklik notlari
+- docs/RADPYS2_Tam_Tasarim.md: kapsamli tasarim dokumani
 
 ## Katki ve Guvenlik
 

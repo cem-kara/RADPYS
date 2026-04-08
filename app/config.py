@@ -13,13 +13,13 @@ BASE_DIR    = Path(__file__).parent.parent
 DATA_DIR    = BASE_DIR / "data"
 LOG_DIR     = BASE_DIR / "logs"
 BELGE_DIR   = DATA_DIR / "belgeler"
-DB_PATH     = DATA_DIR / "repys.db"
+DB_PATH     = DATA_DIR / "radpys.db"
 
 # Uygulama açılışında oluşturulacak dizinler
 ZORUNLU_DIZINLER = [DATA_DIR, LOG_DIR, BELGE_DIR]
 
 # ── Uygulama Bilgisi ──────────────────────────────────────────────
-APP_ADI      = "REPYS"
+APP_ADI      = "RADPYS"
 APP_SURUM    = "2.0.0"
 APP_BASLIK   = f"{APP_ADI} v{APP_SURUM}"
 

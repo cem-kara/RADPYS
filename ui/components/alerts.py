@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
-"""ui/components/alerts.py — Uyarı bandı bileşeni"""
+﻿# -*- coding: utf-8 -*-
+"""ui/components/alerts.py �?" Uyarı bandı bile�Yeni"""
 from __future__ import annotations
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton
 from PySide6.QtCore import Qt
-from ui.theme import T
+from ui.styles import T
 
 
 class AlertBar(QFrame):
     """
     Satır içi uyarı/bilgi/hata bandı.
-    Exception mesajlarını göstermek için kullanılır — dialog açmaz.
+    Exception mesajlarını göstermek için kullanılır �?" dialog açmaz.
 
     Kullanım:
         self._alert = AlertBar(self)
         layout.addWidget(self._alert)
-        self._alert.goster("İzin limiti aşıldı.", "warning")
+        self._alert.goster("İzin limiti a�Yıldı.", "warning")
         self._alert.temizle()
 
     Türler: "danger" | "warning" | "success" | "info"
@@ -50,9 +50,9 @@ class AlertBar(QFrame):
         self._kapat.setFlat(True)
         self._kapat.setCursor(Qt.CursorShape.PointingHandCursor)
         self._kapat.clicked.connect(self.temizle)
-        from ui.icons import ic as _ic
-        self._kapat.setIcon(_ic('kapat', T.text3, 12))
+        from ui.styles.icons import ic as _ic
         from PySide6.QtCore import QSize
+        self._kapat.setIcon(_ic('kapat', size=12, color=T.text3))
         self._kapat.setIconSize(QSize(12, 12))
 
         lay.addWidget(self._ikon)
@@ -61,9 +61,9 @@ class AlertBar(QFrame):
 
     def goster(self, mesaj: str, tur: str = "danger") -> None:
         """Uyarı bandını gösterir."""
-        from ui.icons import pixmap as ipx
+        from ui.styles.icons import pixmap as ipx
         renk, arka, ikon_adi = self._STILLER.get(tur, self._STILLER["danger"])
-        self._ikon.setPixmap(ipx(ikon_adi, renk, 16))
+        self._ikon.setPixmap(ipx(ikon_adi, size=16, color=renk))
         self._ikon.setFixedSize(16, 16)
         self._mesaj.setText(mesaj)
         self.setStyleSheet(
@@ -86,7 +86,7 @@ class AlertBar(QFrame):
     @classmethod
     def hata_yakala(cls, parent, fn, alert_widget: "AlertBar"):
         """
-        Try/except kısayolu — exception'ı alert'e yazar.
+        Try/except kısayolu �?" exception'ı alert'e yazar.
 
         Kullanım:
             AlertBar.hata_yakala(self, lambda: svc.kaydet(veri), self._alert)
@@ -99,3 +99,5 @@ class AlertBar(QFrame):
             alert_widget.goster(str(e), "warning")
         except Exception as e:
             alert_widget.goster(f"Beklenmeyen hata: {e}", "danger")
+
+

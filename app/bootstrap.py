@@ -21,7 +21,7 @@ def logging_kur(log_dir: Path | str | None = None) -> Path:
     """Dosya + konsol logging ayarini yapar ve log yolunu dondurur."""
     dizin = Path(log_dir) if log_dir is not None else Path(LOG_DIR)
     dizin.mkdir(parents=True, exist_ok=True)
-    log_dosya = dizin / "repys.log"
+    log_dosya = dizin / "radpys.log"
     logging.basicConfig(
         level=logging.DEBUG,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -31,7 +31,7 @@ def logging_kur(log_dir: Path | str | None = None) -> Path:
         ],
         force=True,
     )
-    logging.getLogger("repys").info("REPYS 2.0 baslatiliyor...")
+    logging.getLogger("radpys").info("RADPYS 2.0 baslatiliyor...")
     return log_dosya
 
 
@@ -50,13 +50,12 @@ def qt_uygulamasini_hazirla(argv: list[str]):
     """QApplication olusturur ve tema ayarlarini uygular."""
     from PySide6.QtCore import Qt
     from PySide6.QtWidgets import QApplication
+    from ui.styles import ThemeManager
 
     app = QApplication(argv)
     app.setAttribute(Qt.ApplicationAttribute.AA_DontUseNativeDialogs, True)
 
-    from ui.theme import apply as tema_uygula
-
-    tema_uygula(app)
+    ThemeManager.apply_dark(app)
     return app
 
 

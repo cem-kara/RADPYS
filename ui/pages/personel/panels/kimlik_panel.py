@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 ui/pages/personel/panels/kimlik_panel.py
-─────────────────────────────────────────
+�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 Personel kimlik bilgilerini gösteren ve düzenleyen panel.
 
 Görünüm/Düzenleme ayrımı:
   - Varsayılan: salt okunur
   - "Düzenle" butonuna basınca alanlar aktif olur
-  - "Kaydet" → servis → başarılıysa tekrar salt okunur
-  - "İptal" → değişiklikler geri alınır
+  - "Kaydet" �?' servis �?' ba�Yarılıysa tekrar salt okunur
+  - "İptal" �?' de�Yi�Yiklikler geri alınır
 """
 from __future__ import annotations
 from PySide6.QtWidgets import (
@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont
-from ui.theme import T
+from ui.styles import T
 from ui.components.buttons import PrimaryButton, GhostButton, DangerButton
 from ui.components.alerts import AlertBar
 from ui.components.badges import Badge
@@ -29,8 +29,8 @@ class KimlikPanel(QWidget):
     Personel kimlik bilgileri paneli.
 
     Sinyaller:
-        kaydedildi(personel_id) — başarılı kayıt sonrası
-        pasife_alindi(personel_id) — pasife alma sonrası
+        kaydedildi(personel_id) �?" ba�Yarılı kayıt sonrası
+        pasife_alindi(personel_id) �?" pasife alma sonrası
 
     Kullanım:
         panel = KimlikPanel(svc)
@@ -48,7 +48,7 @@ class KimlikPanel(QWidget):
         self._alanlar: dict[str, QLineEdit | QComboBox] = {}
         self._build()
 
-    # ── UI ────────────────────────────────────────────────────────
+    # �"?�"? UI �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 
     def _build(self):
         kok = QVBoxLayout(self)
@@ -69,9 +69,9 @@ class KimlikPanel(QWidget):
         icerik_lay.setContentsMargins(20, 16, 20, 16)
         icerik_lay.setSpacing(16)
 
-        # ── Başlık satırı ──────────────────────────────────────────
+        # �"?�"? Ba�Ylık satırı �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
         baslik_lay = QHBoxLayout()
-        self._lbl_baslik = QLabel("—")
+        self._lbl_baslik = QLabel("�?"")
         f = QFont()
         f.setPointSize(16)
         f.setBold(True)
@@ -81,14 +81,14 @@ class KimlikPanel(QWidget):
         baslik_lay.addWidget(self._lbl_durum)
         baslik_lay.addStretch()
 
-        from ui.icons import ic as _ic
+        from ui.styles.icons import ic as _ic
         from PySide6.QtCore import QSize as _QS
         self._btn_duzenle = GhostButton("  Düzenle")
-        self._btn_duzenle.setIcon(_ic("duzenle", T.text2, 14))
+        self._btn_duzenle.setIcon(_ic("duzenle", size=14, color=T.text2))
         self._btn_duzenle.setIconSize(_QS(14, 14))
         self._btn_duzenle.clicked.connect(self._duzenleme_baslat)
         self._btn_kaydet  = PrimaryButton("  Kaydet")
-        self._btn_kaydet.setIcon(_ic("kaydet", "white", 14))
+        self._btn_kaydet.setIcon(_ic("kaydet", size=14, color="white"))
         self._btn_kaydet.setIconSize(_QS(14, 14))
         self._btn_kaydet.clicked.connect(self._kaydet)
         self._btn_kaydet.setVisible(False)
@@ -100,50 +100,50 @@ class KimlikPanel(QWidget):
         baslik_lay.addWidget(self._btn_duzenle)
         icerik_lay.addLayout(baslik_lay)
 
-        # ── Kişisel Bilgiler ───────────────────────────────────────
-        icerik_lay.addWidget(self._grup_olustur("Kişisel Bilgiler", [
+        # �"?�"? Ki�Yisel Bilgiler �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+        icerik_lay.addWidget(self._grup_olustur("Ki�Yisel Bilgiler", [
             ("tc_kimlik",         "TC Kimlik No",        False),  # hiç düzenlenemez
             ("ad",                "Ad",                  True),
             ("soyad",             "Soyad",               True),
-            ("dogum_tarihi",      "Doğum Tarihi",        True),
-            ("dogum_yeri",        "Doğum Yeri",          True),
+            ("dogum_tarihi",      "Do�Yum Tarihi",        True),
+            ("dogum_yeri",        "Do�Yum Yeri",          True),
         ]))
 
-        # ── Görev Bilgileri ────────────────────────────────────────
+        # �"?�"? Görev Bilgileri �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
         icerik_lay.addWidget(self._grup_olustur_combo("Görev Bilgileri", [
             ("hizmet_sinifi",    "Hizmet Sınıfı"),
             ("kadro_unvani",     "Kadro Unvanı"),
         ], text_alanlar=[
             ("gorev_yeri_ad",   "Görev Yeri"),
             ("sicil_no",        "Sicil No"),
-            ("memuriyet_baslama", "Memuriyet Başlama"),
+            ("memuriyet_baslama", "Memuriyet Ba�Ylama"),
         ]))
 
-        # ── İletişim ───────────────────────────────────────────────
-        icerik_lay.addWidget(self._grup_olustur("İletişim", [
+        # �"?�"? İleti�Yim �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+        icerik_lay.addWidget(self._grup_olustur("İleti�Yim", [
             ("telefon", "Telefon", True),
             ("e_posta", "E-posta", True),
         ]))
 
-        # ── Eğitim 1 ───────────────────────────────────────────────
-        icerik_lay.addWidget(self._grup_olustur("1. Eğitim", [
+        # �"?�"? E�Yitim 1 �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+        icerik_lay.addWidget(self._grup_olustur("1. E�Yitim", [
             ("okul_1",       "Okul",           True),
             ("fakulte_1",    "Fakülte",        True),
             ("mezuniyet_1",  "Mezuniyet",      True),
             ("diploma_no_1", "Diploma No",     True),
         ]))
 
-        # ── Eğitim 2 ───────────────────────────────────────────────
-        icerik_lay.addWidget(self._grup_olustur("2. Eğitim (varsa)", [
+        # �"?�"? E�Yitim 2 �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+        icerik_lay.addWidget(self._grup_olustur("2. E�Yitim (varsa)", [
             ("okul_2",       "Okul",           True),
             ("fakulte_2",    "Fakülte",        True),
             ("mezuniyet_2",  "Mezuniyet",      True),
             ("diploma_no_2", "Diploma No",     True),
         ]))
 
-        # ── Ayrılış (pasifse) ──────────────────────────────────────
-        self._ayrilik_grup = self._grup_olustur("Ayrılış Bilgileri", [
-            ("ayrilik_tarihi", "Ayrılış Tarihi", False),
+        # �"?�"? Ayrılı�Y (pasifse) �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+        self._ayrilik_grup = self._grup_olustur("Ayrılı�Y Bilgileri", [
+            ("ayrilik_tarihi", "Ayrılı�Y Tarihi", False),
             ("ayrilik_nedeni", "Ayrılma Nedeni", False),
         ])
         self._ayrilik_grup.setVisible(False)
@@ -153,7 +153,7 @@ class KimlikPanel(QWidget):
         scroll.setWidget(icerik)
         kok.addWidget(scroll, 1)
 
-        # ── Alt butonlar (tehlikeli işlemler) ──────────────────────
+        # �"?�"? Alt butonlar (tehlikeli i�Ylemler) �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
         alt_lay = QHBoxLayout()
         alt_lay.setContentsMargins(20, 0, 20, 16)
         alt_lay.addStretch()
@@ -165,7 +165,7 @@ class KimlikPanel(QWidget):
 
     def _grup_olustur(self, baslik: str,
                       alanlar: list[tuple]) -> QGroupBox:
-        """(db_key, etiket, duzenlenebilir) listesinden GroupBox oluşturur."""
+        """(db_key, etiket, duzenlenebilir) listesinden GroupBox olu�Yturur."""
         gb  = QGroupBox(baslik)
         grid = QGridLayout(gb)
         grid.setContentsMargins(12, 10, 12, 10)
@@ -195,7 +195,7 @@ class KimlikPanel(QWidget):
     def _grup_olustur_combo(self, baslik: str,
                              combo_alanlar: list[tuple],
                              text_alanlar: list[tuple] | None = None) -> QGroupBox:
-        """Karışık combo + text input'lu grup."""
+        """Karı�Yık combo + text input'lu grup."""
         gb   = QGroupBox(baslik)
         grid = QGridLayout(gb)
         grid.setContentsMargins(12, 10, 12, 10)
@@ -235,7 +235,7 @@ class KimlikPanel(QWidget):
         grid.setColumnStretch(1, 1)
         return gb
 
-    # ── Veri Yükleme ──────────────────────────────────────────────
+    # �"?�"? Veri Yükleme �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 
     def yukle(self, personel_id: str) -> None:
         """Personeli yükler ve alanları doldurur."""
@@ -257,10 +257,10 @@ class KimlikPanel(QWidget):
     def _doldur(self, p: dict) -> None:
         """Dict verisiyle alanları doldurur."""
         ad_soyad = f"{p.get('ad', '')} {p.get('soyad', '')}".strip()
-        self._lbl_baslik.setText(ad_soyad or "—")
+        self._lbl_baslik.setText(ad_soyad or "�?"")
         self._lbl_durum.set(p.get("durum", "aktif"))
 
-        # Görev yeri adını da al (JOIN ile gelmiş olabilir)
+        # Görev yeri adını da al (JOIN ile gelmi�Y olabilir)
         if "gorev_yeri_ad" in self._alanlar:
             gy_ad = p.get("gorev_yeri_ad") or ""
             alan = self._alanlar["gorev_yeri_ad"]
@@ -277,15 +277,15 @@ class KimlikPanel(QWidget):
                 # Combo'ya veriyi doldur
                 self._combo_doldur_ve_sec(widget, key, str(val))
 
-        # Ayrılış grubu görünürlüğü
+        # Ayrılı�Y grubu görünürlü�Yü
         self._ayrilik_grup.setVisible(p.get("durum") == "ayrildi")
         self._btn_pasif.setVisible(p.get("durum") == "aktif")
 
     def _combo_doldur_ve_sec(self, combo: QComboBox,
                               key: str, secili: str) -> None:
-        """Combo'yu servis verisiyle doldurur ve mevcut değeri seçer."""
+        """Combo'yu servis verisiyle doldurur ve mevcut de�Yeri seçer."""
         combo.clear()
-        combo.addItem("— Seçiniz —", "")
+        combo.addItem("�?" Seçiniz �?"", "")
 
         liste = []
         if key == "hizmet_sinifi":
@@ -300,7 +300,7 @@ class KimlikPanel(QWidget):
         if idx >= 0:
             combo.setCurrentIndex(idx)
 
-    # ── Düzenleme Modu ────────────────────────────────────────────
+    # �"?�"? Düzenleme Modu �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 
     def _duzenleme_baslat(self) -> None:
         self._duzenleme = True
@@ -311,7 +311,7 @@ class KimlikPanel(QWidget):
 
         for key, widget in self._alanlar.items():
             if key == "tc_kimlik":
-                continue   # TC hiç değiştirilemez
+                continue   # TC hiç de�Yi�Ytirilemez
             if isinstance(widget, QLineEdit):
                 if widget.property("_duzenlenebilir"):
                     widget.setReadOnly(False)
@@ -343,7 +343,7 @@ class KimlikPanel(QWidget):
             elif isinstance(widget, QComboBox):
                 widget.setEnabled(False)
 
-    # ── Kaydet ────────────────────────────────────────────────────
+    # �"?�"? Kaydet �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 
     def _kaydet(self) -> None:
         if not self._personel:
@@ -375,7 +375,7 @@ class KimlikPanel(QWidget):
         except Exception as e:
             self._alert.goster(str(e))
 
-    # ── Pasife Al ─────────────────────────────────────────────────
+    # �"?�"? Pasife Al �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 
     def _pasife_al(self) -> None:
         if not self._personel:
@@ -383,7 +383,7 @@ class KimlikPanel(QWidget):
         from PySide6.QtWidgets import QInputDialog, QDialog
         tarih, ok = QInputDialog.getText(
             self, "Pasife Al",
-            "Ayrılış tarihi (YYYY-MM-DD):",
+            "Ayrılı�Y tarihi (YYYY-MM-DD):",
         )
         if not ok or not tarih.strip():
             return
@@ -395,3 +395,5 @@ class KimlikPanel(QWidget):
             self.pasife_alindi.emit(self._personel["id"])
         except Exception as e:
             self._alert.goster(str(e))
+
+

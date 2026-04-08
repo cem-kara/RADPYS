@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-ui/app_window.py — REPYS 2.0 Ana Pencere.
-Tüm ikonlar ui/icons.py üzerinden qtawesome (mdi6) ile gelir.
+ui/app_window.py ï¿½?" RADPYS 2.0 Ana Pencere.
+TÃ¼m ikonlar ui/icons.py Ã¼zerinden qtawesome (mdi6) ile gelir.
 """
 from __future__ import annotations
 from datetime import datetime
@@ -12,15 +12,91 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal, QTimer, QSize
 from PySide6.QtGui import QFont
-from ui.theme import T
-from ui.icons import ic, Icon
+from ui.styles import DARK, LIGHT, ThemeManager
+from ui.styles.icons import Icons, ic, pixmap as ipx
 import app.module_registry as reg
 from app.db.database import Database
 
 
-# ══════════════════════════════════════════════════════════════════
+def _tokens() -> dict[str, str]:
+    return LIGHT if ThemeManager.current_theme() == "light" else DARK
+
+
+class _ThemeProxy:
+    sidebar_w = 256
+    topbar_h = 52
+
+    @property
+    def bg0(self) -> str:
+        return _tokens()["BG_PRIMARY"]
+
+    @property
+    def bg1(self) -> str:
+        return _tokens()["BG_SECONDARY"]
+
+    @property
+    def bg2(self) -> str:
+        return _tokens()["BG_TERTIARY"]
+
+    @property
+    def bg3(self) -> str:
+        return _tokens()["BG_ELEVATED"]
+
+    @property
+    def border(self) -> str:
+        return _tokens()["BORDER_PRIMARY"]
+
+    @property
+    def border2(self) -> str:
+        return _tokens()["BORDER_SECONDARY"]
+
+    @property
+    def text(self) -> str:
+        return _tokens()["TEXT_PRIMARY"]
+
+    @property
+    def text2(self) -> str:
+        return _tokens()["TEXT_SECONDARY"]
+
+    @property
+    def text3(self) -> str:
+        return _tokens()["TEXT_MUTED"]
+
+    @property
+    def text4(self) -> str:
+        return _tokens()["TEXT_DISABLED"]
+
+    @property
+    def accent(self) -> str:
+        return _tokens()["ACCENT"]
+
+    @property
+    def accent2(self) -> str:
+        return _tokens()["ACCENT2"]
+
+    @property
+    def teal2(self) -> str:
+        return _tokens()["ACCENT2"]
+
+    @property
+    def accent_bg(self) -> str:
+        return _tokens()["ACCENT_BG"]
+
+    @property
+    def overlay_low(self) -> str:
+        return _tokens()["OVERLAY_LOW"]
+
+    @property
+    def overlay_mid(self) -> str:
+        return _tokens()["OVERLAY_MID"]
+
+
+T = _ThemeProxy()
+
+
+# ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½
 #  TOPBAR
-# ══════════════════════════════════════════════════════════════════
+# ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½
 
 class _Topbar(QFrame):
     def __init__(self, parent=None):
@@ -36,7 +112,7 @@ class _Topbar(QFrame):
         lay.setContentsMargins(16, 0, 16, 0)
         lay.setSpacing(12)
 
-        # ── Logo bloğu ────────────────────────────────────────────
+        # ï¿½"?ï¿½"? Logo bloï¿½Yu ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?
         logo_w = QWidget()
         logo_w.setFixedWidth(T.sidebar_w)
         logo_w.setStyleSheet("background:transparent;")
@@ -59,12 +135,12 @@ class _Topbar(QFrame):
         col = QVBoxLayout()
         col.setSpacing(0)
         col.setContentsMargins(0, 0, 0, 0)
-        nm = QLabel("REPYS")
+        nm = QLabel("RADPYS")
         nm.setStyleSheet(
             f"color:{T.text};font-size:13.5px;font-weight:700;"
             f"letter-spacing:0.04em;"
         )
-        sub = QLabel("Radyoloji Yönetim Sistemi")
+        sub = QLabel("Radyoloji YÃ¶netim Sistemi")
         sub.setStyleSheet(f"color:{T.text3};font-size:9px;")
         col.addWidget(nm)
         col.addWidget(sub)
@@ -75,7 +151,7 @@ class _Topbar(QFrame):
         lay.addWidget(self._vsep())
         lay.addStretch()
 
-        # ── Saat ──────────────────────────────────────────────────
+        # ï¿½"?ï¿½"? Saat ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?
         self._clock = QLabel()
         self._clock.setStyleSheet(
             f"color:{T.text2};font-size:11.5px;"
@@ -85,10 +161,10 @@ class _Topbar(QFrame):
         lay.addWidget(self._clock)
         lay.addWidget(self._vsep())
 
-        # ── Bildirim ikonu ────────────────────────────────────────
+        # ï¿½"?ï¿½"? Bildirim ikonu ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?
         nb = QPushButton()
-        nb.setIcon(ic("bildirim", T.text2, 17))
-        nb.setIconSize(QSize(17, 17))
+        nb.setIcon(ic("bildirim", size=20, color=T.text2))
+        nb.setIconSize(QSize(20, 20))
         nb.setFixedSize(32, 32)
         nb.setCursor(Qt.CursorShape.PointingHandCursor)
         nb.setToolTip("Bildirimler")
@@ -100,7 +176,7 @@ class _Topbar(QFrame):
         lay.addWidget(nb)
         lay.addWidget(self._vsep())
 
-        # ── Kullanıcı avatarı ─────────────────────────────────────
+        # ï¿½"?ï¿½"? KullanÄ±cÄ± avatarÄ± ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?ï¿½"?
         av = QLabel("AB")
         av.setFixedSize(28, 28)
         av.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -133,33 +209,39 @@ class _Topbar(QFrame):
         )
 
 
-# ══════════════════════════════════════════════════════════════════
+# ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½
 #  SIDEBAR BUTONU
-# ══════════════════════════════════════════════════════════════════
+# ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½
 
 class _SbBtn(QFrame):
-    """Tek sidebar navigasyon butonu — QIcon tabanlı."""
+    """Tek sidebar navigasyon butonu ï¿½?" QIcon tabanlÄ±."""
 
     clicked = Signal(str)
 
     def __init__(self, mod: reg.ModuleDef, parent=None):
         super().__init__(parent)
         self.mod_id = mod.id
+        self.setMinimumHeight(42)
 
         lay = QHBoxLayout(self)
-        lay.setContentsMargins(16, 8, 12, 8)
+        lay.setContentsMargins(10, 7, 10, 7)
         lay.setSpacing(10)
 
-        # İkon etiketi — QLabel ile pixmap
-        self._ikon_lbl = QLabel()
-        self._ikon_lbl.setFixedSize(18, 18)
-        self._ikon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._ikon_lbl.setStyleSheet("background:transparent;")
+        # Ä°kon butonu ï¿½?" QPushButton ile HiDPI-aware icon
+        self._ikon_btn = QPushButton()
+        self._ikon_btn.setFixedSize(30, 30)
+        self._ikon_btn.setIconSize(QSize(22, 22))
+        self._ikon_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self._ikon_btn.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self._ikon_btn.setStyleSheet(
+            f"QPushButton{{background:{T.overlay_low};border:none;"
+            f"border-radius:10px;padding:0;}}"
+        )
 
         self._txt_lbl = QLabel(mod.label)
-        self._txt_lbl.setStyleSheet(f"font-size:12px;background:transparent;")
+        self._txt_lbl.setStyleSheet(f"font-size:12.5px;background:transparent;")
 
-        lay.addWidget(self._ikon_lbl)
+        lay.addWidget(self._ikon_btn)
         lay.addWidget(self._txt_lbl, 1)
 
         # Badge
@@ -167,11 +249,11 @@ class _SbBtn(QFrame):
         if mod.badge_fn is not None:
             b = QLabel("")
             b.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            b.setContentsMargins(5, 0, 5, 0)
-            b.setFixedHeight(17)
+            b.setContentsMargins(6, 0, 6, 0)
+            b.setFixedHeight(18)
             b.setStyleSheet(
                 f"background:{mod.badge_renk};color:white;"
-                f"border-radius:4px;font-size:9px;font-weight:700;"
+                f"border-radius:9px;font-size:9px;font-weight:700;"
                 f"font-family:'Consolas','Courier New',monospace;"
             )
             b.setVisible(False)
@@ -185,25 +267,29 @@ class _SbBtn(QFrame):
     def _uygula_stil(self, aktif: bool):
         if aktif:
             self.setStyleSheet(
-                f"QFrame{{background:rgba(35,197,184,0.12);"
-                f"border-left:3px solid {T.accent};"
-                f"border-radius:10px;margin:2px 10px 2px 8px;}}"
+                f"QFrame{{background:{T.accent_bg};"
+                f"border:1px solid {T.accent};"
+                f"border-radius:12px;margin:3px 6px;}}"
             )
-            renk = T.accent2
+            ikon_bg = T.overlay_mid
+            renk = T.text
         else:
             self.setStyleSheet(
                 f"QFrame{{background:transparent;"
-                f"border-left:3px solid transparent;"
-                f"border-radius:10px;margin:2px 10px 2px 8px;}}"
-                f"QFrame:hover{{background:{T.bg3};}}"
+                f"border:1px solid transparent;"
+                f"border-radius:12px;margin:3px 6px;}}"
+                f"QFrame:hover{{background:{T.overlay_low};border-color:{T.border};}}"
             )
+            ikon_bg = "transparent"
             renk = T.text2
 
-        # İkonu yeni renkle güncelle
-        from ui.icons import pixmap as ipx
-        self._ikon_lbl.setPixmap(ipx(self._mod_icon, renk, 16))
+        # Ä°konu yeni renkle gÃ¼ncelle
+        self._ikon_btn.setIcon(ic(self._mod_icon, size=22, color=renk))
+        self._ikon_btn.setStyleSheet(
+            f"QPushButton{{background:{ikon_bg};border:none;border-radius:10px;padding:0;}}"
+        )
         self._txt_lbl.setStyleSheet(
-            f"font-size:12px;color:{renk};background:transparent;"
+            f"font-size:12.5px;font-weight:600;color:{renk};background:transparent;"
         )
 
     def set_aktif(self, aktif: bool):
@@ -218,12 +304,12 @@ class _SbBtn(QFrame):
         self.clicked.emit(self.mod_id)
 
 
-# ══════════════════════════════════════════════════════════════════
+# ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½
 #  SIDEBAR
-# ══════════════════════════════════════════════════════════════════
+# ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½
 
 class Sidebar(QFrame):
-    """Registry-driven sidebar. Yeni modül için DOKUNMA."""
+    """Registry-driven sidebar. Yeni modÃ¼l iÃ§in DOKUNMA."""
 
     navigasyon = Signal(str)
 
@@ -235,37 +321,43 @@ class Sidebar(QFrame):
 
         self.setFixedWidth(T.sidebar_w)
         self.setStyleSheet(
-            f"QFrame{{background:{T.bg1};"
+            f"QFrame{{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,"
+            f"stop:0 {T.bg1},stop:1 {T.bg2});"
             f"border-right:1px solid {T.border};}}"
         )
 
         kok = QVBoxLayout(self)
-        kok.setContentsMargins(0, 12, 0, 0)
-        kok.setSpacing(0)
+        kok.setContentsMargins(8, 10, 8, 10)
+        kok.setSpacing(8)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setStyleSheet("background:transparent;")
+        scroll.setStyleSheet(
+            "QScrollArea{background:transparent;border:none;}"
+            "QScrollBar:vertical{background:transparent;width:6px;margin:2px 0 2px 0;}"
+            f"QScrollBar::handle:vertical{{background:{T.border2};border-radius:3px;min-height:28px;}}"
+            "QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{height:0px;}"
+        )
 
         ic_w = QWidget()
         ic_w.setStyleSheet("background:transparent;")
         ic_lay = QVBoxLayout(ic_w)
-        ic_lay.setContentsMargins(0, 0, 0, 0)
-        ic_lay.setSpacing(2)
+        ic_lay.setContentsMargins(2, 2, 2, 2)
+        ic_lay.setSpacing(4)
 
         from app.rbac import modul_gorunur_mu
         for bolum, modlar in reg.get_bolumler():
             gorunen_modlar = [m for m in modlar if modul_gorunur_mu(oturum, m.id)]
             if not gorunen_modlar:
                 continue
-            # Bölüm başlığı
+            # BÃ¶lÃ¼m baï¿½YlÄ±ï¿½YÄ±
             blbl = QLabel(bolum.label.upper())
-            blbl.setContentsMargins(16, 8, 0, 4)
+            blbl.setContentsMargins(14, 12, 0, 4)
             blbl.setStyleSheet(
-                f"color:{T.text4};font-size:9px;font-weight:700;"
-                f"letter-spacing:0.14em;"
+                f"color:{T.text3};font-size:9.5px;font-weight:700;"
+                f"letter-spacing:0.16em;"
                 f"font-family:'IBM Plex Sans','Source Sans 3','Work Sans','Noto Sans',sans-serif;"
             )
             ic_lay.addWidget(blbl)
@@ -279,7 +371,7 @@ class Sidebar(QFrame):
             ayr = QFrame()
             ayr.setFixedHeight(1)
             ayr.setStyleSheet(
-                f"background:rgba(90,130,200,0.07);margin:6px 12px;"
+                f"background:{T.overlay_low};margin:6px 12px;"
             )
             ic_lay.addWidget(ayr)
 
@@ -296,7 +388,7 @@ class Sidebar(QFrame):
         self._badge_timer.start(30_000)
         self._badge_guncelle()
 
-        # Varsayılan sayfa
+        # VarsayÄ±lan sayfa
         v = reg.get_varsayilan_id()
         if v:
             self._navigasyon(v)
@@ -304,22 +396,22 @@ class Sidebar(QFrame):
     def _footer_olustur(self, kok: QVBoxLayout):
         ft = QFrame()
         ft.setStyleSheet(
-            f"QFrame{{border-top:1px solid {T.border};background:transparent;}}"
-            f"QFrame:hover{{background:{T.bg3};}}"
+            f"QFrame{{border:1px solid {T.border};"
+            f"background:{T.overlay_low};border-radius:12px;}}"
+            f"QFrame:hover{{background:{T.overlay_mid};border-color:{T.border2};}}"
         )
         ft.setCursor(Qt.CursorShape.PointingHandCursor)
         fl = QHBoxLayout(ft)
-        fl.setContentsMargins(12, 10, 12, 10)
-        fl.setSpacing(10)
+        fl.setContentsMargins(10, 9, 10, 9)
+        fl.setSpacing(9)
 
-        # Kullanıcı ikon etiketi
+        # KullanÄ±cÄ± ikon etiketi
         ikon_lbl = QLabel()
         ikon_lbl.setFixedSize(30, 30)
         ikon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        from ui.icons import pixmap as ipx
-        ikon_lbl.setPixmap(ipx("kullanici", T.accent2, 22))
+        ikon_lbl.setPixmap(ipx("kullanici", size=22, color=T.accent2))
         ikon_lbl.setStyleSheet(
-            f"background:rgba(52,121,255,0.12);"
+            f"background:{T.accent_bg};"
             f"border-radius:15px;"
         )
         fl.addWidget(ikon_lbl)
@@ -330,7 +422,7 @@ class Sidebar(QFrame):
         from app.rbac import kullanici_kisa_ad, rol as _rol
         _ad = kullanici_kisa_ad(self._oturum)
         _rol_str = _rol(self._oturum)
-        _rol_etiket = {"admin": "Sistem Yöneticisi", "yonetici": "Yönetici", "kullanici": "Kullanıcı"}.get(_rol_str, _rol_str)
+        _rol_etiket = {"admin": "Sistem YÃ¶neticisi", "yonetici": "YÃ¶netici", "kullanici": "KullanÄ±cÄ±"}.get(_rol_str, _rol_str)
         nm = QLabel(_ad)
         nm.setStyleSheet(f"font-size:12px;font-weight:600;color:{T.text};")
         rl = QLabel(_rol_etiket)
@@ -339,7 +431,10 @@ class Sidebar(QFrame):
         uc.addWidget(rl)
         fl.addLayout(uc, 1)
 
-        more_lbl = Icon.label("ayarlar", T.text3, 14)
+        more_lbl = QLabel()
+        more_lbl.setFixedSize(16, 16)
+        more_lbl.setPixmap(ipx("ayarlar", size=16, color=T.text3))
+        more_lbl.setStyleSheet("background:transparent;")
         fl.addWidget(more_lbl)
 
         kok.addWidget(ft)
@@ -365,9 +460,9 @@ class Sidebar(QFrame):
                     pass
 
 
-# ══════════════════════════════════════════════════════════════════
+# ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½
 #  ANA PENCERE
-# ══════════════════════════════════════════════════════════════════
+# ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½ï¿½.ï¿½
 
 class AppWindow(QMainWindow):
 
@@ -376,7 +471,7 @@ class AppWindow(QMainWindow):
         self._db    = db
         self._oturum = oturum
         self._pages: dict[str, QWidget] = {}
-        self.setWindowTitle("REPYS 2.0")
+        self.setWindowTitle("RADPYS 2.0")
         self.resize(1440, 900)
         self.setMinimumSize(1024, 700)
         self._build()
@@ -419,3 +514,4 @@ class AppWindow(QMainWindow):
             self._pages[mod_id] = page
             self._stack.addWidget(page)
         self._stack.setCurrentWidget(self._pages[mod_id])
+

@@ -10,7 +10,7 @@ from uuid import uuid4
 from app.db.database import Database
 import logging
 
-logger = logging.getLogger("repys.db.seed")
+logger = logging.getLogger("radpys.db.seed")
 
 
 def seed_all(db: Database) -> None:
