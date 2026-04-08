@@ -19,9 +19,10 @@ class PlaceholderPage(QWidget):
         lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lay.setSpacing(14)
 
-        ikon = QLabel("🚧")
+        from ui.icons import Icon as _Ico
+        ikon = _Ico.label("bakim", T.text3, 48)
         ikon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        ikon.setStyleSheet("font-size:44px; background:transparent;")
+        ikon.setFixedSize(64, 64)
 
         tit = QLabel("Bu modül geliştiriliyor")
         tit.setAlignment(Qt.AlignmentFlag.AlignCenter)

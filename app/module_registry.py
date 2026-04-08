@@ -119,7 +119,8 @@ def get_varsayilan_id() -> str:
     return lst[0].id if lst else ""
 
 
-def sayfa_olustur(mod_id: str, db) -> "QWidget":
+#{def sayfa_olustur(mod_id: str, db) -> "QWidget":
+def sayfa_olustur(mod_id: str, db, oturum: dict | None = None) -> "QWidget":
     """Lazy import ile sayfa widget'ı oluşturur."""
     _yukle()
     mod = next((m for m in _moduller if m.id == mod_id), None)
@@ -130,4 +131,7 @@ def sayfa_olustur(mod_id: str, db) -> "QWidget":
     import importlib
     modul  = importlib.import_module(parcalar[0])
     sinif  = getattr(modul, parcalar[1])
-    return sinif(db)
+    try:
+        return sinif(db, oturum=oturum)
+    except TypeError:
+        return sinif(db)

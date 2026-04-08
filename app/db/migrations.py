@@ -22,7 +22,7 @@ from app.db.database import Database
 logger = logging.getLogger("repys.db.migration")
 
 # Hedef şema versiyonu — her migration eklenince artır
-HEDEF_VERSIYON = 1
+HEDEF_VERSIYON = 2
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -357,7 +357,67 @@ def _v1(db: Database) -> None:
 
 # ── Migration kaydı ───────────────────────────────────────────────
 
-_MIGRATIONS = {1: _v1}   # Yeni migration eklenince buraya da ekle
+_TUM_MODULLER = [
+    "dashboard", "personel", "izin", "saglik", "dozimetre",
+    "cihaz", "ariza", "bakim", "rke", "nobet", "mesai",
+    "dokumanlar", "kullanici_giris", "rapor", "ayarlar",
+]
+
+_VARSAYILAN_MODUL_IZINLERI: dict[str, set[str] | None] = {
+    "admin": None,  # None = tüm modüller
+    "yonetici": {
+        "dashboard", "personel", "izin", "saglik", "dozimetre",
+        "cihaz", "ariza", "bakim", "rke", "nobet", "mesai",
+        "dokumanlar", "rapor", "kullanici_giris",
+    },
+    "kullanici": {"dashboard", "personel", "dokumanlar"},
+}
+
+
+def _v2(db: Database) -> None:
+    """v2 — Kullanıcı seed backfill + rbac_modul_izin tablosu."""
+
+    # Mevcut DB'ye eksik kullanıcıları ekle (idempotent)
+    from app.db.seed import seed_kullanicilar
+    seed_kullanicilar(db)
+
+    db.execute("""
+    CREATE TABLE IF NOT EXISTS rbac_modul_izin (
+        id        TEXT PRIMARY KEY,
+        rol       TEXT NOT NULL,
+        modul_id  TEXT NOT NULL,
+        izinli    INTEGER NOT NULL DEFAULT 1,
+        UNIQUE(rol, modul_id)
+    )
+    """)
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_rbac_rol_modul "
+        "ON rbac_modul_izin(rol, modul_id)"
+    )
+    _rbac_modul_izin_seed(db)
+    logger.info("v2: rbac_modul_izin tablosu oluşturuldu ve seed edildi.")
+
+
+def _rbac_modul_izin_seed(db: Database) -> None:
+    from uuid import uuid4
+    for rol_adi, izinler in _VARSAYILAN_MODUL_IZINLERI.items():
+        for modul_id in _TUM_MODULLER:
+            if db.fetchval(
+                "SELECT 1 FROM rbac_modul_izin WHERE rol=? AND modul_id=?",
+                (rol_adi, modul_id),
+            ):
+                continue  # Zaten var
+            izinli = 1 if (izinler is None or modul_id in izinler) else 0
+            db.execute(
+                "INSERT INTO rbac_modul_izin (id, rol, modul_id, izinli) "
+                "VALUES (?,?,?,?)",
+                (uuid4().hex, rol_adi, modul_id, izinli),
+            )
+
+
+# ── Migration kaydı ───────────────────────────────────────────────
+
+_MIGRATIONS = {1: _v1, 2: _v2}   # Yeni migration eklenince buraya da ekle
 
 
 # ══════════════════════════════════════════════════════════════════

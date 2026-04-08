@@ -53,6 +53,11 @@ class PersonelForm(QDialog):
         hdr.setStyleSheet(f"background:{T.bg1}; border-bottom:1px solid {T.border};")
         hdr_lay = QHBoxLayout(hdr)
         hdr_lay.setContentsMargins(20, 14, 20, 14)
+        from ui.icons import ic as _icf
+        from PySide6.QtCore import QSize as _QSf
+        ikon_lbl = QLabel()
+        ikon_lbl.setPixmap(_icf("ekle", T.accent2, 16).pixmap(_QSf(16,16)))
+        hdr_lay.addWidget(ikon_lbl)
         lbl = QLabel("Yeni Personel Ekle")
         lbl.setStyleSheet(f"color:{T.text}; font-size:16px; font-weight:600;")
         hdr_lay.addWidget(lbl)

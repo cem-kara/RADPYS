@@ -81,9 +81,15 @@ class KimlikPanel(QWidget):
         baslik_lay.addWidget(self._lbl_durum)
         baslik_lay.addStretch()
 
-        self._btn_duzenle = GhostButton("✏  Düzenle")
+        from ui.icons import ic as _ic
+        from PySide6.QtCore import QSize as _QS
+        self._btn_duzenle = GhostButton("  Düzenle")
+        self._btn_duzenle.setIcon(_ic("duzenle", T.text2, 14))
+        self._btn_duzenle.setIconSize(_QS(14, 14))
         self._btn_duzenle.clicked.connect(self._duzenleme_baslat)
-        self._btn_kaydet  = PrimaryButton("💾  Kaydet")
+        self._btn_kaydet  = PrimaryButton("  Kaydet")
+        self._btn_kaydet.setIcon(_ic("kaydet", "white", 14))
+        self._btn_kaydet.setIconSize(_QS(14, 14))
         self._btn_kaydet.clicked.connect(self._kaydet)
         self._btn_kaydet.setVisible(False)
         self._btn_iptal   = GhostButton("İptal")

@@ -18,7 +18,29 @@ def seed_all(db: Database) -> None:
     _seed_gorev_yerleri(db)
     _seed_lookup(db)
     _seed_tatiller(db)
+    seed_kullanicilar(db)
     logger.info("Seed data yüklendi.")
+
+
+def seed_kullanicilar(db: Database) -> None:
+    """Varsayılan kullanıcıları ekler (INSERT OR IGNORE)."""
+    import bcrypt
+    from uuid import uuid4
+
+    kullanicilar = [
+        ("admin",     "admin123",     "admin"),
+        ("yonetici",  "yonetici123",  "yonetici"),
+        ("kullanici", "kullanici123", "kullanici"),
+    ]
+    for ad, parola, rol_adi in kullanicilar:
+        if not db.fetchval("SELECT 1 FROM kullanici WHERE ad=?", (ad,)):
+            sifre_hash = bcrypt.hashpw(parola.encode(), bcrypt.gensalt()).decode()
+            db.execute(
+                "INSERT INTO kullanici (id, ad, sifre_hash, rol, aktif) "
+                "VALUES (?,?,?,?,?)",
+                (uuid4().hex, ad, sifre_hash, rol_adi, 1),
+            )
+    logger.info("Varsayılan kullanıcılar seed edildi.")
 
 
 # ── Görev Yerleri ─────────────────────────────────────────────────

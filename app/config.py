@@ -57,6 +57,28 @@ class LookupKategori:
     BELGE_TUR      = "belge_tur"
     NOBET_HEDEF    = "nobet_hedef_tipi"
 
+# ── RBAC ──────────────────────────────────────────────────────────
+RBAC_ROLLER: tuple[str, ...] = ("admin", "yonetici", "kullanici")
+
+RBAC_ROL_YETKILERI: dict[str, set] = {
+    "admin": {
+        "personel.ekle",
+        "personel.guncelle",
+        "personel.pasife_al",
+        "kullanici.goruntule",
+        "kullanici.olustur",
+        "kullanici.guncelle",
+        "kullanici.pasife_al",
+    },
+    "yonetici": {
+        "personel.ekle",
+        "personel.guncelle",
+        "kullanici.goruntule",
+        "kullanici.guncelle",
+    },
+    "kullanici": set(),
+}
+
 # ── Tarih Formatı ─────────────────────────────────────────────────
 TARIH_FORMAT = "%Y-%m-%d"   # ISO-8601, veritabanında kullanılan format
 TARIH_UI     = "%d.%m.%Y"   # Kullanıcıya gösterilen format

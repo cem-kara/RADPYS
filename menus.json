@@ -1,10 +1,8 @@
 {
   "_aciklama": [
     "menus.json — Menü yapısı tanım dosyası.",
-    "Yeni modül eklemek için 'moduller' dizisine yeni bir nesne ekle.",
-    "page_cls: 'paket.alt_paket.DosyaAdi.SinifAdi' formatında.",
-    "Badge sayısı için app/badge_functions.py dosyasına bak.",
-    "Dinamik badge (DB sorgusu) olan modüller badge_id alanı kullanır.",
+    "icon: ui/icons.py'deki IKONLAR sözlüğünün anahtarı.",
+    "badge_id: app/badge_functions.py'deki BADGE_FN anahtarı.",
     "bolum: 'ana_menu' | 'cihaz' | 'nobet' | 'sistem'"
   ],
 
@@ -17,17 +15,17 @@
 
   "moduller": [
     {
-      "id":        "dashboard",
-      "label":     "Dashboard",
-      "icon":      "⊞",
-      "bolum":     "ana_menu",
-      "sira":      0,
-      "page_cls":  "ui.pages.dashboard.dashboard_page.DashboardPage"
+      "id":       "dashboard",
+      "label":    "Dashboard",
+      "icon":     "dashboard",
+      "bolum":    "ana_menu",
+      "sira":     0,
+      "page_cls": "ui.pages.dashboard.dashboard_page.DashboardPage"
     },
     {
       "id":         "personel",
       "label":      "Personel",
-      "icon":       "👤",
+      "icon":       "personel",
       "bolum":      "ana_menu",
       "sira":       10,
       "page_cls":   "ui.pages.personel.personel_page.PersonelPage",
@@ -38,7 +36,7 @@
     {
       "id":         "izin",
       "label":      "İzin Takip",
-      "icon":       "📅",
+      "icon":       "izin",
       "bolum":      "ana_menu",
       "sira":       20,
       "page_cls":   "ui.pages.placeholder.PlaceholderPage",
@@ -48,7 +46,7 @@
     {
       "id":       "saglik",
       "label":    "Sağlık Takip",
-      "icon":     "🏥",
+      "icon":     "saglik",
       "bolum":    "ana_menu",
       "sira":     30,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
@@ -56,7 +54,7 @@
     {
       "id":       "dozimetre",
       "label":    "Dozimetre",
-      "icon":     "☢",
+      "icon":     "dozimetre",
       "bolum":    "ana_menu",
       "sira":     40,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
@@ -64,7 +62,7 @@
     {
       "id":       "cihaz",
       "label":    "Cihaz Listesi",
-      "icon":     "⚙",
+      "icon":     "cihaz",
       "bolum":    "cihaz",
       "sira":     10,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
@@ -72,7 +70,7 @@
     {
       "id":         "ariza",
       "label":      "Arıza Takip",
-      "icon":       "🔧",
+      "icon":       "ariza",
       "bolum":      "cihaz",
       "sira":       20,
       "page_cls":   "ui.pages.placeholder.PlaceholderPage",
@@ -82,7 +80,7 @@
     {
       "id":       "bakim",
       "label":    "Bakım & Kalibr.",
-      "icon":     "🔬",
+      "icon":     "bakim",
       "bolum":    "cihaz",
       "sira":     30,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
@@ -90,7 +88,7 @@
     {
       "id":       "rke",
       "label":    "RKE Envanter",
-      "icon":     "🛡",
+      "icon":     "rke",
       "bolum":    "cihaz",
       "sira":     40,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
@@ -98,7 +96,7 @@
     {
       "id":       "nobet",
       "label":    "Nöbet Planı",
-      "icon":     "🌙",
+      "icon":     "nobet",
       "bolum":    "nobet",
       "sira":     10,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
@@ -106,7 +104,7 @@
     {
       "id":       "mesai",
       "label":    "Fazla Mesai",
-      "icon":     "⏰",
+      "icon":     "mesai",
       "bolum":    "nobet",
       "sira":     20,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
@@ -114,7 +112,7 @@
     {
       "id":       "dokumanlar",
       "label":    "Dökümanlar",
-      "icon":     "📁",
+      "icon":     "dokumanlar",
       "bolum":    "sistem",
       "sira":     10,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
@@ -122,7 +120,7 @@
     {
       "id":       "rapor",
       "label":    "Raporlar",
-      "icon":     "📈",
+      "icon":     "rapor",
       "bolum":    "sistem",
       "sira":     20,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
@@ -130,7 +128,7 @@
     {
       "id":       "ayarlar",
       "label":    "Yönetim",
-      "icon":     "⚙",
+      "icon":     "ayarlar",
       "bolum":    "sistem",
       "sira":     30,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"

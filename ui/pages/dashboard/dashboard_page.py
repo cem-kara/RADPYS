@@ -34,8 +34,9 @@ class _StatKart(QFrame):
             f"color:{T.text3};font-size:9px;font-weight:700;"
             f"letter-spacing:0.1em;font-family:'Consolas','Courier New',monospace;"
         )
-        ikon_lbl = QLabel(ikon)
-        ikon_lbl.setStyleSheet(f"font-size:14px;color:{renk};")
+        from ui.icons import Icon as _Ico
+        ikon_lbl = _Ico.label(ikon, renk, 20)
+        ikon_lbl.setFixedSize(22, 22)
         baslik_lay.addWidget(b)
         baslik_lay.addStretch()
         baslik_lay.addWidget(ikon_lbl)
@@ -98,10 +99,10 @@ class DashboardPage(QWidget):
         grid.setSpacing(10)
 
         self._kartlar = [
-            _StatKart("👤", "Aktif Personel", "—", "yükleniyor...", T.accent2),
-            _StatKart("📅", "Bugün İzinli",   "—", "aktif izin",   T.amber),
-            _StatKart("🏥", "Yaklaşan Muayene","—","30 gün içinde", T.teal2),
-            _StatKart("📊", "Doz Aşımı",      "—", "son periyot",  T.red2),
+            _StatKart("personel", "Aktif Personel",   "—", "yükleniyor...", T.accent2),
+            _StatKart("izin",     "Bugün İzinli",     "—", "aktif izin",   T.amber),
+            _StatKart("saglik",   "Yaklaşan Muayene", "—", "30 gün içinde", T.teal2),
+            _StatKart("dozimetre","Doz Aşımı",        "—", "son periyot",  T.red2),
         ]
         for i, k in enumerate(self._kartlar):
             grid.addWidget(k, 0, i)

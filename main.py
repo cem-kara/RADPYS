@@ -39,6 +39,9 @@ def main() -> int:
     db = Database(DB_PATH)
     migrate(db)
 
+    import app.rbac as rbac
+    rbac.init_dari_db(db)
+
     from PySide6.QtWidgets import QApplication
     from PySide6.QtCore import Qt
     app = QApplication(sys.argv)
@@ -47,8 +50,13 @@ def main() -> int:
     from ui.theme import apply as tema_uygula
     tema_uygula(app)
 
+    from ui.pages.kullanici.login_dialog import LoginDialog
+    login = LoginDialog(db)
+    if login.exec() != login.DialogCode.Accepted or login.oturum is None:
+        return 0
+
     from ui.app_window import AppWindow
-    pencere = AppWindow(db)
+    pencere = AppWindow(db, oturum=login.oturum)
     pencere.show()
 
     kod = app.exec()

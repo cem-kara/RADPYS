@@ -7,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import pytest
 from app.db.database import Database
 from app.db.migrations import run as migration_calistir
+from app.db.migrations import HEDEF_VERSIYON
 
 
 @pytest.fixture
@@ -120,4 +121,4 @@ class TestMigrations:
 
     def test_versiyon_kayitlandi(self, db):
         v = db.fetchval("SELECT MAX(versiyon) FROM _db_versiyon")
-        assert v == 1
+        assert v == HEDEF_VERSIYON

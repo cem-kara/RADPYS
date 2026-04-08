@@ -39,9 +39,10 @@ class _KarsilamaEkrani(QWidget):
         lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lay.setSpacing(12)
 
-        ikon = QLabel("👥")
+        from ui.icons import Icon as _Icon
+        ikon = _Icon.label("personel", T.text3, 48)
         ikon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        ikon.setStyleSheet("font-size:48px; background:transparent;")
+        ikon.setFixedSize(64, 64)
         lay.addWidget(ikon)
 
         lbl = QLabel("Personel seçin")

@@ -20,11 +20,12 @@ class AlertBar(QFrame):
     Türler: "danger" | "warning" | "success" | "info"
     """
 
+    # ikon_adi: ui/icons.py'deki IKONLAR anahtarı
     _STILLER = {
-        "danger":  (T.red,  "rgba(232,58,90,0.10)",  "⛔"),
-        "warning": (T.amber, "rgba(232,160,32,0.10)", "⚠"),
-        "success": (T.green2, "rgba(29,184,106,0.10)", "✓"),
-        "info":    (T.accent2,    "rgba(52,121,255,0.12)",  "ℹ"),
+        "danger":  (T.red,    "rgba(232,58,90,0.10)",   "alert_hata"),
+        "warning": (T.amber,  "rgba(232,160,32,0.10)",  "alert_uyari"),
+        "success": (T.green2, "rgba(29,184,106,0.10)",  "alert_basari"),
+        "info":    (T.accent2,"rgba(52,121,255,0.12)",  "alert_bilgi"),
     }
 
     def __init__(self, parent=None):
@@ -44,11 +45,15 @@ class AlertBar(QFrame):
             self._mesaj.sizePolicy().verticalPolicy(),
         )
 
-        self._kapat = QPushButton("✕")
+        self._kapat = QPushButton()
         self._kapat.setFixedSize(20, 20)
         self._kapat.setFlat(True)
         self._kapat.setCursor(Qt.CursorShape.PointingHandCursor)
         self._kapat.clicked.connect(self.temizle)
+        from ui.icons import ic as _ic
+        self._kapat.setIcon(_ic('kapat', T.text3, 12))
+        from PySide6.QtCore import QSize
+        self._kapat.setIconSize(QSize(12, 12))
 
         lay.addWidget(self._ikon)
         lay.addWidget(self._mesaj, 1)
@@ -56,8 +61,10 @@ class AlertBar(QFrame):
 
     def goster(self, mesaj: str, tur: str = "danger") -> None:
         """Uyarı bandını gösterir."""
-        renk, arka, ikon = self._STILLER.get(tur, self._STILLER["danger"])
-        self._ikon.setText(ikon)
+        from ui.icons import pixmap as ipx
+        renk, arka, ikon_adi = self._STILLER.get(tur, self._STILLER["danger"])
+        self._ikon.setPixmap(ipx(ikon_adi, renk, 16))
+        self._ikon.setFixedSize(16, 16)
         self._mesaj.setText(mesaj)
         self.setStyleSheet(
             f"background-color:{arka};"

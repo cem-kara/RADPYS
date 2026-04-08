@@ -78,7 +78,11 @@ class PersonelDetay(QWidget):
 
         # Geri butonu
         from ui.components.buttons import GhostButton
-        btn_geri = GhostButton("← Listeye Dön")
+        btn_geri = GhostButton("  Listeye Dön")
+        from ui.icons import ic as _ic2
+        from PySide6.QtCore import QSize as _QS2
+        btn_geri.setIcon(_ic2("geri", T.text2, 14))
+        btn_geri.setIconSize(_QS2(14, 14))
         btn_geri.setFixedHeight(30)
         btn_geri.clicked.connect(self.kapandi)
 
@@ -110,14 +114,18 @@ class PersonelDetay(QWidget):
         # Kimlik sekmesi — aktif
         self._kimlik = KimlikPanel(self._svc)
         self._kimlik.kaydedildi.connect(self._baslik_guncelle)
-        self._tabs.addTab(self._kimlik, "👤  Kimlik")
+        # Sekme ikonları
+        from ui.icons import ic as _ic
+        from PySide6.QtCore import QSize
+        sz = QSize(15, 15)
 
-        # Gelecek sekmeler — placeholder
-        self._tabs.addTab(_placeholder_sekme("📅  İzin"),       "📅  İzin")
-        self._tabs.addTab(_placeholder_sekme("🏥  Sağlık"),     "🏥  Sağlık")
-        self._tabs.addTab(_placeholder_sekme("☢  Dozimetre"),   "☢  Dozimetre")
-        self._tabs.addTab(_placeholder_sekme("📊  FHSZ"),       "📊  FHSZ")
-        self._tabs.addTab(_placeholder_sekme("📁  Belgeler"),   "📁  Belgeler")
+        self._tabs.addTab(self._kimlik, _ic("kimlik", T.text2, 15), "Kimlik")
+        self._tabs.addTab(_placeholder_sekme("İzin"),       _ic("izin",       T.text2, 15), "İzin")
+        self._tabs.addTab(_placeholder_sekme("Sağlık"),     _ic("saglik",     T.text2, 15), "Sağlık")
+        self._tabs.addTab(_placeholder_sekme("Dozimetre"),  _ic("dozimetre",  T.text2, 15), "Dozimetre")
+        self._tabs.addTab(_placeholder_sekme("FHSZ"),       _ic("fhsz",       T.text2, 15), "FHSZ")
+        self._tabs.addTab(_placeholder_sekme("Belgeler"),   _ic("belge",      T.text2, 15), "Belgeler")
+        self._tabs.setIconSize(sz)
 
     # ── Veri ──────────────────────────────────────────────────────
 

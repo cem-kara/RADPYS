@@ -114,7 +114,11 @@ class PersonelListesi(QWidget):
         self._cb_durum.addItems(["Tümü", "Aktif", "Ayrıldı"])
         self._cb_durum.currentTextChanged.connect(self._filtrele)
 
-        btn_yenile = GhostButton("↻")
+        btn_yenile = GhostButton("")
+        from ui.icons import ic as _ic
+        from PySide6.QtCore import QSize as _QS
+        btn_yenile.setIcon(_ic("yenile", T.text2, 15))
+        btn_yenile.setIconSize(_QS(15, 15))
         btn_yenile.setFixedSize(32, 32)
         btn_yenile.setToolTip("Yenile")
         btn_yenile.clicked.connect(self._yukle)
