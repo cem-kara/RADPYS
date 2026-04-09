@@ -34,11 +34,11 @@
     },
     {
       "id": "personel",
-      "label": "Personel",
+      "label": "Personel Listesi",
       "icon": "personel",
       "bolum": "ana_menu",
       "sira": 10,
-      "page_cls": "ui.pages.personel.personel_page.PersonelPage",
+      "page_cls": "ui.pages.personel.personel_listesi.PersonelListesi",
       "badge_id": "personel_aktif",
       "badge_renk": "#3479ff",
       "varsayilan": true
