@@ -120,7 +120,7 @@ QLineEdit, QComboBox, QDateEdit, QSpinBox, QDoubleSpinBox, QTextEdit, QPlainText
     background: {tokens.get("INPUT_BG", "#0f1724")};
     color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
     border: 1px solid {tokens.get("INPUT_BORDER", "#192a42")};
-    border-radius: 3px;
+    border-radius: 6px;
     padding: 6px 10px;
     selection-background-color: {tokens.get("ACCENT", "#4080e0")};
     selection-color: #ffffff;
@@ -157,183 +157,222 @@ QDateEdit::down-arrow {{
     height: 10px;
 }}
 
+QComboBox QAbstractItemView {{
+    background: {tokens.get("BG_SECONDARY", "#101722")};
+    color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
+    border: 1px solid {tokens.get("BORDER_SECONDARY", "#203352")};
+    border-radius: 6px;
+    outline: none;
+    padding: 4px;
+    selection-background-color: {tokens.get("ACCENT_20", "rgba(64,128,224,0.20)")};
+    selection-color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
+}}
 
-    QCheckBox, QRadioButton {{
-        color: {tokens.get("TEXT_SECONDARY", "#6a8ca8")};
-        spacing: 8px;
-        font-size: 12px;
-        background: transparent;
-    }}
+QComboBox QAbstractItemView::item {{
+    min-height: 28px;
+    padding: 4px 8px;
+    border-radius: 4px;
+}}
 
-    QCheckBox::indicator, QRadioButton::indicator {{
-        width: 16px;
-        height: 16px;
-        border: 2px solid {tokens.get("TEXT_SECONDARY", "#6a8ca8")};
-        border-radius: 4px;
-        background-color: {tokens.get("INPUT_BG", "#0f1724")};
-    }}
+QComboBox QAbstractItemView::item:hover {{
+    background: {tokens.get("ACCENT_10", "rgba(64,128,224,0.10)")};
+}}
 
-    QCheckBox::indicator:hover {{
-        border-color: {tokens.get("ACCENT", "#4080e0")};
-        background-color: {tokens.get("BG_TERTIARY", "#141e2b")};
-    }}
+QCheckBox, QRadioButton {{
+    color: {tokens.get("TEXT_SECONDARY", "#6a8ca8")};
+    spacing: 8px;
+    font-size: 12px;
+    background: transparent;
+}}
 
-    QCheckBox::indicator:checked {{
-        background-color: {tokens.get("ACCENT", "#4080e0")};
-        border-color: {tokens.get("ACCENT", "#4080e0")};
-        image: url("{check_icon}");
-    }}
+QCheckBox::indicator, QRadioButton::indicator {{
+    width: 16px;
+    height: 16px;
+    border: 2px solid {tokens.get("TEXT_SECONDARY", "#6a8ca8")};
+    border-radius: 4px;
+    background-color: {tokens.get("INPUT_BG", "#0f1724")};
+}}
 
-    QCheckBox::indicator:disabled {{
-        border-color: {tokens.get("TEXT_DISABLED", "#1a2a3e")};
-        background-color: {tokens.get("BG_SECONDARY", "#101722")};
-    }}
+QCheckBox::indicator:hover {{
+    border-color: {tokens.get("ACCENT", "#4080e0")};
+    background-color: {tokens.get("BG_TERTIARY", "#141e2b")};
+}}
 
-    QRadioButton::indicator {{
-        border-radius: 8px;
-    }}
+QCheckBox::indicator:checked {{
+    background-color: {tokens.get("ACCENT", "#4080e0")};
+    border-color: {tokens.get("ACCENT", "#4080e0")};
+    image: url("{check_icon}");
+}}
 
-    QRadioButton::indicator:checked {{
-        background-color: {tokens.get("ACCENT", "#4080e0")};
-        border-color: {tokens.get("ACCENT", "#4080e0")};
-    }}
+QCheckBox::indicator:disabled {{
+    border-color: {tokens.get("TEXT_DISABLED", "#1a2a3e")};
+    background-color: {tokens.get("BG_SECONDARY", "#101722")};
+}}
 
-    QCalendarWidget {{
-        background-color: {tokens.get("BG_SECONDARY", "#101722")};
-        color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
-        border: 1px solid {tokens.get("ACCENT_20", "rgba(64,128,224,0.20)")};
-        border-radius: 10px;
-    }}
+QRadioButton::indicator {{
+    border-radius: 8px;
+}}
 
-    QCalendarWidget #qt_calendar_navigationbar {{
-        background-color: {tokens.get("BG_TERTIARY", "#141e2b")};
-        border-bottom: 1px solid {tokens.get("ACCENT_20", "rgba(64,128,224,0.20)")};
-        border-radius: 10px 10px 0 0;
-        padding: 4px 8px;
-        min-height: 32px;
-    }}
+QRadioButton::indicator:checked {{
+    border-color: {tokens.get("ACCENT", "#4080e0")};
+    background-color: qradialgradient(
+        cx: 0.5, cy: 0.5, radius: 0.48,
+        fx: 0.5, fy: 0.5,
+        stop: 0 #ffffff,
+        stop: 0.34 #ffffff,
+        stop: 0.35 {tokens.get("ACCENT", "#4080e0")},
+        stop: 1 {tokens.get("ACCENT", "#4080e0")}
+    );
+}}
 
-    QCalendarWidget QToolButton {{
-        background-color: transparent;
-        color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
-        border: none;
-        border-radius: 5px;
-        padding: 4px 8px;
-        font-size: 13px;
-        font-weight: 700;
-        min-width: 20px;
-    }}
+QCalendarWidget {{
+    background-color: {tokens.get("BG_SECONDARY", "#101722")};
+    color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
+    border: 1px solid {tokens.get("ACCENT_20", "rgba(64,128,224,0.20)")};
+    border-radius: 8px;
+}}
 
-    QCalendarWidget QToolButton:hover {{
-        background-color: {tokens.get("ACCENT_10", "rgba(64,128,224,0.10)")};
-        color: {tokens.get("ACCENT2", "#60a8f8")};
-    }}
+QCalendarWidget #qt_calendar_navigationbar {{
+    background-color: {tokens.get("BG_TERTIARY", "#141e2b")};
+    border-bottom: 1px solid {tokens.get("ACCENT_20", "rgba(64,128,224,0.20)")};
+    border-radius: 8px 8px 0 0;
+    padding: 4px 8px;
+    min-height: 32px;
+}}
 
-    QCalendarWidget QToolButton::menu-indicator {{ image: none; width: 0; }}
+QCalendarWidget QToolButton {{
+    background-color: transparent;
+    color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
+    border: none;
+    border-radius: 5px;
+    padding: 4px 8px;
+    font-size: 13px;
+    font-weight: 700;
+    min-width: 20px;
+}}
 
-    QCalendarWidget QToolButton#qt_calendar_prevmonth {{
-        qproperty-icon: none;
-        image: url("{cal_prev}");
-        width: 24px;
-        height: 24px;
-        padding: 4px;
-    }}
+QCalendarWidget QToolButton:hover {{
+    background-color: {tokens.get("ACCENT_10", "rgba(64,128,224,0.10)")};
+    color: {tokens.get("ACCENT2", "#60a8f8")};
+}}
 
-    QCalendarWidget QToolButton#qt_calendar_nextmonth {{
-        qproperty-icon: none;
-        image: url("{cal_next}");
-        width: 24px;
-        height: 24px;
-        padding: 4px;
-    }}
+QCalendarWidget QToolButton::menu-indicator {{
+    image: none;
+    width: 0;
+}}
 
-    QCalendarWidget QToolButton#qt_calendar_prevmonth:hover,
-    QCalendarWidget QToolButton#qt_calendar_nextmonth:hover {{
-        background-color: {tokens.get("ACCENT_10", "rgba(64,128,224,0.10)")};
-        border-radius: 5px;
-    }}
+QCalendarWidget QToolButton#qt_calendar_prevmonth {{
+    qproperty-icon: none;
+    image: url("{cal_prev}");
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+}}
 
-    QCalendarWidget QSpinBox {{
-        background-color: transparent;
-        color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
-        border: none;
-        font-size: 13px;
-        font-weight: 700;
-        padding: 2px 4px;
-        selection-background-color: {tokens.get("ACCENT_10", "rgba(64,128,224,0.10)")};
-        selection-color: {tokens.get("ACCENT2", "#60a8f8")};
-    }}
+QCalendarWidget QToolButton#qt_calendar_nextmonth {{
+    qproperty-icon: none;
+    image: url("{cal_next}");
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+}}
 
-    QCalendarWidget QSpinBox::up-button,
-    QCalendarWidget QSpinBox::down-button {{ width: 0; height: 0; border: none; }}
+QCalendarWidget QToolButton#qt_calendar_prevmonth:hover,
+QCalendarWidget QToolButton#qt_calendar_nextmonth:hover {{
+    background-color: {tokens.get("ACCENT_10", "rgba(64,128,224,0.10)")};
+    border-radius: 5px;
+}}
 
-    QCalendarWidget QWidget {{
-        background-color: {tokens.get("BG_SECONDARY", "#101722")};
-        color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
-        alternate-background-color: {tokens.get("BG_SECONDARY", "#101722")};
-    }}
+QCalendarWidget QSpinBox {{
+    background-color: transparent;
+    color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
+    border: none;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 2px 4px;
+    selection-background-color: {tokens.get("ACCENT_10", "rgba(64,128,224,0.10)")};
+    selection-color: {tokens.get("ACCENT2", "#60a8f8")};
+}}
 
-    QCalendarWidget QTableView {{
-        background-color: {tokens.get("BG_SECONDARY", "#101722")};
-        color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
-        gridline-color: transparent;
-        border: none;
-        outline: none;
-        alternate-background-color: {tokens.get("BG_SECONDARY", "#101722")};
-        selection-background-color: {tokens.get("ACCENT_10", "rgba(64,128,224,0.10)")};
-        selection-color: {tokens.get("ACCENT2", "#60a8f8")};
-    }}
+QCalendarWidget QSpinBox::up-button,
+QCalendarWidget QSpinBox::down-button {{
+    width: 0;
+    height: 0;
+    border: none;
+}}
 
-    QCalendarWidget QTableView::item {{
-        color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
-        background-color: transparent;
-        padding: 2px;
-        border-radius: 4px;
-        border: none;
-        min-width: 28px;
-        min-height: 24px;
-    }}
+QCalendarWidget QWidget {{
+    background-color: {tokens.get("BG_SECONDARY", "#101722")};
+    color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
+    alternate-background-color: {tokens.get("BG_SECONDARY", "#101722")};
+}}
 
-    QCalendarWidget QTableView::item:hover {{
-        background-color: {tokens.get("ACCENT_10", "rgba(64,128,224,0.10)")};
-        color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
-    }}
+QCalendarWidget QTableView {{
+    background-color: {tokens.get("BG_SECONDARY", "#101722")};
+    color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
+    gridline-color: transparent;
+    border: none;
+    outline: none;
+    alternate-background-color: {tokens.get("BG_SECONDARY", "#101722")};
+    selection-background-color: {tokens.get("ACCENT_10", "rgba(64,128,224,0.10)")};
+    selection-color: {tokens.get("ACCENT2", "#60a8f8")};
+}}
 
-    QCalendarWidget QTableView::item:selected {{
-        background-color: {tokens.get("ACCENT_20", "rgba(64,128,224,0.20)")};
-        color: {tokens.get("ACCENT2", "#60a8f8")};
-        font-weight: 700;
-    }}
+QCalendarWidget QTableView::item {{
+    color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
+    background-color: transparent;
+    padding: 2px;
+    border-radius: 4px;
+    border: none;
+    min-width: 28px;
+    min-height: 24px;
+}}
 
-    QCalendarWidget QAbstractItemView {{
-        background-color: {tokens.get("BG_SECONDARY", "#101722")};
-        color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
-        selection-background-color: {tokens.get("ACCENT_20", "rgba(64,128,224,0.20)")};
-        selection-color: {tokens.get("ACCENT2", "#60a8f8")};
-        font-size: 13px;
-        outline: none;
-        alternate-background-color: {tokens.get("BG_SECONDARY", "#101722")};
-    }}
+QCalendarWidget QTableView::item:hover {{
+    background-color: {tokens.get("ACCENT_10", "rgba(64,128,224,0.10)")};
+    color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
+}}
 
-    QCalendarWidget QAbstractItemView:enabled  {{ color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")}; }}
-    QCalendarWidget QAbstractItemView:disabled {{ color: {tokens.get("TEXT_MUTED",   "#38526a")}; }}
+QCalendarWidget QTableView::item:selected {{
+    background-color: {tokens.get("ACCENT_20", "rgba(64,128,224,0.20)")};
+    color: {tokens.get("ACCENT2", "#60a8f8")};
+    font-weight: 700;
+}}
 
-    QCalendarWidget QHeaderView {{
-        background-color: {tokens.get("BG_TERTIARY", "#141e2b")};
-        color: {tokens.get("TEXT_SECONDARY", "#6a8ca8")};
-        font-size: 11px;
-        font-weight: 700;
-    }}
+QCalendarWidget QAbstractItemView {{
+    background-color: {tokens.get("BG_SECONDARY", "#101722")};
+    color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
+    selection-background-color: {tokens.get("ACCENT_20", "rgba(64,128,224,0.20)")};
+    selection-color: {tokens.get("ACCENT2", "#60a8f8")};
+    font-size: 13px;
+    outline: none;
+    alternate-background-color: {tokens.get("BG_SECONDARY", "#101722")};
+}}
 
-    QCalendarWidget QHeaderView::section {{
-        background-color: {tokens.get("BG_TERTIARY", "#141e2b")};
-        color: {tokens.get("TEXT_SECONDARY", "#6a8ca8")};
-        border: none;
-        border-bottom: 1px solid {tokens.get("ACCENT_20", "rgba(64,128,224,0.20)")};
-        padding: 5px 2px;
-        font-size: 11px;
-        font-weight: 700;
-    }}
+QCalendarWidget QAbstractItemView:enabled {{
+    color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
+}}
+
+QCalendarWidget QAbstractItemView:disabled {{
+    color: {tokens.get("TEXT_MUTED", "#38526a")};
+}}
+
+QCalendarWidget QHeaderView {{
+    background-color: {tokens.get("BG_TERTIARY", "#141e2b")};
+    color: {tokens.get("TEXT_SECONDARY", "#6a8ca8")};
+    font-size: 11px;
+    font-weight: 700;
+}}
+
+QCalendarWidget QHeaderView::section {{
+    background-color: {tokens.get("BG_TERTIARY", "#141e2b")};
+    color: {tokens.get("TEXT_SECONDARY", "#6a8ca8")};
+    border: none;
+    border-bottom: 1px solid {tokens.get("ACCENT_20", "rgba(64,128,224,0.20)")};
+    padding: 5px 2px;
+    font-size: 11px;
+    font-weight: 700;
+}}
 QSpinBox::up-button, QDoubleSpinBox::up-button {{
     subcontrol-origin: border;
     subcontrol-position: top right;
@@ -367,7 +406,7 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {{
 QTabWidget::pane {{
     border: 1px solid {tokens.get("BORDER_PRIMARY", "#192a42")};
     background: {tokens.get("BG_SECONDARY", "#101722")};
-    border-radius: 10px;
+    border-radius: 8px;
     top: -1px;
 }}
 
@@ -377,8 +416,8 @@ QTabBar::tab {{
     border: 1px solid {tokens.get("BORDER_PRIMARY", "#192a42")};
     padding: 7px 14px;
     margin-right: 4px;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
 }}
 
 QTabBar::tab:selected {{
@@ -396,7 +435,7 @@ QPushButton {{
     color: {tokens.get("BTN_SECONDARY_TEXT", "#6a8ca8")};
     background: {tokens.get("BTN_SECONDARY_BG", "transparent")};
     border: 1px solid {tokens.get("BTN_SECONDARY_BORDER", "#192a42")};
-    border-radius: 5px;
+    border-radius: 6px;
     padding: 6px 10px;
     min-height: 32px;
     font-weight: 600;
@@ -462,7 +501,39 @@ QTableView {{
     color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
     selection-background-color: {tokens.get("BG_SELECTED", "rgba(64,128,224,0.15)")};
     selection-color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
-    border-radius: 10px;
+    border-radius: 8px;
+}}
+
+QGroupBox {{
+    border: 1px solid {tokens.get("BORDER_PRIMARY", "#192a42")};
+    border-radius: 6px;
+    margin-top: 10px;
+    padding: 10px 10px 8px 10px;
+}}
+
+QGroupBox::title {{
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 8px;
+    padding: 0 4px;
+    color: {tokens.get("TEXT_SECONDARY", "#6a8ca8")};
+}}
+
+QMenu {{
+    background: {tokens.get("BG_ELEVATED", "#182436")};
+    color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
+    border: 1px solid {tokens.get("BORDER_SECONDARY", "#203352")};
+    border-radius: 6px;
+    padding: 6px;
+}}
+
+QMenu::item {{
+    padding: 6px 10px;
+    border-radius: 4px;
+}}
+
+QMenu::item:selected {{
+    background: {tokens.get("ACCENT_10", "rgba(64,128,224,0.10)")};
 }}
 
 QHeaderView::section {{
@@ -480,17 +551,37 @@ QScrollBar:vertical {{
     margin: 2px;
 }}
 
+QScrollBar:horizontal {{
+    background: {tokens.get("BG_SECONDARY", "#101722")};
+    height: 12px;
+    margin: 2px;
+}}
+
 QScrollBar::handle:vertical {{
     background: {tokens.get("BORDER_SECONDARY", "#203352")};
     border-radius: 6px;
     min-height: 30px;
 }}
 
+QScrollBar::handle:horizontal {{
+    background: {tokens.get("BORDER_SECONDARY", "#203352")};
+    border-radius: 6px;
+    min-width: 30px;
+}}
+
 QScrollBar::handle:vertical:hover {{
+    background: {tokens.get("BORDER_STRONG", "#2a4068")};
+}}
+
+QScrollBar::handle:horizontal:hover {{
     background: {tokens.get("BORDER_STRONG", "#2a4068")};
 }}
 
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
     height: 0px;
+}}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
+    width: 0px;
 }}
 """
