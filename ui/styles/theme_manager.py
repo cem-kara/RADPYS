@@ -120,7 +120,7 @@ QLineEdit, QComboBox, QDateEdit, QSpinBox, QDoubleSpinBox, QTextEdit, QPlainText
     background: {tokens.get("INPUT_BG", "#0f1724")};
     color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
     border: 1px solid {tokens.get("INPUT_BORDER", "#192a42")};
-    border-radius: 9px;
+    border-radius: 3px;
     padding: 6px 10px;
     selection-background-color: {tokens.get("ACCENT", "#4080e0")};
     selection-color: #ffffff;
@@ -396,7 +396,7 @@ QPushButton {{
     color: {tokens.get("BTN_SECONDARY_TEXT", "#6a8ca8")};
     background: {tokens.get("BTN_SECONDARY_BG", "transparent")};
     border: 1px solid {tokens.get("BTN_SECONDARY_BORDER", "#192a42")};
-    border-radius: 9px;
+    border-radius: 5px;
     padding: 6px 10px;
     min-height: 32px;
     font-weight: 600;
