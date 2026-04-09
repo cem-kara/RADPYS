@@ -99,8 +99,9 @@ T = _ThemeProxy()
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class _Topbar(QFrame):
-    def __init__(self, parent=None):
+    def __init__(self, oturum: dict | None = None, parent=None):
         super().__init__(parent)
+        self._oturum = oturum
         self.setFixedHeight(T.topbar_h)
         self.setObjectName("Topbar")
         self.setStyleSheet(
@@ -177,7 +178,8 @@ class _Topbar(QFrame):
         lay.addWidget(self._vsep())
 
         # ---- Kullanıcı avatarı --------------------------------------------------------------------------
-        av = QLabel("AB")
+        from app.rbac import kullanici_avatar
+        av = QLabel(kullanici_avatar(self._oturum))
         av.setFixedSize(28, 28)
         av.setAlignment(Qt.AlignmentFlag.AlignCenter)
         f2 = QFont(); f2.setPointSize(9); f2.setBold(True)
@@ -486,7 +488,7 @@ class AppWindow(QMainWindow):
         kok.setContentsMargins(0, 0, 0, 0)
         kok.setSpacing(0)
 
-        kok.addWidget(_Topbar(root))
+        kok.addWidget(_Topbar(oturum=self._oturum, parent=root))
 
         orta = QWidget()
         orta.setStyleSheet("background:transparent;")

@@ -65,9 +65,11 @@ python -m pytest -v
 
 ## Dokumanlar
 
-- docs/RADPYS_ISKELET_GOREVLERI.md: cekirdek iskelet dosyalarinin gorevleri
-- docs/RADPYS_ISKELET_DEGISIKLIK_NOTLARI.md: faz bazli mimari degisiklik notlari
-- docs/RADPYS2_Tam_Tasarim.md: kapsamli tasarim dokumani
+Bu repository icinde ayri bir `docs/` klasoru bulunmamaktadir.
+Teknik yonergeler ve mimari beklentiler icin su dosyalara bakin:
+
+- .github/instructions/copilot-instructions.md
+- README.md (bu dosya)
 
 ## Katki ve Guvenlik
 

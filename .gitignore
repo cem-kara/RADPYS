@@ -1,5 +1,6 @@
 # Python cache and bytecode
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 
@@ -22,6 +23,8 @@ logs/
 
 # Local database and runtime data
 data/*.db
+data/**/*.db
+*.db
 *.sqlite
 *.sqlite3
 

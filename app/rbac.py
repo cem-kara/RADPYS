@@ -82,7 +82,14 @@ def yetki_gerektir(oturum: dict | None, eylem: str) -> None:
 
 
 def kullanici_kisa_ad(oturum: dict | None) -> str:
-    ad = str((oturum or {}).get("ad") or "Kullanici")
+    o = oturum or {}
+    ad = str(
+        o.get("ad")
+        or o.get("kullanici_ad")
+        or o.get("kullanici_adi")
+        or o.get("username")
+        or "Kullanici"
+    )
     return ad
 
 
