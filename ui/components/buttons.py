@@ -1,12 +1,12 @@
 ﻿# -*- coding: utf-8 -*-
-"""ui/components/buttons.py �?" Buton bile�Yenleri"""
+"""ui/components/buttons.py - Buton bileşenleri"""
 from __future__ import annotations
 from PySide6.QtWidgets import QPushButton
 from PySide6.QtCore import Qt, QSize
 
 
 def _ikon_ata(btn: QPushButton, ikon: str, renk: str, boyut: int) -> None:
-    """Butona qtawesome ikonu ata. İkon bo�Ysa hiçbir �Yey yapmaz."""
+    """Butona qtawesome ikonu ata. İkon boşsa hiçbir şey yapmaz."""
     if not ikon:
         return
     from ui.styles.icons import ic
@@ -49,7 +49,7 @@ class DangerButton(QPushButton):
 
 class SuccessButton(QPushButton):
     """
-    Ye�Yil onay/tamamlama butonu.
+    Yeşil onay/tamamlama butonu.
 
     Kullanım:
         btn = SuccessButton("Onayla", ikon="check")
@@ -82,7 +82,7 @@ class GhostButton(QPushButton):
 
 class IconButton(QPushButton):
     """
-    Sadece ikon �?" metin yok, kare boyut.
+    Sadece ikon - metin yok, kare boyut.
 
     Kullanım:
         btn = IconButton("duzenle", tooltip="Düzenle")

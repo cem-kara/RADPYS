@@ -1,5 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-"""ui/components/alerts.py �?" Uyarı bandı bile�Yeni"""
+"""ui/components/alerts.py — Uyarı bandı bileşeni"""
 from __future__ import annotations
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton
 from PySide6.QtCore import Qt
@@ -9,12 +9,12 @@ from ui.styles import T
 class AlertBar(QFrame):
     """
     Satır içi uyarı/bilgi/hata bandı.
-    Exception mesajlarını göstermek için kullanılır �?" dialog açmaz.
+    Exception mesajlarını göstermek için kullanılır = dialog açmaz.
 
     Kullanım:
         self._alert = AlertBar(self)
         layout.addWidget(self._alert)
-        self._alert.goster("İzin limiti a�Yıldı.", "warning")
+        self._alert.goster("İzin limiti aşıldı.", "warning")
         self._alert.temizle()
 
     Türler: "danger" | "warning" | "success" | "info"
@@ -30,8 +30,9 @@ class AlertBar(QFrame):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setObjectName("AlertBar")
         self.setVisible(False)
-        self.setFrameShape(QFrame.Shape.StyledPanel)
+        self.setFrameShape(QFrame.Shape.NoFrame)
 
         lay = QHBoxLayout(self)
         lay.setContentsMargins(12, 8, 8, 8)
@@ -67,9 +68,11 @@ class AlertBar(QFrame):
         self._ikon.setFixedSize(16, 16)
         self._mesaj.setText(mesaj)
         self.setStyleSheet(
+            f"QFrame#AlertBar{{"
             f"background-color:{arka};"
             f"border:1px solid {renk}60;"
             f"border-radius:6px;"
+            f"}}"
         )
         self._ikon.setStyleSheet(f"color:{renk}; font-size:14px;")
         self._mesaj.setStyleSheet(f"color:{renk}; background:transparent;")
@@ -86,7 +89,7 @@ class AlertBar(QFrame):
     @classmethod
     def hata_yakala(cls, parent, fn, alert_widget: "AlertBar"):
         """
-        Try/except kısayolu �?" exception'ı alert'e yazar.
+        Try/except kısayolu = exception'ı alert'e yazar.
 
         Kullanım:
             AlertBar.hata_yakala(self, lambda: svc.kaydet(veri), self._alert)
