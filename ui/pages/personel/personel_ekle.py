@@ -2,10 +2,15 @@
 """Personel ekleme / duzenleme formu."""
 from __future__ import annotations
 
+import shutil
+from pathlib import Path
+
 from PySide6.QtCore import QDate, Qt, Signal
+from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QComboBox,
     QDateEdit,
+    QFileDialog,
     QFrame,
     QGridLayout,
     QHBoxLayout,
@@ -17,6 +22,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.config import BELGE_DIR
 from app.exceptions import KayitBulunamadi
 from app.logger import exc_logla
 from app.services.personel_onboarding_service import PersonelOnboardingService
@@ -48,12 +54,14 @@ class PersonelEklePage(QWidget):
         self._on_saved = on_saved
         self._is_edit = bool(edit_data)
         self._personel_id = str((edit_data or {}).get("id") or "")
+        self._foto_yolu: str = ""
+        self._foto_degisti: bool = False
 
         self._build()
         self._load_lookups()
         if self._is_edit:
             self._fill_form(edit_data or {})
-            self._docs_tab.set_entity("personel", self._personel_id)
+            self._docs_tab.set_entity("personel", self._personel_id, self.tc.text().strip())
 
     def _build(self) -> None:
         root = QVBoxLayout(self)
@@ -97,6 +105,7 @@ class PersonelEklePage(QWidget):
         left.setStyleSheet(
             f"QFrame{{background:{T.bg1};border:1px solid {T.border};border-radius:{T.radius}px;}}"
         )
+        self._kimlik_frame = left
         left_lay = QVBoxLayout(left)
         left_lay.setContentsMargins(12, 12, 12, 12)
         left_lay.setSpacing(8)
@@ -116,15 +125,14 @@ class PersonelEklePage(QWidget):
         foto_lay = QVBoxLayout(foto_box)
         foto_lay.setContentsMargins(8, 8, 8, 8)
         foto_lay.addStretch()
-        foto_lbl = QLabel("Fotograf")
-        foto_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        foto_lbl.setStyleSheet(f"color:{T.text3};font-size:12px;")
-        foto_lay.addWidget(foto_lbl)
+        self._foto_lbl = QLabel("Fotograf")
+        self._foto_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._foto_lbl.setMinimumHeight(140)
+        self._foto_lbl.setStyleSheet(f"color:{T.text3};font-size:12px;")
+        foto_lay.addWidget(self._foto_lbl)
         foto_lay.addStretch()
         self.btn_fotograf = GhostButton("Fotograf Sec", ikon="upload")
-        self.btn_fotograf.clicked.connect(
-            lambda: self._alert.goster("Fotograf yukleme akisinin UI entegrasyonu hazir.", "info")
-        )
+        self.btn_fotograf.clicked.connect(self._on_fotograf_sec)
         foto_lay.addWidget(self.btn_fotograf)
         left_lay.addWidget(foto_box)
 
@@ -214,7 +222,9 @@ class PersonelEklePage(QWidget):
         iletisim.setStyleSheet(
             f"QFrame{{background:{T.bg1};border:1px solid {T.border};border-radius:{T.radius}px;}}"
         )
+        self._frame_iletisim = iletisim
         iletisim_lay = QGridLayout(iletisim)
+        self._lay_iletisim = iletisim_lay
         iletisim_lay.setContentsMargins(12, 10, 12, 12)
         iletisim_lay.setHorizontalSpacing(10)
         iletisim_lay.setVerticalSpacing(6)
@@ -230,7 +240,9 @@ class PersonelEklePage(QWidget):
         kurumsal.setStyleSheet(
             f"QFrame{{background:{T.bg1};border:1px solid {T.border};border-radius:{T.radius}px;}}"
         )
+        self._frame_kurumsal = kurumsal
         kurumsal_lay = QGridLayout(kurumsal)
+        self._lay_kurumsal = kurumsal_lay
         kurumsal_lay.setContentsMargins(12, 10, 12, 12)
         kurumsal_lay.setHorizontalSpacing(10)
         kurumsal_lay.setVerticalSpacing(6)
@@ -252,7 +264,9 @@ class PersonelEklePage(QWidget):
         egitim.setStyleSheet(
             f"QFrame{{background:{T.bg1};border:1px solid {T.border};border-radius:{T.radius}px;}}"
         )
+        self._frame_egitim = egitim
         egitim_lay = QGridLayout(egitim)
+        self._lay_egitim = egitim_lay
         egitim_lay.setContentsMargins(12, 10, 12, 12)
         egitim_lay.setHorizontalSpacing(8)
         egitim_lay.setVerticalSpacing(8)
@@ -309,6 +323,7 @@ class PersonelEklePage(QWidget):
             db=self._db,
             entity_turu="personel",
             entity_id=self._personel_id,
+            klasor_adi=self.tc.text().strip() if self._is_edit else "",
             parent=tab,
         )
         lay.addWidget(self._docs_tab)
@@ -392,6 +407,43 @@ class PersonelEklePage(QWidget):
         self.fakulte_2.setText(str(row.get("fakulte_2") or ""))
         self._set_date(self.mezuniyet_2, row.get("mezuniyet_2"))
         self.diploma_no_2.setText(str(row.get("diploma_no_2") or ""))
+
+        foto_yolu = str(row.get("fotograf") or "").strip()
+        if foto_yolu:
+            self._foto_yolu = foto_yolu
+            self._foto_goster(foto_yolu)
+
+    def _on_fotograf_sec(self) -> None:
+        """Dosya diyalogu acar, secilen resmi onizleme olarak gosterir."""
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Fotograf Sec",
+            "",
+            "Resim Dosyalari (*.jpg *.jpeg *.png *.bmp);;Tum Dosyalar (*)",
+        )
+        if not path:
+            return
+        self._foto_yolu = path
+        self._foto_degisti = True
+        self._foto_goster(path)
+
+    def _foto_goster(self, yol: str) -> None:
+        """Verilen dosya yolundaki resmi foto kutusuna yukler."""
+        if not yol or not Path(yol).is_file():
+            return
+        pix = QPixmap(yol)
+        if pix.isNull():
+            self._alert.goster("Resim okunamadi.", "warning")
+            return
+        w = self._foto_lbl.width() or 220
+        h = self._foto_lbl.minimumHeight() or 140
+        scaled = pix.scaled(
+            w, h,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        self._foto_lbl.setPixmap(scaled)
+        self._foto_lbl.setText("")
 
     @staticmethod
     def _set_date(widget: QDateEdit, value) -> None:
@@ -484,6 +536,30 @@ class PersonelEklePage(QWidget):
             self.btn_save.setEnabled(True)
             self._personel_id = str(result.get("personel_id") or "")
 
+            # ── Fotograf kopyalama ────────────────────────────────
+            if self._foto_degisti and self._foto_yolu and self._personel_id:
+                try:
+                    src = Path(self._foto_yolu)
+                    if src.is_file():
+                        tc = self.tc.text().strip()
+                        klasor = BELGE_DIR / "personel" / (tc or self._personel_id)
+                        klasor.mkdir(parents=True, exist_ok=True)
+                        tarih = bugun()
+                        dosya_kimlik = tc or self._personel_id
+                        dest = klasor / f"{dosya_kimlik}_fotograf_{tarih}{src.suffix.lower()}"
+                        i = 1
+                        while dest.exists():
+                            dest = klasor / f"{dosya_kimlik}_fotograf_{tarih}_{i}{src.suffix.lower()}"
+                            i += 1
+                        shutil.copy2(src, dest)
+                        self._svc.guncelle(self._personel_id, {"fotograf": str(dest)})
+                        self._foto_yolu = str(dest)
+                        self._foto_degisti = False
+                except Exception as exc:
+                    exc_logla("PersonelEklePage._done.foto", exc)
+                    self._alert.goster("Fotograf kaydedilemedi.", "warning")
+            # ─────────────────────────────────────────────────────
+
             if self._on_saved:
                 self._on_saved()
 
@@ -492,7 +568,7 @@ class PersonelEklePage(QWidget):
                 self.form_closed.emit()
                 return
 
-            self._docs_tab.set_entity("personel", self._personel_id)
+            self._docs_tab.set_entity("personel", self._personel_id, self.tc.text().strip())
             self._tabs.setTabEnabled(1, True)
             self._tabs.setCurrentIndex(1)
             self.tc.setEnabled(False)

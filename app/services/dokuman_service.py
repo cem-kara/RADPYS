@@ -35,15 +35,20 @@ class DokumanService:
         entity_id: str,
         tur: str,
         aciklama: str = "",
+        klasor_adi: str = "",
     ) -> str:
         src = Path(file_path)
         if not src.exists() or not src.is_file():
             raise KayitBulunamadi(f"Dosya bulunamadi: {file_path}")
 
-        hedef_klasor = BELGE_DIR / sanitize_filename(entity_turu) / sanitize_filename(entity_id)
+        klasor_kimlik = sanitize_filename(klasor_adi) if klasor_adi.strip() else sanitize_filename(entity_id)
+        hedef_klasor = BELGE_DIR / sanitize_filename(entity_turu) / klasor_kimlik
         hedef_klasor.mkdir(parents=True, exist_ok=True)
 
-        temiz_isim = sanitize_filename(src.stem)
+        dosya_tarihi = to_db_date(bugun()) or bugun()
+        dosya_kimlik = klasor_kimlik or sanitize_filename(entity_id)
+        dosya_tur = sanitize_filename(tur)
+        temiz_isim = sanitize_filename(f"{dosya_kimlik}_{dosya_tur}_{dosya_tarihi}")
         hedef = hedef_klasor / f"{temiz_isim}{src.suffix.lower()}"
 
         i = 1
@@ -62,7 +67,7 @@ class DokumanService:
                 "lokal_yol": str(hedef),
                 "drive_link": "",
                 "aciklama": aciklama,
-                "yuklendi": to_db_date(bugun()) or bugun(),
+                "yuklendi": dosya_tarihi,
             }
         )
 

@@ -103,11 +103,11 @@ class LoginDialog(QDialog):
         btn_lay = QHBoxLayout()
         btn_lay.setSpacing(8)
 
-        self._btn_cikis = GhostButton("Iptal")
+        self._btn_cikis = GhostButton("İptal")
         self._btn_cikis.setMinimumHeight(38)
         self._btn_cikis.clicked.connect(self.reject)
 
-        self._btn_giris = PrimaryButton("Giris Yap")
+        self._btn_giris = PrimaryButton("Giriş Yap")
         self._btn_giris.setMinimumHeight(38)
         self._btn_giris.clicked.connect(self._giris)
 

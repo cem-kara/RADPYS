@@ -44,6 +44,7 @@ from app.text_utils import turkish_lower, turkish_title_case
 from ui.components.alerts import AlertBar
 from ui.components.async_runner import AsyncRunner
 from ui.components.buttons import GhostButton, PrimaryButton
+from ui.pages.personel.personel_detay import PersonelDetayPage
 from ui.pages.personel.personel_ekle import PersonelEklePage
 from ui.styles import T
 from ui.styles.icons import ic
@@ -730,18 +731,27 @@ class PersonelListesi(QWidget):
     def _open_mdi_form(self, title: str, edit_data: dict | None) -> None:
         key_suffix = "ekle" if edit_data is None else str((edit_data or {}).get("id") or "duzenle")
         mdi_key = f"personel_form_{key_suffix}"
+        is_edit = edit_data is not None
         app_win = self.window()
         if app_win is not None and hasattr(app_win, "open_mdi_child"):
             form_host = QWidget()
             lay = QVBoxLayout(form_host)
             lay.setContentsMargins(8, 8, 8, 8)
             lay.setSpacing(6)
-            form = PersonelEklePage(
-                db=self._db,
-                edit_data=edit_data,
-                on_saved=self.load_data,
-                parent=form_host,
-            )
+            if is_edit:
+                form = PersonelDetayPage(
+                    db=self._db,
+                    edit_data=edit_data or {},
+                    on_saved=self.load_data,
+                    parent=form_host,
+                )
+            else:
+                form = PersonelEklePage(
+                    db=self._db,
+                    edit_data=None,
+                    on_saved=self.load_data,
+                    parent=form_host,
+                )
             form.form_closed.connect(lambda: self._close_mdi_child(mdi_key))
             lay.addWidget(form)
             app_win.open_mdi_child(mdi_key, form_host, title)
@@ -757,12 +767,20 @@ class PersonelListesi(QWidget):
         lay.setContentsMargins(8, 8, 8, 8)
         lay.setSpacing(6)
 
-        form = PersonelEklePage(
-            db=self._db,
-            edit_data=edit_data,
-            on_saved=self.load_data,
-            parent=dlg,
-        )
+        if is_edit:
+            form = PersonelDetayPage(
+                db=self._db,
+                edit_data=edit_data or {},
+                on_saved=self.load_data,
+                parent=dlg,
+            )
+        else:
+            form = PersonelEklePage(
+                db=self._db,
+                edit_data=None,
+                on_saved=self.load_data,
+                parent=dlg,
+            )
         form.form_closed.connect(dlg.close)
         lay.addWidget(form)
 

@@ -436,8 +436,7 @@ QPushButton {{
     background: {tokens.get("BTN_SECONDARY_BG", "transparent")};
     border: 1px solid {tokens.get("BTN_SECONDARY_BORDER", "#192a42")};
     border-radius: 6px;
-    padding: 6px 10px;
-    min-height: 32px;
+    padding: 4px 8px;
     font-weight: 600;
 }}
 
@@ -447,7 +446,7 @@ QPushButton:hover {{
 }}
 
 QPushButton:pressed {{
-    padding-top: 7px;
+    padding-top: 5px;
 }}
 
 QPushButton[primary='true'] {{
@@ -491,6 +490,11 @@ QPushButton[ghost='true']:hover {{
     background: {tokens.get("BG_HOVER", "rgba(64,128,224,0.08)")};
     color: {tokens.get("TEXT_PRIMARY", "#d6e4f0")};
     border-color: {tokens.get("BORDER_STRONG", "#2a4068")};
+}}
+
+QPushButton[iconOnly='true'] {{
+    min-height: 20px;
+    padding: 0px;
 }}
 
 QTableView {{

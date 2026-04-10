@@ -25,11 +25,12 @@ from ui.styles import T
 class BelgeSekmesi(QWidget):
     """Belge yukleme/listeleme/silme akisinin ortak UI parcasi."""
 
-    def __init__(self, db, entity_turu: str, entity_id: str = "", parent=None):
+    def __init__(self, db, entity_turu: str, entity_id: str = "", klasor_adi: str = "", parent=None):
         super().__init__(parent)
         self._svc = DokumanService(db)
         self._entity_turu = entity_turu
         self._entity_id = entity_id
+        self._klasor_adi = klasor_adi
         self._dosya_yolu = ""
         self._build()
         self._load_turler()
@@ -105,9 +106,10 @@ class BelgeSekmesi(QWidget):
         except Exception as exc:
             exc_logla("BelgeSekmesi._load_turler", exc)
 
-    def set_entity(self, entity_turu: str, entity_id: str) -> None:
+    def set_entity(self, entity_turu: str, entity_id: str, klasor_adi: str = "") -> None:
         self._entity_turu = entity_turu
         self._entity_id = entity_id
+        self._klasor_adi = klasor_adi
         self._set_entity_ready(bool(entity_id))
         self.yenile()
 
@@ -146,6 +148,7 @@ class BelgeSekmesi(QWidget):
                 entity_id=self._entity_id,
                 tur=tur,
                 aciklama=self._aciklama.text().strip(),
+                klasor_adi=self._klasor_adi,
             )
             self._dosya_yolu = ""
             self._lbl_dosya.setText("Dosya secilmedi")

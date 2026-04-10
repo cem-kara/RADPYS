@@ -90,10 +90,11 @@ class IconButton(QPushButton):
     """
 
     def __init__(self, ikon: str = "", tooltip: str = "",
-                 size: int = 32, renk: str = "", parent=None):
+                 size: int = 32, renk: str = "", compact: bool = False, parent=None):
         super().__init__(parent)
         self.setFixedSize(size, size)
         self.setProperty("ghost", "true")
+        self.setProperty("iconOnly", "true" if compact else "false")
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         if tooltip:
             self.setToolTip(tooltip)

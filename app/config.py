@@ -46,7 +46,7 @@ NOBET_GONULLU_KATSAYI   = 1.2   # Gönüllü personel hedef çarpanı
 NOBET_TOLERANS_SAAT     = 7.0   # ±1 slot toleransı
 
 # ── FHSZ ─────────────────────────────────────────────────────────
-FHSZ_DONEM_SAYISI = 6   # Yılda 6 dönem (2'şer aylık)
+FHSZ_DONEM_SAYISI = 12   # Yılda 12 dönem (1'er aylık)
 
 # ── Lookup Kategorileri ───────────────────────────────────────────
 class LookupKategori:

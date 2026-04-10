@@ -10,17 +10,21 @@
       "label": "Ana Menü",
       "sira": 0
     },
+    "personel": {
+      "label": "Personel",
+      "sira": 1
+    },
     "cihaz": {
       "label": "Cihaz",
-      "sira": 1
+      "sira": 2
     },
     "nobet": {
       "label": "Nöbet",
-      "sira": 2
+      "sira": 3
     },
     "sistem": {
       "label": "Sistem",
-      "sira": 3
+      "sira": 4
     }
   },
   "moduller": [
@@ -36,7 +40,7 @@
       "id": "personel",
       "label": "Personel Listesi",
       "icon": "personel",
-      "bolum": "ana_menu",
+      "bolum": "personel",
       "sira": 10,
       "page_cls": "ui.pages.personel.personel_listesi.PersonelListesi",
       "badge_id": "personel_aktif",
@@ -47,7 +51,7 @@
       "id": "izin",
       "label": "İzin Takip",
       "icon": "izin",
-      "bolum": "ana_menu",
+      "bolum": "personel",
       "sira": 20,
       "page_cls": "ui.pages.placeholder.PlaceholderPage",
       "badge_id": "izin_aktif",
@@ -57,7 +61,7 @@
       "id": "saglik",
       "label": "Sağlık Takip",
       "icon": "saglik",
-      "bolum": "ana_menu",
+      "bolum": "personel",
       "sira": 30,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
     },
@@ -65,10 +69,11 @@
       "id": "dozimetre",
       "label": "Dozimetre",
       "icon": "dozimetre",
-      "bolum": "ana_menu",
+      "bolum": "personel",
       "sira": 40,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
     },
+    
     {
       "id": "cihaz",
       "label": "Cihaz Listesi",
