@@ -35,23 +35,29 @@ class _FilterChip(QPushButton):
         super().__init__(etiket, parent)
         self.setCheckable(True)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._renk = renk
-        self._base = (
-            f"QPushButton{{background:transparent; color:{T.text2}; "
-            f"border:1px solid {T.border2}; border-radius:6px; "
-            "padding:4px 10px; font-size:12px;}}"
-            f"QPushButton:hover{{border-color:{renk}; color:{T.text};}}"
+        self.setStyleSheet(
+            f"""
+            QPushButton {{
+                background-color: transparent;
+                color: {T.text2};
+                border: 1px solid {T.border2};
+                border-radius: 6px;
+                padding: 4px 10px;
+                font-size: 12px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                border-color: {renk};
+                color: {T.text};
+            }}
+            QPushButton:checked {{
+                background-color: {T.overlay_low};
+                color: {renk};
+                border: 1px solid {renk};
+                font-weight: 700;
+            }}
+            """
         )
-        self._checked = (
-            f"QPushButton{{background:{T.overlay_low}; color:{renk}; "
-            f"border:1px solid {renk}; border-radius:6px; "
-            "padding:4px 10px; font-size:12px; font-weight:600;}}"
-        )
-        self._refresh_style()
-        self.toggled.connect(lambda _: self._refresh_style())
-
-    def _refresh_style(self) -> None:
-        self.setStyleSheet(self._checked if self.isChecked() else self._base)
 
 
 class _AvatarCell(QWidget):
@@ -276,11 +282,30 @@ class PersonelListesi(QWidget):
         self._tablo.setColumnWidth(6, 320)
 
         self._tablo.setStyleSheet(
-            f"QTableWidget{{background:{T.bg0}; color:{T.text}; border:none;}}"
-            f"QHeaderView::section{{background:{T.bg2}; color:{T.text2}; "
-            "padding:8px; border:none; font-size:12px;}}"
-            f"QTableWidget::item:selected{{background:{T.overlay_low}; color:{T.text};}}"
-            f"QTableWidget::item{{padding:6px;}}"
+            f"""
+            QTableWidget {{
+                background-color: {T.bg0};
+                color: {T.text};
+                border: 0;
+                gridline-color: transparent;
+                selection-background-color: {T.overlay_low};
+                selection-color: {T.text};
+            }}
+            QTableCornerButton::section {{
+                background-color: {T.bg2};
+                border: 0;
+            }}
+            QHeaderView::section {{
+                background-color: {T.bg2};
+                color: {T.text2};
+                border: 0;
+                padding: 8px;
+                font-size: 12px;
+            }}
+            QTableWidget::item {{
+                border: 0;
+            }}
+            """
         )
         kok.addWidget(self._tablo, 1)
 
