@@ -7,8 +7,9 @@ from __future__ import annotations
 from datetime import datetime
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QStackedWidget, QFrame,
+    QLabel, QPushButton, QFrame,
     QScrollArea,
+    QStackedWidget,
 )
 from PySide6.QtCore import Qt, Signal, QTimer, QSize
 from PySide6.QtGui import QFont
@@ -170,9 +171,9 @@ class _Topbar(QFrame):
         nb.setCursor(Qt.CursorShape.PointingHandCursor)
         nb.setToolTip("Bildirimler")
         nb.setStyleSheet(
-            f"QPushButton{{background:{T.bg2};"
-            f"border:1px solid {T.border2};border-radius:8px;}}"
-            f"QPushButton:hover{{background:{T.bg3};border-color:{T.accent2};}}"
+            f"background:{T.bg2};"
+            f"border:1px solid {T.border2};"
+            "border-radius:8px;"
         )
         lay.addWidget(nb)
         lay.addWidget(self._vsep())
@@ -236,8 +237,10 @@ class _SbBtn(QFrame):
         self._ikon_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._ikon_btn.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         self._ikon_btn.setStyleSheet(
-            f"QPushButton{{background:{T.overlay_low};border:none;"
-            f"border-radius:10px;padding:0;}}"
+            f"background:{T.overlay_low};"
+            "border:none;"
+            "border-radius:10px;"
+            "padding:0px;"
         )
 
         self._txt_lbl = QLabel(mod.label)
@@ -288,7 +291,10 @@ class _SbBtn(QFrame):
         # İkonu yeni renkle güncelle
         self._ikon_btn.setIcon(ic(self._mod_icon, size=22, color=renk))
         self._ikon_btn.setStyleSheet(
-            f"QPushButton{{background:{ikon_bg};border:none;border-radius:10px;padding:0;}}"
+            f"background:{ikon_bg};"
+            "border:none;"
+            "border-radius:10px;"
+            "padding:0px;"
         )
         self._txt_lbl.setStyleSheet(
             f"font-size:12.5px;font-weight:600;color:{renk};background:transparent;"
@@ -473,6 +479,7 @@ class AppWindow(QMainWindow):
         self._db    = db
         self._oturum = oturum
         self._pages: dict[str, QWidget] = {}
+        self._active_mod_id: str = ""
         self.setWindowTitle("RADPYS 2.0")
         self.resize(1440, 900)
         self.setMinimumSize(1024, 700)
@@ -507,6 +514,7 @@ class AppWindow(QMainWindow):
         kok.addWidget(orta, 1)
 
     def _goto(self, mod_id: str):
+        self._active_mod_id = mod_id
         if mod_id not in self._pages:
             try:
                 page = reg.sayfa_olustur(mod_id, self._db, oturum=self._oturum)
@@ -516,5 +524,33 @@ class AppWindow(QMainWindow):
             self._pages[mod_id] = page
             self._stack.addWidget(page)
         self._stack.setCurrentWidget(self._pages[mod_id])
+
+    def open_mdi_child(self, key: str, widget: QWidget, title: str):
+        eski = self._pages.get(key)
+        if eski is not None and eski is not widget:
+            self._stack.removeWidget(eski)
+            eski.deleteLater()
+
+        self._pages[key] = widget
+        if self._stack.indexOf(widget) < 0:
+            self._stack.addWidget(widget)
+        self._stack.setCurrentWidget(widget)
+        self.setWindowTitle(f"RADPYS 2.0 - {title}")
+        return widget
+
+    def close_mdi_child(self, key: str) -> None:
+        sayfa = self._pages.pop(key, None)
+        if sayfa is None:
+            return
+
+        self._stack.removeWidget(sayfa)
+        sayfa.deleteLater()
+
+        if self._active_mod_id and self._active_mod_id in self._pages:
+            self._stack.setCurrentWidget(self._pages[self._active_mod_id])
+            return
+
+        if self._pages:
+            self._stack.setCurrentWidget(next(iter(self._pages.values())))
 
 

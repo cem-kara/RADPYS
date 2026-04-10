@@ -58,7 +58,7 @@ class LookupKategori:
     NOBET_HEDEF    = "nobet_hedef_tipi"
 
 # ── RBAC ──────────────────────────────────────────────────────────
-RBAC_ROLLER: tuple[str, ...] = ("admin", "yonetici", "kullanici")
+RBAC_ROLLER: tuple[str, ...] = ("admin", "yonetici", "kullanici", "operator")
 
 RBAC_ROL_YETKILERI: dict[str, set] = {
     "admin": {
@@ -77,6 +77,7 @@ RBAC_ROL_YETKILERI: dict[str, set] = {
         "kullanici.guncelle",
     },
     "kullanici": set(),
+    "operator": set(),
 }
 
 # ── Tarih Formatı ─────────────────────────────────────────────────

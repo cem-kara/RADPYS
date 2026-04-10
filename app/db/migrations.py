@@ -372,6 +372,7 @@ _VARSAYILAN_MODUL_IZINLERI: dict[str, set[str] | None] = {
         "dokumanlar", "rapor", "kullanici_giris",
     },
     "kullanici": {"dashboard", "personel", "dokumanlar"},
+    "operator": {"dashboard", "personel", "dokumanlar"},
 }
 
 

@@ -51,6 +51,11 @@ _ROLE_MODULES = {
         "personel",
         "dokumanlar",
     },
+    "operator": {
+        "dashboard",
+        "personel",
+        "dokumanlar",
+    },
 }
 
 

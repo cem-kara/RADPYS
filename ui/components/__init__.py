@@ -18,6 +18,7 @@ from ui.components.forms import (
     SearchBar,
 )
 from ui.components.async_runner import AsyncRunner, AsyncButton
+from ui.components.belge_sekmesi import BelgeSekmesi
 
 __all__ = [
     # Butonlar
@@ -38,5 +39,7 @@ __all__ = [
     "SearchBar",
     # Async
     "AsyncRunner", "AsyncButton",
+    # Belge
+    "BelgeSekmesi",
 ]
 
