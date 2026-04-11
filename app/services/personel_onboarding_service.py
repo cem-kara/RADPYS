@@ -18,7 +18,7 @@ class PersonelOnboardingService:
         self._db = db
         self._personel = PersonelService(db)
         self._auth_repo = AuthRepository(db)
-        self._izin = IzinService()
+        self._izin = IzinService(db)
 
     def kaydet_ve_hazirla(self, veri: dict) -> dict:
         with self._db.transaction():

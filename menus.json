@@ -53,7 +53,7 @@
       "icon": "izin",
       "bolum": "personel",
       "sira": 20,
-      "page_cls": "ui.pages.placeholder.PlaceholderPage",
+      "page_cls": "ui.pages.izin.izin_listesi.IzinListesiPage",
       "badge_id": "izin_aktif",
       "badge_renk": "#e8a020"
     },
@@ -73,7 +73,6 @@
       "sira": 40,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
     },
-    
     {
       "id": "cihaz",
       "label": "Cihaz Listesi",

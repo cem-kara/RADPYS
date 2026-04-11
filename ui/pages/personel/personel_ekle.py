@@ -27,7 +27,13 @@ from app.exceptions import KayitBulunamadi
 from app.logger import exc_logla
 from app.services.personel_onboarding_service import PersonelOnboardingService
 from app.services.personel_service import PersonelService
-from app.text_utils import normalize_whitespace, turkish_title_case
+from app.text_utils import (
+    capitalize_first_letter,
+    format_phone_number,
+    normalize_whitespace,
+    turkish_lower,
+    turkish_title_case,
+)
 from app.validators import (
     bugun,
     format_tarih,
@@ -165,19 +171,25 @@ class PersonelEklePage(QWidget):
         self.e_posta = QLineEdit()
         self.e_posta.setPlaceholderText("ornek@mail.com")
 
-        self.okul_1 = QLineEdit()
-        self.fakulte_1 = QLineEdit()
+        self.okul_1 = QComboBox()
+        self.okul_1.setEditable(True)
+        self.fakulte_1 = QComboBox()
+        self.fakulte_1.setEditable(True)
         self.mezuniyet_1 = QDateEdit()
         self.mezuniyet_1.setCalendarPopup(True)
         self.mezuniyet_1.setDate(QDate.currentDate())
         self.diploma_no_1 = QLineEdit()
 
-        self.okul_2 = QLineEdit()
-        self.fakulte_2 = QLineEdit()
+        self.okul_2 = QComboBox()
+        self.okul_2.setEditable(True)
+        self.fakulte_2 = QComboBox()
+        self.fakulte_2.setEditable(True)
         self.mezuniyet_2 = QDateEdit()
         self.mezuniyet_2.setCalendarPopup(True)
         self.mezuniyet_2.setDate(QDate.currentDate())
         self.diploma_no_2 = QLineEdit()
+
+        self._install_text_utils_bindings()
 
         # Sol kimlik formu
         kimlik_lbl = QLabel("TC Kimlik No *")
@@ -233,6 +245,8 @@ class PersonelEklePage(QWidget):
         iletisim_lay.addWidget(self._field_label("E-posta"), 1, 1)
         iletisim_lay.addWidget(self.telefon, 2, 0)
         iletisim_lay.addWidget(self.e_posta, 2, 1)
+        iletisim_lay.setColumnStretch(0, 1)
+        iletisim_lay.setColumnStretch(1, 1)
         right.addWidget(iletisim)
 
         # Kurumsal bilgiler
@@ -257,6 +271,9 @@ class PersonelEklePage(QWidget):
         kurumsal_lay.addWidget(self._field_label("Kurum Sicil No"), 3, 1)
         kurumsal_lay.addWidget(self.memuriyet_baslama, 4, 0)
         kurumsal_lay.addWidget(self.sicil_no, 4, 1)
+        kurumsal_lay.setColumnStretch(0, 1)
+        kurumsal_lay.setColumnStretch(1, 1)
+        kurumsal_lay.setColumnStretch(2, 1)
         right.addWidget(kurumsal)
 
         # Egitim bilgileri
@@ -295,6 +312,10 @@ class PersonelEklePage(QWidget):
         egitim_lay.addWidget(self.fakulte_2, 6, 1)
         egitim_lay.addWidget(self.mezuniyet_2, 6, 2)
         egitim_lay.addWidget(self.diploma_no_2, 6, 3)
+        egitim_lay.setColumnStretch(0, 1)
+        egitim_lay.setColumnStretch(1, 1)
+        egitim_lay.setColumnStretch(2, 1)
+        egitim_lay.setColumnStretch(3, 1)
 
         right.addWidget(egitim)
 
@@ -375,9 +396,73 @@ class PersonelEklePage(QWidget):
             self.dogum_yeri.clear()
             self.dogum_yeri.addItem("")
             self.dogum_yeri.addItems(dogum_yerleri)
+
+            okullar = sorted({
+                v for r in rows
+                for v in (str(r.get("okul_1") or "").strip(), str(r.get("okul_2") or "").strip())
+                if v
+            })
+            for combo in (self.okul_1, self.okul_2):
+                combo.clear()
+                combo.addItem("")
+                combo.addItems(okullar)
+
+            fakulteler = sorted({
+                v for r in rows
+                for v in (str(r.get("fakulte_1") or "").strip(), str(r.get("fakulte_2") or "").strip())
+                if v
+            })
+            for combo in (self.fakulte_1, self.fakulte_2):
+                combo.clear()
+                combo.addItem("")
+                combo.addItems(fakulteler)
         except Exception as exc:
             exc_logla("PersonelEklePage._load_lookups", exc)
             self._alert.goster("Lookup verileri yuklenemedi.", "warning")
+
+    def _install_text_utils_bindings(self) -> None:
+        self._bind_line_edit(self.ad, mode="title")
+        self._bind_line_edit(self.soyad, mode="title")
+        self._bind_line_edit(self.sicil_no, mode="first_upper")
+        self._bind_line_edit(self.telefon, mode="phone")
+        self._bind_line_edit(self.e_posta, mode="email")
+        self._bind_line_edit(self.diploma_no_1, mode="first_upper")
+        self._bind_line_edit(self.diploma_no_2, mode="first_upper")
+
+        # Editable combo line edit'lerini de text_utils ile normalize et.
+        for _combo, _mode in (
+            (self.dogum_yeri, "title"),
+            (self.okul_1, "title"),
+            (self.okul_2, "title"),
+            (self.fakulte_1, "title"),
+            (self.fakulte_2, "title"),
+        ):
+            le = _combo.lineEdit()
+            if le is not None:
+                self._bind_line_edit(le, mode=_mode)
+
+    @staticmethod
+    def _bind_line_edit(widget: QLineEdit, mode: str) -> None:
+        if widget is None:
+            return
+        widget.editingFinished.connect(lambda w=widget, m=mode: PersonelEklePage._normalize_line_edit(w, m))
+
+    @staticmethod
+    def _normalize_line_edit(widget: QLineEdit, mode: str) -> None:
+        raw = widget.text()
+        normalized = normalize_whitespace(raw)
+
+        if mode == "title":
+            normalized = turkish_title_case(normalized)
+        elif mode == "first_upper":
+            normalized = capitalize_first_letter(normalized)
+        elif mode == "email":
+            normalized = turkish_lower(normalized)
+        elif mode == "phone":
+            normalized = format_phone_number(normalized)
+
+        if normalized != raw:
+            widget.setText(normalized)
 
     def _fill_form(self, row: dict) -> None:
         self._personel_id = str(row.get("id") or "").strip()
@@ -398,13 +483,13 @@ class PersonelEklePage(QWidget):
         self.telefon.setText(str(row.get("telefon") or ""))
         self.e_posta.setText(str(row.get("e_posta") or ""))
 
-        self.okul_1.setText(str(row.get("okul_1") or ""))
-        self.fakulte_1.setText(str(row.get("fakulte_1") or ""))
+        self.okul_1.setCurrentText(str(row.get("okul_1") or ""))
+        self.fakulte_1.setCurrentText(str(row.get("fakulte_1") or ""))
         self._set_date(self.mezuniyet_1, row.get("mezuniyet_1"))
         self.diploma_no_1.setText(str(row.get("diploma_no_1") or ""))
 
-        self.okul_2.setText(str(row.get("okul_2") or ""))
-        self.fakulte_2.setText(str(row.get("fakulte_2") or ""))
+        self.okul_2.setCurrentText(str(row.get("okul_2") or ""))
+        self.fakulte_2.setCurrentText(str(row.get("fakulte_2") or ""))
         self._set_date(self.mezuniyet_2, row.get("mezuniyet_2"))
         self.diploma_no_2.setText(str(row.get("diploma_no_2") or ""))
 
@@ -488,18 +573,18 @@ class PersonelEklePage(QWidget):
             "hizmet_sinifi": self.hizmet_sinifi.currentText().strip(),
             "kadro_unvani": self.kadro_unvani.currentText().strip(),
             "gorev_yeri_ad": self.gorev_yeri.currentText().strip(),
-            "sicil_no": normalize_whitespace(self.sicil_no.text()),
+            "sicil_no": capitalize_first_letter(normalize_whitespace(self.sicil_no.text())),
             "memuriyet_baslama": format_tarih(self.memuriyet_baslama.date().toPython(), ui=False) or bugun(),
-            "telefon": normalize_whitespace(self.telefon.text()),
-            "e_posta": normalize_whitespace(self.e_posta.text()),
-            "okul_1": turkish_title_case(normalize_whitespace(self.okul_1.text())),
-            "fakulte_1": turkish_title_case(normalize_whitespace(self.fakulte_1.text())),
+            "telefon": format_phone_number(normalize_whitespace(self.telefon.text())),
+            "e_posta": turkish_lower(normalize_whitespace(self.e_posta.text())),
+            "okul_1": turkish_title_case(normalize_whitespace(self.okul_1.currentText())),
+            "fakulte_1": turkish_title_case(normalize_whitespace(self.fakulte_1.currentText())),
             "mezuniyet_1": format_tarih(self.mezuniyet_1.date().toPython(), ui=False),
-            "diploma_no_1": normalize_whitespace(self.diploma_no_1.text()),
-            "okul_2": turkish_title_case(normalize_whitespace(self.okul_2.text())),
-            "fakulte_2": turkish_title_case(normalize_whitespace(self.fakulte_2.text())),
+            "diploma_no_1": capitalize_first_letter(normalize_whitespace(self.diploma_no_1.text())),
+            "okul_2": turkish_title_case(normalize_whitespace(self.okul_2.currentText())),
+            "fakulte_2": turkish_title_case(normalize_whitespace(self.fakulte_2.currentText())),
             "mezuniyet_2": format_tarih(self.mezuniyet_2.date().toPython(), ui=False),
-            "diploma_no_2": normalize_whitespace(self.diploma_no_2.text()),
+            "diploma_no_2": capitalize_first_letter(normalize_whitespace(self.diploma_no_2.text())),
         }
 
     def _on_save(self) -> None:

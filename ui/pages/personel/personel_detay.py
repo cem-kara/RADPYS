@@ -9,9 +9,16 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QComboBox, QDateEdit, QHBoxLayout, QLabel, QLineEdit, QWidget
 
-from app.text_utils import normalize_whitespace, turkish_title_case
+from app.text_utils import (
+    capitalize_first_letter,
+    format_phone_number,
+    normalize_whitespace,
+    turkish_lower,
+    turkish_title_case,
+)
 from app.validators import format_tarih, validate_email, validate_phone_number
 from ui.components import IconButton
+from ui.pages.personel.detail_tabs import build_detail_tab_registrations
 from ui.pages.personel.personel_ekle import PersonelEklePage
 from ui.styles import T
 from ui.styles.icons import ic
@@ -22,6 +29,7 @@ class PersonelDetayPage(PersonelEklePage):
 
     def __init__(self, db, edit_data: dict, on_saved=None, parent=None):
         super().__init__(db=db, edit_data=edit_data or {}, on_saved=on_saved, parent=parent)
+        self._detail_tabs: dict[str, dict] = {}
         self._section_states: dict[str, bool] = {
             "iletisim": False,
             "kurumsal": False,
@@ -32,8 +40,32 @@ class PersonelDetayPage(PersonelEklePage):
             "kurumsal": {},
             "egitim": {},
         }
+        self._install_detail_tabs(db)
         self._install_section_actions()
         self._apply_readonly_mode()
+
+    def _current_memuriyet_baslama_iso(self) -> str:
+        return format_tarih(self.memuriyet_baslama.date().toPython(), ui=False)
+
+    def _install_detail_tabs(self, db) -> None:
+        for reg in build_detail_tab_registrations():
+            widget = reg.factory(self, db)
+            self._tabs.addTab(widget, reg.label)
+            self._detail_tabs[reg.tab_id] = {
+                "widget": widget,
+                "refresh_on_sections": set(reg.refresh_on_sections),
+            }
+            if hasattr(widget, "yenile"):
+                widget.yenile()
+
+    def _refresh_detail_tabs(self, section_name: str | None = None) -> None:
+        for meta in self._detail_tabs.values():
+            refresh_on = meta.get("refresh_on_sections", set())
+            if section_name and refresh_on and section_name not in refresh_on:
+                continue
+            widget = meta.get("widget")
+            if hasattr(widget, "yenile"):
+                widget.yenile()
 
     def _install_section_actions(self) -> None:
         self._lbl_iletisim = QLabel()
@@ -145,27 +177,27 @@ class PersonelDetayPage(PersonelEklePage):
     def _section_payload(self, name: str) -> dict:
         if name == "iletisim":
             return {
-                "telefon": normalize_whitespace(self.telefon.text()),
-                "e_posta": normalize_whitespace(self.e_posta.text()),
+                "telefon": format_phone_number(normalize_whitespace(self.telefon.text())),
+                "e_posta": turkish_lower(normalize_whitespace(self.e_posta.text())),
             }
         if name == "kurumsal":
             return {
                 "hizmet_sinifi": self.hizmet_sinifi.currentText().strip(),
                 "kadro_unvani": self.kadro_unvani.currentText().strip(),
                 "gorev_yeri_ad": self.gorev_yeri.currentText().strip(),
-                "sicil_no": normalize_whitespace(self.sicil_no.text()),
+                "sicil_no": capitalize_first_letter(normalize_whitespace(self.sicil_no.text())),
                 "memuriyet_baslama": format_tarih(self.memuriyet_baslama.date().toPython(), ui=False),
             }
         if name == "egitim":
             return {
-                "okul_1": turkish_title_case(normalize_whitespace(self.okul_1.text())),
-                "fakulte_1": turkish_title_case(normalize_whitespace(self.fakulte_1.text())),
+                "okul_1": turkish_title_case(normalize_whitespace(self.okul_1.currentText())),
+                "fakulte_1": turkish_title_case(normalize_whitespace(self.fakulte_1.currentText())),
                 "mezuniyet_1": format_tarih(self.mezuniyet_1.date().toPython(), ui=False),
-                "diploma_no_1": normalize_whitespace(self.diploma_no_1.text()),
-                "okul_2": turkish_title_case(normalize_whitespace(self.okul_2.text())),
-                "fakulte_2": turkish_title_case(normalize_whitespace(self.fakulte_2.text())),
+                "diploma_no_1": capitalize_first_letter(normalize_whitespace(self.diploma_no_1.text())),
+                "okul_2": turkish_title_case(normalize_whitespace(self.okul_2.currentText())),
+                "fakulte_2": turkish_title_case(normalize_whitespace(self.fakulte_2.currentText())),
                 "mezuniyet_2": format_tarih(self.mezuniyet_2.date().toPython(), ui=False),
-                "diploma_no_2": normalize_whitespace(self.diploma_no_2.text()),
+                "diploma_no_2": capitalize_first_letter(normalize_whitespace(self.diploma_no_2.text())),
             }
         return {}
 
@@ -261,12 +293,12 @@ class PersonelDetayPage(PersonelEklePage):
             }
         if name == "egitim":
             return {
-                "okul_1": self.okul_1.text(),
-                "fakulte_1": self.fakulte_1.text(),
+                "okul_1": self.okul_1.currentText(),
+                "fakulte_1": self.fakulte_1.currentText(),
                 "mezuniyet_1": self.mezuniyet_1.date(),
                 "diploma_no_1": self.diploma_no_1.text(),
-                "okul_2": self.okul_2.text(),
-                "fakulte_2": self.fakulte_2.text(),
+                "okul_2": self.okul_2.currentText(),
+                "fakulte_2": self.fakulte_2.currentText(),
                 "mezuniyet_2": self.mezuniyet_2.date(),
                 "diploma_no_2": self.diploma_no_2.text(),
             }
@@ -291,14 +323,14 @@ class PersonelDetayPage(PersonelEklePage):
                 self.memuriyet_baslama.setDate(d)
             return
 
-        self.okul_1.setText(str(snap.get("okul_1") or ""))
-        self.fakulte_1.setText(str(snap.get("fakulte_1") or ""))
+        self.okul_1.setCurrentText(str(snap.get("okul_1") or ""))
+        self.fakulte_1.setCurrentText(str(snap.get("fakulte_1") or ""))
         d1 = snap.get("mezuniyet_1")
         if d1 is not None:
             self.mezuniyet_1.setDate(d1)
         self.diploma_no_1.setText(str(snap.get("diploma_no_1") or ""))
-        self.okul_2.setText(str(snap.get("okul_2") or ""))
-        self.fakulte_2.setText(str(snap.get("fakulte_2") or ""))
+        self.okul_2.setCurrentText(str(snap.get("okul_2") or ""))
+        self.fakulte_2.setCurrentText(str(snap.get("fakulte_2") or ""))
         d2 = snap.get("mezuniyet_2")
         if d2 is not None:
             self.mezuniyet_2.setDate(d2)
@@ -329,6 +361,7 @@ class PersonelDetayPage(PersonelEklePage):
         self._section_states[name] = False
         self._refresh_section_ui(name)
         self._alert.goster("Alan grubu guncellendi.", "success")
+        self._refresh_detail_tabs(section_name=name)
 
         if self._on_saved:
             self._on_saved()
