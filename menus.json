@@ -18,13 +18,17 @@
       "label": "Cihaz",
       "sira": 2
     },
+    "fiili_hizmet": {
+      "label": "Fiili Hizmet",
+      "sira": 3
+    },
     "nobet": {
       "label": "Nöbet",
-      "sira": 3
+      "sira": 4
     },
     "sistem": {
       "label": "Sistem",
-      "sira": 4
+      "sira": 5
     }
   },
   "moduller": [
@@ -117,11 +121,11 @@
     },
     {
       "id": "mesai",
-      "label": "Fazla Mesai",
+      "label": "Fiili Hizmet",
       "icon": "mesai",
-      "bolum": "nobet",
-      "sira": 20,
-      "page_cls": "ui.pages.placeholder.PlaceholderPage"
+      "bolum": "fiili_hizmet",
+      "sira": 10,
+      "page_cls": "ui.pages.personel.fiili_hizmet_merkez_page.FiiliHizmetMerkezPage"
     },
     {
       "id": "dokumanlar",

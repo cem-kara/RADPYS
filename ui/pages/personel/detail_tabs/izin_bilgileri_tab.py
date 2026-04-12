@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from app.config import YILLIK_MAX_DEVIR
 from app.services.izin_service import IzinService
+from app.text_utils import turkish_lower
 from app.validators import format_tarih
 from ui.components import AsyncRunner, DataTable
 from ui.styles import T
@@ -15,6 +16,18 @@ from ui.styles import T
 
 class PersonelIzinBilgileriTab(QWidget):
     """Personelin izin ozetini ve gecmis izin hareketlerini gosterir."""
+
+    @staticmethod
+    def _izin_turu_norm(tur: str) -> str:
+        text = turkish_lower(str(tur or "")).strip()
+        return (
+            text.replace("ü", "u")
+            .replace("ı", "i")
+            .replace("ş", "s")
+            .replace("ğ", "g")
+            .replace("ö", "o")
+            .replace("ç", "c")
+        )
 
     def __init__(
         self,
@@ -51,6 +64,7 @@ class PersonelIzinBilgileriTab(QWidget):
         self._lbl_kull_yillik = self._add_stat(self._card_yillik, "Kullanilan Yillik Izin")
         self._lbl_kalan = self._add_stat(self._card_yillik, "Kalan Yillik Izin")
         self._lbl_kull_diger = self._add_stat(self._card_yillik, "Kullanilan Diger Izinler")
+        self._lbl_iptal = self._add_stat(self._card_yillik, "Iptal Edilen Izinler")
 
         self._lbl_sua_hak = self._add_stat(self._card_sua, "Hak Edilen Sua Izin")
         self._lbl_sua_kull = self._add_stat(self._card_sua, "Kullanilan Sua Izinleri")
@@ -76,6 +90,7 @@ class PersonelIzinBilgileriTab(QWidget):
                 ("baslama_ui", "Baslangic", 100),
                 ("bitis_ui", "Bitis", 100),
                 ("gun", "Gun", 70),
+                ("durum", "Durum", 80),
                 ("aciklama", "Aciklama", 200),
             ],
             geren="aciklama",
@@ -139,6 +154,7 @@ class PersonelIzinBilgileriTab(QWidget):
     def _load_done(self, rows: list[dict]) -> None:
         yil = date.today().year
         aktif_rows = [r for r in rows if str(r.get("durum") or "") == "aktif"]
+        iptal_rows = [r for r in rows if str(r.get("durum") or "") == "iptal"]
 
         bu_yil_hak = float(self._svc.yillik_hak_hesapla(self._memuriyet_baslama_getter()))
         onceki_hak = float(self._svc.yillik_hak_hesapla(self._memuriyet_baslama_getter(), date(yil - 1, 12, 31)))
@@ -146,19 +162,24 @@ class PersonelIzinBilgileriTab(QWidget):
         kull_onceki = sum(
             int(r.get("gun") or 0)
             for r in aktif_rows
-            if str(r.get("tur") or "") == "yillik"
+            if self._izin_turu_norm(r.get("tur")) == "yillik izin"
             and str(r.get("baslama") or "").startswith(str(yil - 1))
         )
         kull_bu_yil = sum(
             int(r.get("gun") or 0)
             for r in aktif_rows
-            if str(r.get("tur") or "") == "yillik"
+            if self._izin_turu_norm(r.get("tur")) == "yillik izin"
             and str(r.get("baslama") or "").startswith(str(yil))
         )
         kull_diger = sum(
             int(r.get("gun") or 0)
             for r in aktif_rows
-            if str(r.get("tur") or "") != "yillik"
+            if self._izin_turu_norm(r.get("tur")) != "yillik izin"
+        )
+        iptal_toplam = sum(
+            int(r.get("gun") or 0)
+            for r in iptal_rows
+            if str(r.get("baslama") or "").startswith(str(yil))
         )
 
         devreden_kaba = max(0.0, onceki_hak - float(kull_onceki))
@@ -174,6 +195,7 @@ class PersonelIzinBilgileriTab(QWidget):
         self._lbl_kull_yillik.setText(f"{float(kull_bu_yil):.1f}")
         self._lbl_kalan.setText(f"{kalan:.1f}")
         self._lbl_kull_diger.setText(f"{float(kull_diger):.1f}")
+        self._lbl_iptal.setText(f"{float(iptal_toplam):.1f}")
 
         # Su an suaya dair kaynak alan yok; yer ayrik tutuldu.
         self._lbl_sua_hak.setText("0.0")
@@ -189,6 +211,7 @@ class PersonelIzinBilgileriTab(QWidget):
                     "baslama_ui": format_tarih(r.get("baslama"), ui=True),
                     "bitis_ui": format_tarih(r.get("bitis"), ui=True),
                     "gun": int(r.get("gun") or 0),
+                    "durum": "Iptal" if str(r.get("durum") or "") == "iptal" else "Aktif",
                     "aciklama": str(r.get("aciklama") or ""),
                 }
             )
@@ -208,6 +231,7 @@ class PersonelIzinBilgileriTab(QWidget):
             self._lbl_kull_yillik,
             self._lbl_kalan,
             self._lbl_kull_diger,
+            self._lbl_iptal,
             self._lbl_sua_hak,
             self._lbl_sua_kull,
             self._lbl_sua_kalan,
