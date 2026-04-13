@@ -42,7 +42,7 @@ def _ekle(db, pid, hp10, hp007, periyot=1, rapor_no="R-2026-01"):
         "id, personel_id, rapor_no, yil, periyot, periyot_adi, dozimetre_no, tur, bolge, hp10, hp007, durum"
         ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
         (
-            f"id{periyot}{int(hp10 * 1000)}",
+            f"{pid[:6]}-{rapor_no}-{periyot}-{int(hp10 * 1000)}",
             pid,
             rapor_no,
             2026,
@@ -56,6 +56,63 @@ def _ekle(db, pid, hp10, hp007, periyot=1, rapor_no="R-2026-01"):
             "",
         ),
     )
+
+
+def test_personel_olcumleri_sadece_istenen_personeli_getirir(db, personel_id):
+    psvc = PersonelService(db)
+    diger_id = psvc.ekle(
+        {
+            "tc_kimlik": "14522068356",
+            "ad": "Ikinci",
+            "soyad": "Personel",
+            "memuriyet_baslama": "2020-01-01",
+        }
+    )
+
+    _ekle(db, personel_id, hp10=1.0, hp007=0.7, periyot=1, rapor_no="R-P1")
+    _ekle(db, diger_id, hp10=4.0, hp007=1.2, periyot=2, rapor_no="R-P2")
+
+    svc = DozimetreService(db)
+    rows = svc.personel_olcumleri(personel_id)
+
+    assert len(rows) == 1
+    assert rows[0]["rapor_no"] == "R-P1"
+    assert rows[0]["durum"] == "Normal"
+
+
+def test_personel_olcumleri_yil_filtresi_uygular(db, personel_id):
+    db.execute(
+        "INSERT INTO dozimetre ("
+        "id, personel_id, rapor_no, yil, periyot, periyot_adi, dozimetre_no, tur, bolge, hp10, hp007, durum"
+        ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        (
+            "old-row",
+            personel_id,
+            "R-2025",
+            2025,
+            4,
+            "4. Periyot",
+            "DZM-OLD",
+            "TLD",
+            "Govde",
+            5.2,
+            1.7,
+            "",
+        ),
+    )
+    _ekle(db, personel_id, hp10=2.2, hp007=1.0, periyot=1, rapor_no="R-2026")
+
+    svc = DozimetreService(db)
+    rows_2026 = svc.personel_olcumleri(personel_id, yil=2026)
+    rows_2025 = svc.personel_olcumleri(personel_id, yil=2025)
+
+    assert len(rows_2026) == 1
+    assert rows_2026[0]["yil"] == 2026
+    assert rows_2026[0]["durum"] == "Uyari"
+
+    assert len(rows_2025) == 1
+    assert rows_2025[0]["yil"] == 2025
+    assert rows_2025[0]["durum"] == "Tehlike"
 
 
 def test_tum_olcumler_durum_hesaplar(db, personel_id):

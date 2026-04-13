@@ -67,7 +67,7 @@
     },
     {
       "id": "dozimetre",
-      "label": "Dozimetre",
+      "label": "Dozimetre Takip",
       "icon": "dozimetre",
       "bolum": "personel",
       "sira": 40,
@@ -138,6 +138,14 @@
       "bolum": "sistem",
       "sira": 30,
       "page_cls": "ui.pages.yonetim.yonetim_page.YonetimPage"
+    },
+    {
+      "id": "tatiller",
+      "label": "Tatiller & Sabitler",
+      "icon": "calendar",
+      "bolum": "sistem",
+      "sira": 35,
+      "page_cls": "ui.pages.yonetim.ayarlar_page.AyarlarPage"
     }
   ]
 }

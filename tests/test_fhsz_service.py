@@ -140,3 +140,56 @@ def test_donem_hesapla_izin_kesisim_is_gunu(tmp_path):
         assert row["fiili_saat"] == float(max(0, beklenen_gun - 3) * 7)
     finally:
         db.close()
+
+
+def test_donem_hesapla_yarim_gun_tatil_duser(tmp_path):
+    db = Database(tmp_path / "test.db")
+    migrate(db)
+    try:
+        psvc = PersonelService(db)
+        fsvc = FhszService(db)
+
+        pid = psvc.ekle(
+            {
+                    "tc_kimlik": "10000000146",
+                "ad": "Veli",
+                "soyad": "Demir",
+                "memuriyet_baslama": "2019-01-01",
+                "hizmet_sinifi": "Radyasyon Gorevlisi",
+            }
+        )
+
+        fsvc.donem_kaydet(
+            yil=2026,
+            donem=1,
+            satirlar=[
+                {
+                    "personel_id": pid,
+                    "calisma_kosulu": "A",
+                    "aylik_gun": 0,
+                    "izin_gun": 0,
+                }
+            ],
+        )
+
+        db.execute("DELETE FROM tatil WHERE tarih=?", ("2026-01-01",))
+        db.execute(
+            "INSERT INTO tatil (tarih, ad, tur, yarim_gun) VALUES (?,?,?,?)",
+            ("2026-01-20", "Arefe", "dini", 1),
+        )
+
+        rows = fsvc.donem_hesapla(yil=2026, donem=1)
+        assert len(rows) == 1
+
+        row = rows[0]
+        tatiller = db.fetchall(
+            "SELECT tarih FROM tatil WHERE tarih BETWEEN ? AND ? AND COALESCE(yarim_gun, 0) = 0",
+            ("2026-01-15", "2026-02-14"),
+        )
+        tatil_seti = {str(r.get("tarih") or "") for r in tatiller if r.get("tarih")}
+        beklenen_tam_gun = is_gunu_say("2026-01-15", "2026-02-14", tatiller=tatil_seti)
+
+        assert row["aylik_gun"] == float(beklenen_tam_gun) - 0.5
+        assert row["fiili_saat"] == (float(beklenen_tam_gun) - 0.5) * 7.0
+    finally:
+        db.close()

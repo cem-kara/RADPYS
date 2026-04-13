@@ -179,8 +179,8 @@ class PuantajRaporPage(QWidget):
                     r.get("ad_soyad", ""),
                     r.get("yil", ""),
                     self._donem_metni(r.get("donem", "")),
-                    int(r.get("aylik_gun", 0)),
-                    int(r.get("izin_gun", 0)),
+                    self._fmt_gun(r.get("aylik_gun", 0)),
+                    self._fmt_gun(r.get("izin_gun", 0)),
                     f"{float(r.get('fiili_saat', 0)):.0f}",
                     f"{float(r.get('kumulatif_saat', 0)):.0f}",
                     int(r.get("sua_hak_edis", 0)),
@@ -239,8 +239,8 @@ class PuantajRaporPage(QWidget):
                         r.get("ad_soyad", ""),
                         r.get("yil", ""),
                         r.get("donem", ""),
-                        int(r.get("aylik_gun", 0)),
-                        int(r.get("izin_gun", 0)),
+                        self._fmt_gun(r.get("aylik_gun", 0)),
+                        self._fmt_gun(r.get("izin_gun", 0)),
                         int(float(r.get("fiili_saat", 0))),
                         int(float(r.get("kumulatif_saat", 0))),
                         int(r.get("sua_hak_edis", 0)),
@@ -284,8 +284,8 @@ class PuantajRaporPage(QWidget):
                         str(r.get("ad_soyad", "")),
                         str(r.get("yil", "")),
                         str(r.get("donem", "")),
-                        str(int(r.get("aylik_gun", 0))),
-                        str(int(r.get("izin_gun", 0))),
+                        self._fmt_gun(r.get("aylik_gun", 0)),
+                        self._fmt_gun(r.get("izin_gun", 0)),
                         str(int(float(r.get("fiili_saat", 0)))),
                         str(int(float(r.get("kumulatif_saat", 0)))),
                         str(int(r.get("sua_hak_edis", 0))),
@@ -319,3 +319,13 @@ class PuantajRaporPage(QWidget):
         if isinstance(donem, int) and 1 <= donem <= 12:
             return _AY_ISIMLERI[donem - 1]
         return str(donem)
+
+    @staticmethod
+    def _fmt_gun(value) -> str:
+        try:
+            gun = float(value)
+        except (TypeError, ValueError):
+            return "0"
+        if abs(gun - round(gun)) < 1e-9:
+            return str(int(round(gun)))
+        return f"{gun:.1f}"

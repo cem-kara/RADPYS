@@ -22,7 +22,7 @@ from app.db.database import Database
 logger = logging.getLogger("radpys.db.migration")
 
 # Hedef şema versiyonu — her migration eklenince artır
-HEDEF_VERSIYON = 5
+HEDEF_VERSIYON = 6
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -298,7 +298,9 @@ def _v1(db: Database) -> None:
     CREATE TABLE tatil (
         tarih   TEXT PRIMARY KEY,
         ad      TEXT NOT NULL,
-        tur     TEXT NOT NULL DEFAULT 'resmi'
+        tur     TEXT NOT NULL DEFAULT 'resmi',
+        yarim_gun INTEGER NOT NULL DEFAULT 0
+                    CHECK (yarim_gun IN (0,1)),
                     CHECK (tur IN ('resmi','dini'))
     )
     """)
@@ -493,6 +495,18 @@ def _v5(db: Database) -> None:
     logger.info("v5: fhsz donem kisiti 1-12 olarak guncellendi.")
 
 
+def _v6(db: Database) -> None:
+    """v6 — tatil tablosuna yarim_gun kolonu ekler."""
+    if _kolon_var_mi(db, "tatil", "yarim_gun"):
+        logger.info("v6: tatil.yarim_gun kolonu zaten mevcut.")
+        return
+    db.execute(
+        "ALTER TABLE tatil ADD COLUMN yarim_gun INTEGER NOT NULL DEFAULT 0 "
+        "CHECK (yarim_gun IN (0,1))"
+    )
+    logger.info("v6: tatil.yarim_gun kolonu eklendi.")
+
+
 def _rbac_modul_izin_seed(db: Database) -> None:
     from uuid import uuid4
     for rol_adi, izinler in _VARSAYILAN_MODUL_IZINLERI.items():
@@ -512,7 +526,7 @@ def _rbac_modul_izin_seed(db: Database) -> None:
 
 # ── Migration kaydı ───────────────────────────────────────────────
 
-_MIGRATIONS = {1: _v1, 2: _v2, 3: _v3, 4: _v4, 5: _v5}   # Yeni migration eklenince buraya da ekle
+_MIGRATIONS = {1: _v1, 2: _v2, 3: _v3, 4: _v4, 5: _v5, 6: _v6}   # Yeni migration eklenince buraya da ekle
 
 
 # ══════════════════════════════════════════════════════════════════

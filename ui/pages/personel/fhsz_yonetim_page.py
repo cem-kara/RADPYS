@@ -272,15 +272,15 @@ class FhszYonetimPage(QWidget):
                 self._set_item(i, C_AD, r.get("ad_soyad"), editable=False)
                 self._set_item(i, C_BIRIM, r.get("gorev_yeri"), editable=False)
                 self._set_item(i, C_KOSUL, r.get("calisma_kosulu") or "B", editable=False)
-                self._set_item(i, C_GUN, int(r.get("aylik_gun") or 0), editable=True)
+                self._set_item(i, C_GUN, self._fmt_gun(r.get("aylik_gun")), editable=True)
 
-                izin_gun = int(r.get("izin_gun") or 0)
+                izin_gun = self._to_float(self._fmt_gun(r.get("izin_gun")))
                 kosul_text = str(r.get("calisma_kosulu") or "B").strip().upper()
                 kosul = kosul_text if kosul_text in ("A", "B") else "B"
-                aylik_gun = int(r.get("aylik_gun") or 0)
+                aylik_gun = self._to_float(self._fmt_gun(r.get("aylik_gun")))
                 fiili_saat = self._svc.fiili_saat_hesapla(aylik_gun, izin_gun, kosul)
 
-                self._set_item(i, C_IZIN, izin_gun, editable=True)
+                self._set_item(i, C_IZIN, self._fmt_gun(izin_gun), editable=True)
                 self._set_item(i, C_SAAT, f"{fiili_saat:.1f}", editable=False)
                 self._set_item(i, C_NOT, r.get("notlar") or "", editable=True)
             self._tablo.blockSignals(False)
@@ -303,8 +303,8 @@ class FhszYonetimPage(QWidget):
                     {
                         "personel_id": pid,
                         "calisma_kosulu": kosul_char if kosul_char in ("A", "B") else "B",
-                        "aylik_gun": self._to_int(self._text(i, C_GUN)),
-                        "izin_gun": self._to_int(self._text(i, C_IZIN)),
+                        "aylik_gun": self._to_float(self._text(i, C_GUN)),
+                        "izin_gun": self._to_float(self._text(i, C_IZIN)),
                         "notlar": self._text(i, C_NOT),
                     }
                 )
@@ -322,8 +322,8 @@ class FhszYonetimPage(QWidget):
         kosul_text = self._text(row, C_KOSUL).upper()
         kosul = kosul_text.split()[-1] if kosul_text else "B"
         kosul = kosul if kosul in ("A", "B") else "B"
-        gun = self._to_int(self._text(row, C_GUN))
-        izin = self._to_int(self._text(row, C_IZIN))
+        gun = self._to_float(self._text(row, C_GUN))
+        izin = self._to_float(self._text(row, C_IZIN))
         saat = self._svc.fiili_saat_hesapla(gun, izin, kosul)
 
         self._tablo.blockSignals(True)
@@ -371,11 +371,21 @@ class FhszYonetimPage(QWidget):
         return str(item.text()).strip() if item else ""
 
     @staticmethod
-    def _to_int(text: str) -> int:
+    def _to_float(text: str) -> float:
         try:
-            return max(0, int(float(str(text).replace(",", "."))))
+            return max(0.0, float(str(text).replace(",", ".")))
         except (TypeError, ValueError):
-            return 0
+            return 0.0
+
+    @staticmethod
+    def _fmt_gun(value) -> str:
+        try:
+            val = float(value)
+        except (TypeError, ValueError):
+            return "0"
+        if abs(val - round(val)) < 1e-9:
+            return str(int(round(val)))
+        return f"{val:.1f}"
 
     def _secili_yil(self) -> int:
         return int(self._yil.currentData())

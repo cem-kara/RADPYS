@@ -45,12 +45,12 @@ def donem_tarih_araligi(yil: int, donem: int) -> tuple[date, date]:
     return bas, bit
 
 
-def fiili_saat_hesapla(aylik_gun: int, izin_gun: int, kosul: str, saat_katsayi: float = 7.0) -> float:
+def fiili_saat_hesapla(aylik_gun: float, izin_gun: float, kosul: str, saat_katsayi: float = 7.0) -> float:
     """Kosul A icin net gun * katsayi hesaplar, diger kosullarda 0 doner."""
     kos = str(kosul or "").strip().upper()
     if kos != "A":
         return 0.0
-    net_gun = max(0, int(aylik_gun or 0) - int(izin_gun or 0))
+    net_gun = max(0.0, float(aylik_gun or 0.0) - float(izin_gun or 0.0))
     return float(net_gun) * float(saat_katsayi)
 
 

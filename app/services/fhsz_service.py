@@ -44,12 +44,36 @@ class FhszService:
         """Donem tarihini 15 -> sonraki ay 14 olarak hesaplar."""
         return hesap_donem_tarih_araligi(yil, donem)
 
-    def _tatil_seti(self, bas: date, bit: date) -> set[str]:
+    def _tatil_setleri(self, bas: date, bit: date) -> tuple[set[str], set[str]]:
         rows = self._db.fetchall(
-            "SELECT tarih FROM tatil WHERE tarih BETWEEN ? AND ?",
+            "SELECT tarih, yarim_gun FROM tatil WHERE tarih BETWEEN ? AND ?",
             (bas.strftime("%Y-%m-%d"), bit.strftime("%Y-%m-%d")),
         )
-        return {str(r.get("tarih") or "") for r in rows if r.get("tarih")}
+        tam_tatil = set()
+        yarim_tatil = set()
+        for r in rows:
+            tarih = str(r.get("tarih") or "").strip()
+            if not tarih:
+                continue
+            if int(r.get("yarim_gun") or 0) == 1:
+                yarim_tatil.add(tarih)
+            else:
+                tam_tatil.add(tarih)
+        return tam_tatil, yarim_tatil
+
+    @staticmethod
+    def _yarim_tatil_sayisi(bas: date, bit: date, yarim_tatiller: set[str]) -> int:
+        adet = 0
+        for tarih_str in yarim_tatiller:
+            dt = parse_tarih(tarih_str)
+            if not dt:
+                continue
+            if dt < bas or dt > bit:
+                continue
+            if dt.weekday() >= 5:
+                continue
+            adet += 1
+        return adet
 
     @staticmethod
     def _normalize_sinif(text: str) -> str:
@@ -61,7 +85,14 @@ class FhszService:
             return True
         return sinif in self.IZIN_VERILEN_SINIFLAR
 
-    def _personel_donem_is_gunu(self, personel: dict, bas: date, bit: date, tatiller: set[str]) -> int:
+    def _personel_donem_is_gunu(
+        self,
+        personel: dict,
+        bas: date,
+        bit: date,
+        tatiller: set[str],
+        yarim_tatiller: set[str],
+    ) -> float:
         durum = str(personel.get("durum") or "").strip().lower()
         ayrilis = parse_tarih(personel.get("ayrilik_tarihi"))
 
@@ -72,9 +103,11 @@ class FhszService:
             if ayrilis < bit:
                 kisi_bit = ayrilis
 
-        return is_gunu_hesapla(bas, kisi_bit, tatiller=tatiller)
+        tam_is_gunu = float(is_gunu_hesapla(bas, kisi_bit, tatiller=tatiller))
+        yarim_adet = self._yarim_tatil_sayisi(bas, kisi_bit, yarim_tatiller)
+        return max(0.0, tam_is_gunu - (0.5 * float(yarim_adet)))
 
-    def _izin_kesisim_gun_hesapla(self, personel_id: str, bas: date, bit: date, tatiller: set[str]) -> int:
+    def _izin_kesisim_gun_hesapla(self, personel_id: str, bas: date, bit: date, tatiller: set[str]) -> float:
         izinler = self._db.fetchall(
             "SELECT baslama, bitis, durum FROM izin "
             "WHERE personel_id = ? "
@@ -83,7 +116,7 @@ class FhszService:
             (personel_id, bit.strftime("%Y-%m-%d"), bas.strftime("%Y-%m-%d")),
         )
 
-        toplam = 0
+        toplam = 0.0
         for row in izinler:
             if str(row.get("durum") or "").strip().lower() == "iptal":
                 continue
@@ -108,7 +141,7 @@ class FhszService:
             raise ValueError("26.04.2022 oncesi donemler icin FHSZ hesaplanamaz.")
 
         hesap_bas = max(donem_bas, self.FHSZ_ESIK)
-        tatiller = self._tatil_seti(hesap_bas, donem_bit)
+        tam_tatiller, yarim_tatiller = self._tatil_setleri(hesap_bas, donem_bit)
 
         kayitli = self.donem_listele(yil_int, donem_int)
         kayit_map: dict[str, dict] = {
@@ -124,7 +157,13 @@ class FhszService:
             if not self._personel_uygun_mu(p):
                 continue
 
-            aylik_gun = self._personel_donem_is_gunu(p, hesap_bas, donem_bit, tatiller)
+            aylik_gun = self._personel_donem_is_gunu(
+                p,
+                hesap_bas,
+                donem_bit,
+                tam_tatiller,
+                yarim_tatiller,
+            )
             if aylik_gun <= 0:
                 continue
 
@@ -133,9 +172,9 @@ class FhszService:
             if kosul not in {"A", "B"}:
                 kosul = "A" if int(p.get("sua_hakki") or 0) == 1 else "B"
 
-            izin_gun = int(mevcut.get("izin_gun") or 0)
+            izin_gun = float(mevcut.get("izin_gun") or 0.0)
             if izin_gun <= 0:
-                izin_gun = self._izin_kesisim_gun_hesapla(pid, hesap_bas, donem_bit, tatiller)
+                izin_gun = self._izin_kesisim_gun_hesapla(pid, hesap_bas, donem_bit, tam_tatiller)
 
             fiili_saat = self.fiili_saat_hesapla(aylik_gun, izin_gun, kosul)
             rows.append(
@@ -156,7 +195,7 @@ class FhszService:
         return rows
 
     @staticmethod
-    def fiili_saat_hesapla(aylik_gun: int, izin_gun: int, kosul: str) -> float:
+    def fiili_saat_hesapla(aylik_gun: float, izin_gun: float, kosul: str) -> float:
         """Kosul A icin fiili saat hesaplar; kosul B icin 0 doner."""
         return hesap_fiili_saat(aylik_gun, izin_gun, kosul, saat_katsayi=FhszService.SAAT_KATSAYI)
 
@@ -213,8 +252,8 @@ class FhszService:
             pid = str(s.get("personel_id") or "").strip()
             if not pid:
                 continue
-            aylik_gun = max(0, int(s.get("aylik_gun") or 0))
-            izin_gun = max(0, int(s.get("izin_gun") or 0))
+            aylik_gun = max(0.0, float(s.get("aylik_gun") or 0.0))
+            izin_gun = max(0.0, float(s.get("izin_gun") or 0.0))
             kosul = str(s.get("calisma_kosulu") or "B").strip().upper()
             if kosul not in {"A", "B"}:
                 kosul = "B"

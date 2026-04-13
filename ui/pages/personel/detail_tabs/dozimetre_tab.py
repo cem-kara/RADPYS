@@ -2,8 +2,8 @@
 """Personel detayinda Dozimetre olcum gecmisi sekmesi (salt-okunur)."""
 from __future__ import annotations
 
-from datetime import date
-
+from PySide6.QtGui import QColor
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QComboBox,
     QGridLayout,
@@ -15,7 +15,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from PySide6.QtCore import Qt
 
 from app.config import HP10_TEHLIKE, HP10_UYARI, NDK_YILLIK
 from app.services.dozimetre_service import DozimetreService
@@ -40,6 +39,7 @@ class PersonelDozimetreTab(QWidget):
         self._personel_id_getter = personel_id_getter or (lambda: "")
         self._rows: list[dict] = []
         self._secili_yil: int | None = None
+        self._secili_periyot: int | None = None
         self._build()
 
     # ─────────────────────────── UI inşa ────────────────────────────
@@ -53,15 +53,21 @@ class PersonelDozimetreTab(QWidget):
         self._uyari.setStyleSheet(f"color:{T.text3};font-size:11px;")
         root.addWidget(self._uyari)
 
-        # Yıl filtresi
+        # Yıl + periyot filtreleri
         filtre_satiri = QHBoxLayout()
         filtre_satiri.setSpacing(8)
         lbl_yil = QLabel("Yil:")
         lbl_yil.setStyleSheet(f"color:{T.text2};font-size:11px;")
         self._cmb_yil = QComboBox(self)
         self._cmb_yil.currentIndexChanged.connect(self._on_yil_degisti)
+        lbl_periyot = QLabel("Periyot:")
+        lbl_periyot.setStyleSheet(f"color:{T.text2};font-size:11px;")
+        self._cmb_periyot = QComboBox(self)
+        self._cmb_periyot.currentIndexChanged.connect(self._on_periyot_degisti)
         filtre_satiri.addWidget(lbl_yil)
         filtre_satiri.addWidget(self._cmb_yil)
+        filtre_satiri.addWidget(lbl_periyot)
+        filtre_satiri.addWidget(self._cmb_periyot)
         filtre_satiri.addStretch(1)
         root.addLayout(filtre_satiri)
 
@@ -115,7 +121,7 @@ class PersonelDozimetreTab(QWidget):
 
         self._lbl_max_hp10 = self._stat_satiri(gl, 0, "Maks Hp(10)")
         self._lbl_kumulatif = self._stat_satiri(gl, 1, "Kumulatif Hp(10)")
-        self._lbl_ndk = self._stat_satiri(gl, 2, f"NDK ({NDK_YILLIK:.0f} mSv)")
+        self._lbl_ndk = self._stat_satiri(gl, 2, f"NDK (Secili Yil/{NDK_YILLIK:.0f} mSv)")
         self._lbl_rapor = self._stat_satiri(gl, 3, "Rapor Sayisi")
         return grp
 
@@ -142,6 +148,7 @@ class PersonelDozimetreTab(QWidget):
         self._uyari.setText("")
         self._rows = self._svc.personel_olcumleri(pid)
         self._doldur_yil_filtresi()
+        self._doldur_periyot_filtresi()
         self._guncelle_gorunum()
 
     def _doldur_yil_filtresi(self) -> None:
@@ -170,16 +177,46 @@ class PersonelDozimetreTab(QWidget):
         finally:
             self._cmb_yil.blockSignals(False)
 
+    def _doldur_periyot_filtresi(self) -> None:
+        self._cmb_periyot.blockSignals(True)
+        try:
+            rows = self._rows
+            if self._secili_yil is not None:
+                rows = [r for r in rows if r.get("yil") == self._secili_yil]
+
+            periyotlar = sorted({int(r.get("periyot") or 0) for r in rows if r.get("periyot")})
+            onceki = self._secili_periyot
+
+            self._cmb_periyot.clear()
+            self._cmb_periyot.addItem("Tum Periyotlar", None)
+            for p in periyotlar:
+                self._cmb_periyot.addItem(_PERIYOT_ADI.get(p, f"{p}. Periyot"), p)
+
+            if onceki is not None:
+                idx = self._cmb_periyot.findData(onceki)
+                if idx >= 0:
+                    self._cmb_periyot.setCurrentIndex(idx)
+                    return
+            self._secili_periyot = None
+            self._cmb_periyot.setCurrentIndex(0)
+        finally:
+            self._cmb_periyot.blockSignals(False)
+
     def _on_yil_degisti(self) -> None:
         self._secili_yil = self._cmb_yil.currentData()
+        self._doldur_periyot_filtresi()
+        self._guncelle_gorunum()
+
+    def _on_periyot_degisti(self) -> None:
+        self._secili_periyot = self._cmb_periyot.currentData()
         self._guncelle_gorunum()
 
     def _guncelle_gorunum(self) -> None:
-        yil = self._secili_yil
-        if yil is not None:
-            gorunen = [r for r in self._rows if r.get("yil") == yil]
-        else:
-            gorunen = list(self._rows)
+        gorunen = list(self._rows)
+        if self._secili_yil is not None:
+            gorunen = [r for r in gorunen if r.get("yil") == self._secili_yil]
+        if self._secili_periyot is not None:
+            gorunen = [r for r in gorunen if r.get("periyot") == self._secili_periyot]
 
         self._doldur_ozet(gorunen)
         self._doldur_tablo(gorunen)
@@ -233,7 +270,7 @@ class PersonelDozimetreTab(QWidget):
     @staticmethod
     def _hp10_renk(val: float | None) -> str:
         if val is None:
-              return T.text
+            return T.text
         if val >= HP10_TEHLIKE:
             return _DURUM_RENK["Tehlike"]
         if val >= HP10_UYARI:
@@ -265,7 +302,7 @@ class PersonelDozimetreTab(QWidget):
                 item = QTableWidgetItem(val)
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 if renk and col >= 6:
-                    item.setForeground(__import__("PySide6.QtGui", fromlist=["QColor"]).QColor(renk))
+                    item.setForeground(QColor(renk))
                 self._table.setItem(row_idx, col, item)
 
         self._table.resizeColumnsToContents()

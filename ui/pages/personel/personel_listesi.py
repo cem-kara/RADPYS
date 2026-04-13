@@ -656,7 +656,7 @@ class PersonelListesi(QWidget):
         pid = str(row.get("id") or "").strip()
         if pid:
             self.secildi.emit(pid)
-        self.detay_requested.emit(row)
+        self._open_detay_dialog(row)
 
     def get_selected(self) -> dict | None:
         idxs = self.table.selectionModel().selectedRows()
@@ -691,8 +691,7 @@ class PersonelListesi(QWidget):
             return
 
         menu = QMenu(self)
-        menu.addAction("Detay Goruntule").triggered.connect(lambda: self.detay_requested.emit(row))
-        menu.addAction("Duzenle").triggered.connect(lambda: self._open_duzenle_dialog(row))
+        menu.addAction("Detay Goruntule").triggered.connect(lambda: self._open_detay_dialog(row))
 
         durum = str(row.get("Durum") or "")
         pid = str(row.get("id") or "")
@@ -713,20 +712,20 @@ class PersonelListesi(QWidget):
     def _open_ekle_dialog(self) -> None:
         self._open_mdi_form("Personel Ekle", None)
 
-    def _open_duzenle_dialog(self, row: dict) -> None:
+    def _open_detay_dialog(self, row: dict) -> None:
         personel_id = str((row or {}).get("id") or "").strip()
         if not personel_id:
-            self._alert.goster("Duzenlenecek personel secilemedi.", "warning")
+            self._alert.goster("Detayi gosterilecek personel secilemedi.", "warning")
             return
 
         try:
             src = self._svc.getir(personel_id)
         except Exception as exc:
-            exc_logla("PersonelListesi._open_duzenle_dialog", exc)
+            exc_logla("PersonelListesi._open_detay_dialog", exc)
             self._alert.goster(str(exc), "danger")
             return
 
-        self._open_mdi_form("Personel Duzenle", src)
+        self._open_mdi_form("Personel Detay", src)
 
     def _open_mdi_form(self, title: str, edit_data: dict | None) -> None:
         key_suffix = "ekle" if edit_data is None else str((edit_data or {}).get("id") or "duzenle")

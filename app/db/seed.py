@@ -203,6 +203,6 @@ def _seed_tatiller(db: Database) -> None:
     ]
     for tarih, ad, tur in tatiller:
         db.execute(
-            "INSERT OR IGNORE INTO tatil (tarih, ad, tur) VALUES (?,?,?)",
-            (tarih, ad, tur),
+            "INSERT OR IGNORE INTO tatil (tarih, ad, tur, yarim_gun) VALUES (?,?,?,?)",
+            (tarih, ad, tur, 0),
         )
