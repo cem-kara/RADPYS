@@ -124,5 +124,13 @@ class DashboardPage(QWidget):
             self._kartlar[0].deger_yaz(aktif)
         except Exception:
             pass
+        try:
+            yak = self._db.fetchval(
+                "SELECT COUNT(*) FROM muayene "
+                "WHERE sonraki BETWEEN date('now') AND date('now','+30 days')"
+            ) or 0
+            self._kartlar[2].deger_yaz(yak)
+        except Exception:
+            pass
 
 

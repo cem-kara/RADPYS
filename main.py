@@ -29,7 +29,7 @@ def main() -> int:
         from ui.app_window import AppWindow
 
         pencere = AppWindow(db, oturum=login.oturum)
-        pencere.show()
+        pencere.showMaximized()
 
         return app.exec()
     finally:

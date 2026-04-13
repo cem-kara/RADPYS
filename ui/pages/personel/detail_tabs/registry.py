@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Callable
 
 from PySide6.QtWidgets import QWidget
 
+from ui.pages.personel.detail_tabs.dozimetre_tab import PersonelDozimetreTab
 from ui.pages.personel.detail_tabs.fhsz_bilgileri_tab import PersonelFhszBilgileriTab
 from ui.pages.personel.detail_tabs.izin_bilgileri_tab import PersonelIzinBilgileriTab
 from ui.pages.personel.detail_tabs.nobet_mesai_tab import PersonelNobetMesaiTab
@@ -44,11 +45,27 @@ def _nobet_mesai_tab_factory(host: "PersonelDetayPage", db) -> QWidget:
 
 
 def _fhsz_tab_factory(host: "PersonelDetayPage", db) -> QWidget:
-    return PersonelFhszBilgileriTab(parent=host)
+    return PersonelFhszBilgileriTab(
+        db=db,
+        personel_id_getter=lambda: host._personel_id,
+        parent=host,
+    )
 
 
 def _saglik_tab_factory(host: "PersonelDetayPage", db) -> QWidget:
-    return PersonelSaglikTab(parent=host)
+    return PersonelSaglikTab(
+        db=db,
+        personel_id_getter=lambda: host._personel_id,
+        parent=host,
+    )
+
+
+def _dozimetre_tab_factory(host: "PersonelDetayPage", db) -> QWidget:
+    return PersonelDozimetreTab(
+        db=db,
+        personel_id_getter=lambda: host._personel_id,
+        parent=host,
+    )
 
 
 def build_detail_tab_registrations() -> list[DetailTabRegistration]:
@@ -67,12 +84,17 @@ def build_detail_tab_registrations() -> list[DetailTabRegistration]:
         ),
         DetailTabRegistration(
             tab_id="fhsz",
-            label="FHSZ Bilgileri",
+            label="Fiili Hizmet",
             factory=_fhsz_tab_factory,
         ),
         DetailTabRegistration(
             tab_id="saglik",
             label="Saglik",
             factory=_saglik_tab_factory,
+        ),
+        DetailTabRegistration(
+            tab_id="dozimetre",
+            label="Dozimetre",
+            factory=_dozimetre_tab_factory,
         ),
     ]

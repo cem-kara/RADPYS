@@ -244,7 +244,14 @@ class _SbBtn(QFrame):
         )
 
         self._txt_lbl = QLabel(mod.label)
-        self._txt_lbl.setStyleSheet(f"font-size:12.5px;background:transparent;")
+        self._txt_lbl.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self._txt_lbl.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self._txt_lbl.setStyleSheet(
+            "font-size:12.5px;"
+            "background:transparent;"
+            "border:none;"
+            "outline:none;"
+        )
 
         lay.addWidget(self._ikon_btn)
         lay.addWidget(self._txt_lbl, 1)
@@ -297,7 +304,12 @@ class _SbBtn(QFrame):
             "padding:0px;"
         )
         self._txt_lbl.setStyleSheet(
-            f"font-size:12.5px;font-weight:600;color:{renk};background:transparent;"
+            f"font-size:12.5px;"
+            f"font-weight:600;"
+            f"color:{renk};"
+            "background:transparent;"
+            "border:none;"
+            "outline:none;"
         )
 
     def set_aktif(self, aktif: bool):

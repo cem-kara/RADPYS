@@ -2,8 +2,7 @@
 """ui/pages/personel/fhsz_yonetim_page.py - FHSZ donem yonetim ekrani."""
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
-from dateutil.relativedelta import relativedelta
+from datetime import date, timedelta
 
 from PySide6.QtCore import QPersistentModelIndex, Qt
 from PySide6.QtGui import QColor, QFont, QPainterPath, QPen, QBrush, QPainter
@@ -12,6 +11,7 @@ from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QMenu,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -224,6 +224,8 @@ class FhszYonetimPage(QWidget):
         self._tablo.horizontalHeader().setStretchLastSection(True)
         self._tablo.verticalHeader().setDefaultSectionSize(34)
         self._tablo.setItemDelegateForColumn(C_KOSUL, KosulDelegate(self))
+        self._tablo.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self._tablo.customContextMenuRequested.connect(self._kosul_sag_tik_menu)
         self._tablo.itemChanged.connect(self._satir_saat_guncelle)
         root.addWidget(self._tablo, 1)
 
@@ -231,14 +233,12 @@ class FhszYonetimPage(QWidget):
         self._donem_guncelle()
         self._hesapla()
 
-    def _get_donem_aralik(self) -> tuple[datetime, datetime]:
+    def _get_donem_aralik(self) -> tuple[date, date]:
         """Dönem başlangıcı (15) ve bitişi (sonraki ay 14)."""
         try:
             yil = int(self._yil.currentData())
             ay_idx = self._ay.currentIndex() + 1
-            donem_bas = datetime(yil, ay_idx, 15)
-            donem_bit = donem_bas + relativedelta(months=1) - timedelta(days=1)
-            return donem_bas, donem_bit
+            return self._svc.donem_tarih_araligi(yil, ay_idx)
         except Exception:
             return None, None
 
@@ -249,10 +249,12 @@ class FhszYonetimPage(QWidget):
             bas_str = donem_bas.strftime("%d.%m.%Y")
             bit_str = donem_bit.strftime("%d.%m.%Y")
             self._lbl_donem.setText(f"Dönem: {bas_str} — {bit_str}")
-            # Basit iş günü sayısı: dönem günleri - hafta sonları
             gun_sayisi = (donem_bit - donem_bas).days + 1
-            is_gun = sum(1 for i in range(gun_sayisi) 
-                        if (donem_bas + timedelta(days=i)).weekday() < 5)
+            is_gun = sum(
+                1
+                for i in range(gun_sayisi)
+                if (donem_bas + timedelta(days=i)).weekday() < 5
+            )
             self._lbl_aylik_gun.setText(f"Aylik Gun: {is_gun}")
         else:
             self._lbl_donem.setText("Dönem: —")
@@ -261,8 +263,7 @@ class FhszYonetimPage(QWidget):
     def _hesapla(self) -> None:
         self._alert.temizle()
         try:
-            donem_bas, donem_bit = self._get_donem_aralik()
-            rows = self._svc.donem_getir_veya_olustur(self._secili_yil(), self._secili_ay())
+            rows = self._svc.donem_hesapla(self._secili_yil(), self._secili_ay())
             self._tablo.blockSignals(True)
             self._tablo.setRowCount(len(rows))
             for i, r in enumerate(rows):
@@ -270,15 +271,10 @@ class FhszYonetimPage(QWidget):
                 self._set_item(i, C_TC, r.get("tc_kimlik"), editable=False)
                 self._set_item(i, C_AD, r.get("ad_soyad"), editable=False)
                 self._set_item(i, C_BIRIM, r.get("gorev_yeri"), editable=False)
-                self._set_item(i, C_KOSUL, r.get("calisma_kosulu") or "B", editable=True)
+                self._set_item(i, C_KOSUL, r.get("calisma_kosulu") or "B", editable=False)
                 self._set_item(i, C_GUN, int(r.get("aylik_gun") or 0), editable=True)
-                
-                # Otomatik izin kesişim gün hesabı (kayıtlı değer varsa onu kullan)
+
                 izin_gun = int(r.get("izin_gun") or 0)
-                if izin_gun == 0 and donem_bas and donem_bit:
-                    pid = str(r.get("personel_id") or "")
-                    izin_gun = self._svc.izin_kesisim_gun_hesapla(pid, donem_bas, donem_bit)
-                
                 kosul_text = str(r.get("calisma_kosulu") or "B").strip().upper()
                 kosul = kosul_text if kosul_text in ("A", "B") else "B"
                 aylik_gun = int(r.get("aylik_gun") or 0)
@@ -333,6 +329,25 @@ class FhszYonetimPage(QWidget):
         self._tablo.blockSignals(True)
         self._set_item(row, C_SAAT, f"{saat:.1f}", editable=False)
         self._tablo.blockSignals(False)
+
+    def _kosul_sag_tik_menu(self, pos) -> None:
+        idx = self._tablo.indexAt(pos)
+        if not idx.isValid() or idx.column() != C_KOSUL:
+            return
+
+        menu = QMenu(self)
+        act_a = menu.addAction("Koşul A")
+        act_b = menu.addAction("Koşul B")
+        secilen = menu.exec(self._tablo.viewport().mapToGlobal(pos))
+        if secilen not in (act_a, act_b):
+            return
+
+        yeni_kosul = "A" if secilen == act_a else "B"
+        row = idx.row()
+        self._tablo.blockSignals(True)
+        self._set_item(row, C_KOSUL, yeni_kosul, editable=False)
+        self._tablo.blockSignals(False)
+        self._satir_saat_guncelle(self._tablo.item(row, C_KOSUL))
 
     def _set_item(self, row: int, col: int, value, editable: bool) -> None:
         # C_KOSUL için "Koşul A" / "Koşul B" formatı

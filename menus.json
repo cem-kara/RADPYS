@@ -18,10 +18,6 @@
       "label": "Cihaz",
       "sira": 2
     },
-    "fiili_hizmet": {
-      "label": "Fiili Hizmet",
-      "sira": 3
-    },
     "nobet": {
       "label": "Nöbet",
       "sira": 4
@@ -53,11 +49,11 @@
     },
     {
       "id": "izin",
-      "label": "İzin Takip",
+      "label": "İzin ve Fiili Hizmet",
       "icon": "izin",
       "bolum": "personel",
       "sira": 20,
-      "page_cls": "ui.pages.izin.izin_listesi.IzinListesiPage",
+      "page_cls": "ui.pages.personel.fiili_hizmet_merkez_page.FiiliHizmetMerkezPage",
       "badge_id": "izin_aktif",
       "badge_renk": "#e8a020"
     },
@@ -67,7 +63,7 @@
       "icon": "saglik",
       "bolum": "personel",
       "sira": 30,
-      "page_cls": "ui.pages.placeholder.PlaceholderPage"
+      "page_cls": "ui.pages.personel.saglik_takip_page.SaglikTakipPage"
     },
     {
       "id": "dozimetre",
@@ -75,7 +71,7 @@
       "icon": "dozimetre",
       "bolum": "personel",
       "sira": 40,
-      "page_cls": "ui.pages.placeholder.PlaceholderPage"
+      "page_cls": "ui.pages.personel.dozimetre_takip_page.DozimetreTakipPage"
     },
     {
       "id": "cihaz",
@@ -118,14 +114,6 @@
       "bolum": "nobet",
       "sira": 10,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
-    },
-    {
-      "id": "mesai",
-      "label": "Fiili Hizmet",
-      "icon": "mesai",
-      "bolum": "fiili_hizmet",
-      "sira": 10,
-      "page_cls": "ui.pages.personel.fiili_hizmet_merkez_page.FiiliHizmetMerkezPage"
     },
     {
       "id": "dokumanlar",

@@ -22,7 +22,7 @@ from app.db.database import Database
 logger = logging.getLogger("radpys.db.migration")
 
 # Hedef şema versiyonu — her migration eklenince artır
-HEDEF_VERSIYON = 4
+HEDEF_VERSIYON = 5
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -453,6 +453,46 @@ def _v4(db: Database) -> None:
     logger.info("v4: kullanici tablosu dinamik rol desteği için yeniden oluşturuldu.")
 
 
+def _v5(db: Database) -> None:
+    """v5 — fhsz.donem kisitini 1-12 araligina genisletir."""
+    sql = db.fetchval(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='fhsz'"
+    ) or ""
+    if "CHECK (donem BETWEEN 1 AND 6)" not in str(sql):
+        logger.info("v5: fhsz tablosu zaten 12 donem destekli.")
+        return
+
+    db.execute("""
+    CREATE TABLE fhsz_yeni (
+        id              TEXT PRIMARY KEY,
+        personel_id     TEXT NOT NULL REFERENCES personel(id),
+        yil             INTEGER NOT NULL,
+        donem           INTEGER NOT NULL CHECK (donem BETWEEN 1 AND 12),
+        aylik_gun       INTEGER,
+        izin_gun        INTEGER DEFAULT 0,
+        fiili_saat      REAL,
+        calisma_kosulu  TEXT,
+        notlar          TEXT,
+        olusturuldu     TEXT NOT NULL DEFAULT (date('now')),
+        UNIQUE (personel_id, yil, donem)
+    )
+    """)
+
+    db.execute(
+        "INSERT INTO fhsz_yeni ("
+        "id, personel_id, yil, donem, aylik_gun, izin_gun, fiili_saat, calisma_kosulu, notlar, olusturuldu"
+        ") "
+        "SELECT "
+        "id, personel_id, yil, donem, aylik_gun, izin_gun, fiili_saat, calisma_kosulu, notlar, olusturuldu "
+        "FROM fhsz"
+    )
+
+    db.execute("DROP TABLE fhsz")
+    db.execute("ALTER TABLE fhsz_yeni RENAME TO fhsz")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_fhsz_personel ON fhsz(personel_id)")
+    logger.info("v5: fhsz donem kisiti 1-12 olarak guncellendi.")
+
+
 def _rbac_modul_izin_seed(db: Database) -> None:
     from uuid import uuid4
     for rol_adi, izinler in _VARSAYILAN_MODUL_IZINLERI.items():
@@ -472,7 +512,7 @@ def _rbac_modul_izin_seed(db: Database) -> None:
 
 # ── Migration kaydı ───────────────────────────────────────────────
 
-_MIGRATIONS = {1: _v1, 2: _v2, 3: _v3, 4: _v4}   # Yeni migration eklenince buraya da ekle
+_MIGRATIONS = {1: _v1, 2: _v2, 3: _v3, 4: _v4, 5: _v5}   # Yeni migration eklenince buraya da ekle
 
 
 # ══════════════════════════════════════════════════════════════════

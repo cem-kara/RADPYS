@@ -2,6 +2,7 @@
 """tests/test_fhsz_service.py"""
 import sys
 from pathlib import Path
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -9,6 +10,7 @@ from app.db.database import Database
 from app.db.migrations import run as migrate
 from app.services.fhsz_service import FhszService
 from app.services.personel_service import PersonelService
+from app.validators import is_gunu_say
 
 
 def test_puantaj_rapor_kumulatif_hesap(tmp_path):
@@ -70,5 +72,71 @@ def test_puantaj_rapor_kumulatif_hesap(tmp_path):
         assert len(tek) == 1
         assert tek[0]["donem"] == 2
         assert tek[0]["kumulatif_saat"] == 252.0
+    finally:
+        db.close()
+
+
+def test_donem_hesapla_esik_oncesi_donem_hata(tmp_path):
+    db = Database(tmp_path / "test.db")
+    migrate(db)
+    try:
+        fsvc = FhszService(db)
+        with pytest.raises(ValueError):
+            fsvc.donem_hesapla(yil=2022, donem=1)
+    finally:
+        db.close()
+
+
+def test_donem_hesapla_izin_kesisim_is_gunu(tmp_path):
+    db = Database(tmp_path / "test.db")
+    migrate(db)
+    try:
+        psvc = PersonelService(db)
+        fsvc = FhszService(db)
+
+        pid = psvc.ekle(
+            {
+                "tc_kimlik": "10000000146",
+                "ad": "Ali",
+                "soyad": "Kaya",
+                "memuriyet_baslama": "2018-01-01",
+                "hizmet_sinifi": "Radyasyon Gorevlisi",
+            }
+        )
+
+        # Kayitli donem varsa kosul bu kayittan okunur; A olmali.
+        fsvc.donem_kaydet(
+            yil=2026,
+            donem=1,
+            satirlar=[
+                {
+                    "personel_id": pid,
+                    "calisma_kosulu": "A",
+                    "aylik_gun": 0,
+                    "izin_gun": 0,
+                }
+            ],
+        )
+
+        db.execute(
+            "INSERT INTO izin (id, personel_id, tur, baslama, gun, bitis, durum) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            ("izin1", pid, "Yillik Izin", "2026-01-20", 3, "2026-01-22", "aktif"),
+        )
+
+        rows = fsvc.donem_hesapla(yil=2026, donem=1)
+        assert len(rows) == 1
+
+        row = rows[0]
+        assert row["izin_gun"] == 3
+
+        tatiller = db.fetchall(
+            "SELECT tarih FROM tatil WHERE tarih BETWEEN ? AND ?",
+            ("2026-01-15", "2026-02-14"),
+        )
+        tatil_seti = {str(r.get("tarih") or "") for r in tatiller if r.get("tarih")}
+        beklenen_gun = is_gunu_say("2026-01-15", "2026-02-14", tatiller=tatil_seti)
+        assert row["aylik_gun"] == beklenen_gun
+        assert row["fiili_saat"] == float(max(0, beklenen_gun - 3) * 7)
     finally:
         db.close()

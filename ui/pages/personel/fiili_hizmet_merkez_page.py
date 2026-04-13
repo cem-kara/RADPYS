@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.logger import exc_logla
 from ui.pages.placeholder import PlaceholderPage
 from ui.styles import T
 
@@ -136,7 +137,8 @@ class FiiliHizmetMerkezPage(QWidget):
             mod = __import__(module_name, fromlist=[class_name])
             cls = getattr(mod, class_name)
             return cls(self._db, self)
-        except Exception:
+        except Exception as exc:
+            exc_logla("FiiliHizmetMerkezPage._safe_create", exc)
             return PlaceholderPage(self._db, self)
 
     def _switch_tab(self, code: str) -> None:

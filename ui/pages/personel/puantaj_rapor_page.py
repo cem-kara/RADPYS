@@ -38,6 +38,21 @@ _COLS = [
     "Hak Edilen Sua",
 ]
 
+_AY_ISIMLERI = [
+    "Ocak",
+    "Subat",
+    "Mart",
+    "Nisan",
+    "Mayis",
+    "Haziran",
+    "Temmuz",
+    "Agustos",
+    "Eylul",
+    "Ekim",
+    "Kasim",
+    "Aralik",
+]
+
 
 class PuantajRaporPage(QWidget):
     """FHSZ tablosundan yil/donem bazli puantaj rapor uretir."""
@@ -76,8 +91,8 @@ class PuantajRaporPage(QWidget):
         bl.addWidget(self._mk_label("Donem:"))
         self._donem = QComboBox(self)
         self._donem.addItem("Tumu", None)
-        for d in range(1, 13):
-            self._donem.addItem(f"Donem {d}", d)
+        for d, ay_adi in enumerate(_AY_ISIMLERI, 1):
+            self._donem.addItem(ay_adi, d)
         bl.addWidget(self._donem)
 
         bl.addStretch(1)
@@ -163,7 +178,7 @@ class PuantajRaporPage(QWidget):
                     r.get("tc_kimlik", ""),
                     r.get("ad_soyad", ""),
                     r.get("yil", ""),
-                    r.get("donem", ""),
+                    self._donem_metni(r.get("donem", "")),
                     int(r.get("aylik_gun", 0)),
                     int(r.get("izin_gun", 0)),
                     f"{float(r.get('fiili_saat', 0)):.0f}",
@@ -298,3 +313,9 @@ class PuantajRaporPage(QWidget):
         except Exception as exc:
             exc_logla("PuantajRaporPage._pdf_indir", exc)
             self._alert.goster(str(exc), "danger")
+
+    @staticmethod
+    def _donem_metni(donem) -> str:
+        if isinstance(donem, int) and 1 <= donem <= 12:
+            return _AY_ISIMLERI[donem - 1]
+        return str(donem)

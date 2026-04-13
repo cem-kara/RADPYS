@@ -2,30 +2,37 @@
 """app/services/fhsz_service.py - FHSZ yonetim is mantigi."""
 from __future__ import annotations
 
-import math
-from datetime import datetime, timedelta
+from datetime import date, datetime
 
 from app.db.database import Database
 from app.db.repos.fhsz_repo import FhszRepo
 from app.db.repos.personel_repo import PersonelRepo
-from app.validators import pozitif_sayi
+from app.hesaplamalar import (
+    donem_tarih_araligi as hesap_donem_tarih_araligi,
+    fiili_saat_hesapla as hesap_fiili_saat,
+    is_gunu_hesapla,
+    sua_hak_edis_hesapla as hesap_sua_hak_edis,
+    turkce_normalize_lower,
+)
+from app.validators import parse_tarih, pozitif_sayi
 
 
 class FhszService:
     """FHSZ donem kayitlarini hesaplama ve kaydetme servisi."""
 
     SAAT_KATSAYI = 7.0
+    FHSZ_ESIK = date(2022, 4, 26)
+    IZIN_VERILEN_SINIFLAR = {
+        "akademik personel",
+        "asistan doktor",
+        "radyasyon gorevlisi",
+        "hemsire",
+    }
 
     @staticmethod
     def sua_hak_edis_hesapla(toplam_saat: float) -> int:
         """Toplam fiili saate gore hak edilen sua gununu hesaplar."""
-        try:
-            saat = float(toplam_saat)
-        except (TypeError, ValueError):
-            return 0
-        if saat <= 0:
-            return 0
-        return min(30, max(1, int(math.ceil(saat / 50.0))))
+        return hesap_sua_hak_edis(toplam_saat)
 
     def __init__(self, db: Database):
         self._db = db
@@ -33,17 +40,139 @@ class FhszService:
         self._p_repo = PersonelRepo(db)
 
     @staticmethod
+    def donem_tarih_araligi(yil: int, donem: int) -> tuple[date, date]:
+        """Donem tarihini 15 -> sonraki ay 14 olarak hesaplar."""
+        return hesap_donem_tarih_araligi(yil, donem)
+
+    def _tatil_seti(self, bas: date, bit: date) -> set[str]:
+        rows = self._db.fetchall(
+            "SELECT tarih FROM tatil WHERE tarih BETWEEN ? AND ?",
+            (bas.strftime("%Y-%m-%d"), bit.strftime("%Y-%m-%d")),
+        )
+        return {str(r.get("tarih") or "") for r in rows if r.get("tarih")}
+
+    @staticmethod
+    def _normalize_sinif(text: str) -> str:
+        return turkce_normalize_lower(text)
+
+    def _personel_uygun_mu(self, personel: dict) -> bool:
+        sinif = self._normalize_sinif(personel.get("hizmet_sinifi") or "")
+        if not sinif:
+            return True
+        return sinif in self.IZIN_VERILEN_SINIFLAR
+
+    def _personel_donem_is_gunu(self, personel: dict, bas: date, bit: date, tatiller: set[str]) -> int:
+        durum = str(personel.get("durum") or "").strip().lower()
+        ayrilis = parse_tarih(personel.get("ayrilik_tarihi"))
+
+        kisi_bit = bit
+        if durum in {"pasif", "ayrildi"} and ayrilis:
+            if ayrilis < bas:
+                return 0
+            if ayrilis < bit:
+                kisi_bit = ayrilis
+
+        return is_gunu_hesapla(bas, kisi_bit, tatiller=tatiller)
+
+    def _izin_kesisim_gun_hesapla(self, personel_id: str, bas: date, bit: date, tatiller: set[str]) -> int:
+        izinler = self._db.fetchall(
+            "SELECT baslama, bitis, durum FROM izin "
+            "WHERE personel_id = ? "
+            "AND baslama <= ? "
+            "AND bitis >= ?",
+            (personel_id, bit.strftime("%Y-%m-%d"), bas.strftime("%Y-%m-%d")),
+        )
+
+        toplam = 0
+        for row in izinler:
+            if str(row.get("durum") or "").strip().lower() == "iptal":
+                continue
+            izin_bas = parse_tarih(row.get("baslama"))
+            izin_bit = parse_tarih(row.get("bitis"))
+            if not izin_bas or not izin_bit:
+                continue
+            kesisim_bas = max(bas, izin_bas)
+            kesisim_bit = min(bit, izin_bit)
+            if kesisim_bas > kesisim_bit:
+                continue
+            toplam += is_gunu_hesapla(kesisim_bas, kesisim_bit, tatiller=tatiller)
+        return toplam
+
+    def donem_hesapla(self, yil: int, donem: int) -> list[dict]:
+        """Donem kaydini is kuralina gore hesaplar veya kayitli satirlari gunceller."""
+        yil_int = int(yil)
+        donem_int = int(donem)
+        donem_bas, donem_bit = self.donem_tarih_araligi(yil_int, donem_int)
+
+        if donem_bit < self.FHSZ_ESIK:
+            raise ValueError("26.04.2022 oncesi donemler icin FHSZ hesaplanamaz.")
+
+        hesap_bas = max(donem_bas, self.FHSZ_ESIK)
+        tatiller = self._tatil_seti(hesap_bas, donem_bit)
+
+        kayitli = self.donem_listele(yil_int, donem_int)
+        kayit_map: dict[str, dict] = {
+            str(r.get("personel_id") or ""): r for r in kayitli if r.get("personel_id")
+        }
+
+        rows: list[dict] = []
+        personeller = self._p_repo.listele(aktif_only=False)
+        for p in personeller:
+            pid = str(p.get("id") or "").strip()
+            if not pid:
+                continue
+            if not self._personel_uygun_mu(p):
+                continue
+
+            aylik_gun = self._personel_donem_is_gunu(p, hesap_bas, donem_bit, tatiller)
+            if aylik_gun <= 0:
+                continue
+
+            mevcut = kayit_map.get(pid, {})
+            kosul = str(mevcut.get("calisma_kosulu") or "").strip().upper()
+            if kosul not in {"A", "B"}:
+                kosul = "A" if int(p.get("sua_hakki") or 0) == 1 else "B"
+
+            izin_gun = int(mevcut.get("izin_gun") or 0)
+            if izin_gun <= 0:
+                izin_gun = self._izin_kesisim_gun_hesapla(pid, hesap_bas, donem_bit, tatiller)
+
+            fiili_saat = self.fiili_saat_hesapla(aylik_gun, izin_gun, kosul)
+            rows.append(
+                {
+                    "personel_id": pid,
+                    "tc_kimlik": str(p.get("tc_kimlik") or ""),
+                    "ad_soyad": f"{p.get('ad') or ''} {p.get('soyad') or ''}".strip(),
+                    "gorev_yeri": str(p.get("gorev_yeri_ad") or ""),
+                    "calisma_kosulu": kosul,
+                    "aylik_gun": aylik_gun,
+                    "izin_gun": izin_gun,
+                    "fiili_saat": fiili_saat,
+                    "notlar": str(mevcut.get("notlar") or ""),
+                }
+            )
+
+        rows.sort(key=lambda r: str(r.get("ad_soyad") or "").lower())
+        return rows
+
+    @staticmethod
     def fiili_saat_hesapla(aylik_gun: int, izin_gun: int, kosul: str) -> float:
         """Kosul A icin fiili saat hesaplar; kosul B icin 0 doner."""
-        kos = str(kosul or "").strip().upper()
-        if kos != "A":
-            return 0.0
-        net_gun = max(0, int(aylik_gun or 0) - int(izin_gun or 0))
-        return float(net_gun) * FhszService.SAAT_KATSAYI
+        return hesap_fiili_saat(aylik_gun, izin_gun, kosul, saat_katsayi=FhszService.SAAT_KATSAYI)
 
     def donem_listele(self, yil: int, donem: int) -> list[dict]:
         """Kayitli donem satirlarini personel detaylariyla getirir."""
         return self._repo.listele(yil=int(yil), donem=int(donem))
+
+    def personel_kayitlari_listele(self, personel_id: str) -> list[dict]:
+        """Personelin kayitli FHSZ satirlarini salt-okunur liste olarak getirir."""
+        pid = str(personel_id or "").strip()
+        if not pid:
+            return []
+
+        rows = self._repo.listele(personel_id=pid)
+        rows.sort(key=lambda r: (int(r.get("yil") or 0), int(r.get("donem") or 0)), reverse=True)
+        return rows
 
     def donem_varsayilan_grid(self) -> list[dict]:
         """Kayit yoksa aktif personel icin varsayilan satirlar olusturur."""
@@ -69,23 +198,8 @@ class FhszService:
         return rows
 
     def donem_getir_veya_olustur(self, yil: int, donem: int) -> list[dict]:
-        mevcut = self.donem_listele(yil, donem)
-        if mevcut:
-            return [
-                {
-                    "personel_id": str(r.get("personel_id") or ""),
-                    "tc_kimlik": str(r.get("tc_kimlik") or ""),
-                    "ad_soyad": f"{r.get('ad') or ''} {r.get('soyad') or ''}".strip(),
-                    "gorev_yeri": str(r.get("gorev_yeri_ad") or ""),
-                    "calisma_kosulu": str(r.get("calisma_kosulu") or "B"),
-                    "aylik_gun": int(r.get("aylik_gun") or 0),
-                    "izin_gun": int(r.get("izin_gun") or 0),
-                    "fiili_saat": float(r.get("fiili_saat") or 0.0),
-                    "notlar": str(r.get("notlar") or ""),
-                }
-                for r in mevcut
-            ]
-        return self.donem_varsayilan_grid()
+        # Geriye donuk uyumluluk: eski arayuzlar bu metodu kullaniyor.
+        return self.donem_hesapla(yil, donem)
 
     def donem_kaydet(self, yil: int, donem: int, satirlar: list[dict]) -> int:
         """Donem satirlarini eskiyi silip yeniden yazar."""
@@ -207,22 +321,8 @@ class FhszService:
         donem_bas: datetime,
         donem_bit: datetime,
     ) -> int:
-        """Donem aralığında personelin kaç gün izni var hesaplar."""
-        try:
-            cursor = self._db.conn.execute(
-                """
-                SELECT COUNT(*) as gun_sayisi
-                FROM izin
-                WHERE personel_id = ?
-                  AND baslama_tarihi <= ?
-                  AND bitis_tarihi >= ?
-                  AND durum != 'iptal'
-                """,
-                (personel_id, donem_bit.strftime("%Y-%m-%d"), donem_bas.strftime("%Y-%m-%d")),
-            )
-            row = cursor.fetchone()
-            if row:
-                return int(row[0]) or 0
-        except Exception:
-            pass
-        return 0
+        """Donem araliginda izin kayitlarinin is gunu kesisimini hesaplar."""
+        bas = donem_bas.date() if isinstance(donem_bas, datetime) else donem_bas
+        bit = donem_bit.date() if isinstance(donem_bit, datetime) else donem_bit
+        tatiller = self._tatil_seti(bas, bit)
+        return self._izin_kesisim_gun_hesapla(personel_id, bas, bit, tatiller)
