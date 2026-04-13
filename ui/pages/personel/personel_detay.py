@@ -257,11 +257,6 @@ class PersonelDetayPage(PersonelEklePage):
             cancel_btn.setToolTip("Iptal")
             cancel_btn.setIcon(ic("x", size=16, color=T.text2))
             cancel_btn.setVisible(True)
-            lbl.setText("Duzenleniyor")
-            lbl.setStyleSheet(
-                f"color:{T.green2};font-size:10px;padding:2px 8px;"
-                f"background:{T.overlay_low};border:1px solid {T.green2};border-radius:9px;"
-            )
             frame.setStyleSheet(
                 f"QFrame{{background:{T.bg1};border:1px solid {T.accent2};border-radius:{T.radius}px;}}"
             )
@@ -271,11 +266,6 @@ class PersonelDetayPage(PersonelEklePage):
         btn.setIcon(ic("edit", size=16, color=T.text2))
         btn.setStyleSheet("")
         cancel_btn.setVisible(False)
-        lbl.setText("Salt-okunur")
-        lbl.setStyleSheet(
-            f"color:{T.text3};font-size:10px;padding:2px 8px;"
-            f"background:{T.overlay_low};border:1px solid {T.border};border-radius:9px;"
-        )
         frame.setStyleSheet(
             f"QFrame{{background:{T.bg1};border:1px solid {T.border};border-radius:{T.radius}px;}}"
         )

@@ -132,6 +132,14 @@
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
     },
     {
+      "id": "import_merkezi",
+      "label": "Toplu Import",
+      "icon": "download",
+      "bolum": "sistem",
+      "sira": 25,
+      "page_cls": "ui.pages.imports.import_center.ImportCenterPage"
+    },
+    {
       "id": "ayarlar",
       "label": "Yönetim",
       "icon": "ayarlar",
