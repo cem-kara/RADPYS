@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from PySide6.QtWidgets import QLabel, QTabWidget, QVBoxLayout, QWidget
 
+from ui.pages.imports.devir_import_page import DevirImportPage
+from ui.pages.imports.izin_import_page import IzinImportPage
 from ui.pages.imports.personel_import_page import PersonelImportPage
 
 
@@ -19,6 +21,8 @@ class ImportCenterPage(QWidget):
 
         tabs = QTabWidget(self)
         tabs.addTab(PersonelImportPage(db=self._db), "Personel")
+        tabs.addTab(IzinImportPage(db=self._db), "Izin")
+        tabs.addTab(DevirImportPage(db=self._db), "Izin Devir / Bakiye")
 
         placeholder = QWidget(self)
         p_lay = QVBoxLayout(placeholder)

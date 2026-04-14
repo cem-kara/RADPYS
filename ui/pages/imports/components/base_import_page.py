@@ -2,6 +2,7 @@
 """Import sayfalari icin ortak iskelet UI."""
 from __future__ import annotations
 
+from collections import Counter
 from typing import Optional
 
 from PySide6.QtCore import Qt
@@ -40,6 +41,7 @@ class BaseImportPage(QWidget):
         self._dosya_yolu: Optional[str] = None
         self._onizleme_satirlari = []
         self._esleme_combo: dict[str, QComboBox] = {}
+        self._son_import_sonucu = None
 
         self._kur_ui()
 
@@ -87,10 +89,15 @@ class BaseImportPage(QWidget):
         self._btn_aktar.setEnabled(False)
         self._btn_aktar.clicked.connect(self._aktar)
 
+        self._btn_hata_raporu = QPushButton("Hata Raporu Kaydet")
+        self._btn_hata_raporu.setEnabled(False)
+        self._btn_hata_raporu.clicked.connect(self._hata_raporu_kaydet)
+
         btn_lay.addWidget(self._lbl_dosya, 1)
         btn_lay.addWidget(self._btn_sec)
         btn_lay.addWidget(self._btn_onizle)
         btn_lay.addWidget(self._btn_aktar)
+        btn_lay.addWidget(self._btn_hata_raporu)
         root.addLayout(btn_lay)
 
         self._esleme_kart = QFrame(self)
@@ -252,10 +259,65 @@ class BaseImportPage(QWidget):
             return
         try:
             sonuc = self._svc.import_et(self._df, self._harita, self._konfig_obj, self._db)
+            self._son_import_sonucu = sonuc
+            self._onizleme_satirlari = list(sonuc.satirlar)
+            self._tablo_doldur()
+
+            self._btn_hata_raporu.setEnabled(sonuc.hatali > 0)
             tur = "success" if sonuc.hatali == 0 else "warning"
+            ozet = self._hata_ozeti(sonuc)
+            mesaj = f"Aktarim tamamlandi. Basarili={sonuc.basarili}, Hatali={sonuc.hatali}"
+            if ozet:
+                mesaj = f"{mesaj} | En sik hatalar: {ozet}"
             self._alert.goster(
-                f"Aktarim tamamlandi. Basarili={sonuc.basarili}, Hatali={sonuc.hatali}",
+                mesaj,
                 tur,
             )
         except Exception as exc:
             self._alert.goster(str(exc), "danger")
+
+    @staticmethod
+    def _hata_ozeti(sonuc) -> str:
+        if not sonuc or int(getattr(sonuc, "hatali", 0)) <= 0:
+            return ""
+        sayac = Counter(
+            str(s.hata_mesaji or "Bilinmeyen hata")
+            for s in sonuc.satirlar
+            if not s.basarili
+        )
+        parcalar = [f"{mesaj} ({adet})" for mesaj, adet in sayac.most_common(3)]
+        return " | ".join(parcalar)
+
+    def _hata_raporu_kaydet(self) -> None:
+        sonuc = self._son_import_sonucu
+        if not sonuc or int(getattr(sonuc, "hatali", 0)) == 0:
+            self._alert.goster("Kaydedilecek hata bulunmuyor.", "info")
+            return
+
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Hata Raporunu Kaydet",
+            "import_hata_raporu.csv",
+            "CSV Dosyasi (*.csv)",
+        )
+        if not path:
+            return
+
+        alanlar = [a.ad for a in self._konfig_obj.alanlar]
+        try:
+            with open(path, "w", encoding="utf-8", newline="") as f:
+                basliklar = ["satir", *alanlar, "hata"]
+                f.write(";".join(basliklar) + "\n")
+
+                for satir in sonuc.satirlar:
+                    if satir.basarili:
+                        continue
+                    values = [str(satir.satir_no)]
+                    values.extend(str(satir.veri.get(a, "") or "") for a in alanlar)
+                    values.append(str(satir.hata_mesaji or ""))
+                    temiz = [v.replace(";", ",").replace("\n", " ") for v in values]
+                    f.write(";".join(temiz) + "\n")
+
+            self._alert.goster(f"Hata raporu kaydedildi: {path}", "success")
+        except Exception as exc:
+            self._alert.goster(f"Hata raporu kaydedilemedi: {exc}", "danger")

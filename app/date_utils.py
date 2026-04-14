@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Iterable
 
 from app.config import TARIH_FORMAT, TARIH_UI
@@ -14,7 +14,16 @@ KNOWN_DATE_FORMATS = (
     "%Y/%m/%d",
     "%d-%m-%Y",
     "%Y.%m.%d",
+    "%Y-%m-%d %H:%M:%S",
+    "%Y-%m-%d %H:%M",
+    "%Y-%m-%d %H:%M:%S.%f",
+    "%d.%m.%Y %H:%M:%S",
+    "%d.%m.%Y %H:%M",
+    "%Y-%m-%dT%H:%M:%S",
+    "%Y-%m-%dT%H:%M:%S.%f",
 )
+
+_EXCEL_EPOCH = date(1899, 12, 30)
 
 
 def parse_date(value) -> date | None:
@@ -29,6 +38,14 @@ def parse_date(value) -> date | None:
     text = str(value).strip()
     if not text:
         return None
+
+    # Excel serial date values are often read as numeric or numeric-like strings.
+    try:
+        serial = float(text)
+        if 1 <= serial <= 100000:
+            return _EXCEL_EPOCH + timedelta(days=int(serial))
+    except (TypeError, ValueError):
+        pass
 
     for fmt in KNOWN_DATE_FORMATS:
         try:

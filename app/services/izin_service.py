@@ -24,6 +24,7 @@ from app.config import (
 )
 from app.date_utils import parse_date, to_ui_date
 from app.db.database import Database
+from app.db.repos.izin_devir_repo import IzinDevirRepo
 from app.db.repos.izin_repo import IzinRepo
 from app.db.repos.lookup_repo import LookupRepo
 from app.db.repos.personel_repo import PersonelRepo
@@ -55,9 +56,10 @@ class IzinService:
         )
 
     def __init__(self, db: Database):
-        self._repo   = IzinRepo(db)
-        self._p_repo = PersonelRepo(db)
-        self._lookup = LookupRepo(db)
+        self._repo       = IzinRepo(db)
+        self._p_repo     = PersonelRepo(db)
+        self._lookup     = LookupRepo(db)
+        self._devir_repo = IzinDevirRepo(db)
 
     # ── Sorgular ──────────────────────────────────────────────────
 
@@ -120,48 +122,86 @@ class IzinService:
         """
         Yıllık izin bakiyesini hesaplar.
 
+        Önce izin_devir tablosuna bakar; kayıt varsa oradaki
+        hak_gun ve devir_gun kullanılır. Kayıt yoksa memuriyet
+        süresinden algoritmik hesap yapılır.
+
         Returns:
             {
-                "hak":        int  — yıllık hak (gün)
+                "hak":     int  — yıllık hak (gün)
+                "devir":   int  — devir gün
+                "toplam":  int  — hak + devir
                 "kullanilan": int  — o yıl kullanılan (aktif kayıtlar)
-                "kalan":      int  — kalan = hak - kullanılan
+                "kalan":   int  — toplam - kullanılan
             }
         """
         p = self._p_repo.getir(personel_id)
         if not p:
             raise KayitBulunamadi(f"Personel bulunamadı: {personel_id}")
-        hak = int(self.yillik_hak_hesapla(p.get("memuriyet_baslama")))
+
+        devir_kayit = self._devir_repo.getir(personel_id, yil)
+        if devir_kayit:
+            hak   = int(devir_kayit.get("hak_gun") or 0)
+            devir = int(devir_kayit.get("devir_gun") or 0)
+        else:
+            hak   = int(self.yillik_hak_hesapla(p.get("memuriyet_baslama")))
+            devir = 0
+
+        toplam = hak + devir
         yillik_aktifler = [
             r for r in self._repo.listele(personel_id=personel_id, yil=yil, durum="aktif")
             if self._izin_turu_norm(r.get("tur")) == "yillik izin"
         ]
         kullanilan = sum(int(r.get("gun") or 0) for r in yillik_aktifler)
         return {
-            "hak": hak,
+            "hak":        hak,
+            "devir":      devir,
+            "toplam":     toplam,
             "kullanilan": kullanilan,
-            "kalan": max(0, hak - kullanilan),
+            "kalan":      max(0, toplam - kullanilan),
         }
 
     # ── Yazma ──────────────────────────────────────────────────────
+
+    def _ekle_ortak(
+        self,
+        veri: dict,
+        *,
+        limit_kontrol: bool,
+        pasif_guncelle: bool,
+    ) -> str:
+        personel_id = str(veri.get("personel_id") or "").strip()
+        tur = str(veri.get("tur") or "").strip()
+        gun = int(veri.get("gun") or 0)
+        baslama = str(veri.get("baslama") or "").strip()
+
+        if limit_kontrol:
+            self.validate_izin_sure_limit(personel_id, tur, gun, baslama)
+
+        izin_id = izin_ekle.execute(self._repo, veri)
+        if pasif_guncelle and self.should_set_pasif(tur, gun):
+            personel = self._p_repo.getir(personel_id)
+            if personel and str(personel.get("durum") or "") != "ayrildi":
+                self._p_repo.guncelle(personel_id, {"durum": "pasif"})
+        return izin_id
 
     def ekle(self, veri: dict) -> str:
         """
         Yeni izin kaydı ekler.
         Raises: DogrulamaHatasi, CakismaHatasi
         """
-        personel_id = str(veri.get("personel_id") or "").strip()
-        tur = str(veri.get("tur") or "").strip()
-        gun = int(veri.get("gun") or 0)
-        baslama = str(veri.get("baslama") or "").strip()
+        return self._ekle_ortak(veri, limit_kontrol=True, pasif_guncelle=True)
 
-        self.validate_izin_sure_limit(personel_id, tur, gun, baslama)
+    def ekle_arsiv(self, veri: dict) -> str:
+        """
+        Geçmiş toplu veri aktarımı için izin kaydı ekler.
 
-        izin_id = izin_ekle.execute(self._repo, veri)
-        if self.should_set_pasif(tur, gun):
-            personel = self._p_repo.getir(personel_id)
-            if personel and str(personel.get("durum") or "") != "ayrildi":
-                self._p_repo.guncelle(personel_id, {"durum": "pasif"})
-        return izin_id
+        Not:
+            - Yıllık/şua hak limiti kontrolü uygulanmaz.
+            - Pasif durum güncellemesi yapılmaz.
+            - Zorunlu alan ve tarih çakışma kontrolleri yine uygulanır.
+        """
+        return self._ekle_ortak(veri, limit_kontrol=False, pasif_guncelle=False)
 
     def iptal(self, pk: str) -> None:
         """

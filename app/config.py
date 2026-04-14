@@ -57,6 +57,22 @@ class LookupKategori:
     BELGE_TUR      = "belge_tur"
     NOBET_HEDEF    = "nobet_hedef_tipi"
 
+
+class LookupPolitika:
+    STRICT = "strict"
+    REVIEW = "review"
+    PERMISSIVE = "permissive"
+
+
+LOOKUP_DOGRULAMA_POLITIKALARI: dict[str, str] = {
+    LookupKategori.IZIN_TUR: LookupPolitika.STRICT,
+    LookupKategori.HIZMET_SINIFI: LookupPolitika.STRICT,
+    LookupKategori.KADRO_UNVANI: LookupPolitika.STRICT,
+    LookupKategori.UZMANLIK: LookupPolitika.STRICT,
+    LookupKategori.BELGE_TUR: LookupPolitika.STRICT,
+    LookupKategori.NOBET_HEDEF: LookupPolitika.STRICT,
+}
+
 # ── RBAC ──────────────────────────────────────────────────────────
 RBAC_ROLLER: tuple[str, ...] = ("admin", "yonetici", "kullanici", "operator")
 

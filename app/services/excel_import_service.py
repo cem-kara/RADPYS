@@ -73,9 +73,25 @@ def alanlar_tam_listesi(konfig: ImportKonfig) -> list[AlanTanimi]:
 class ExcelImportService:
     """Excel import işlemlerinin ortak çekirdeği."""
 
+    _NORM_CHAR_MAP = str.maketrans({
+        "ç": "c",
+        "Ç": "c",
+        "ğ": "g",
+        "Ğ": "g",
+        "ı": "i",
+        "İ": "i",
+        "ö": "o",
+        "Ö": "o",
+        "ş": "s",
+        "Ş": "s",
+        "ü": "u",
+        "Ü": "u",
+    })
+
     @staticmethod
     def _norm_key(text: str) -> str:
-        return "".join(ch.lower() for ch in str(text or "") if ch.isalnum())
+        normalized = str(text or "").translate(ExcelImportService._NORM_CHAR_MAP)
+        return "".join(ch.lower() for ch in normalized if ch.isalnum())
 
     def excel_oku(self, dosya_yolu: str):
         try:

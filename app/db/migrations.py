@@ -22,7 +22,7 @@ from app.db.database import Database
 logger = logging.getLogger("radpys.db.migration")
 
 # Hedef şema versiyonu — her migration eklenince artır
-HEDEF_VERSIYON = 6
+HEDEF_VERSIYON = 8
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -507,6 +507,48 @@ def _v6(db: Database) -> None:
     logger.info("v6: tatil.yarim_gun kolonu eklendi.")
 
 
+def _v7(db: Database) -> None:
+    """v7 — İzin devir/bakiye referans tablosu (izin_devir)."""
+    db.execute("""
+    CREATE TABLE IF NOT EXISTS izin_devir (
+        id          TEXT PRIMARY KEY,
+        personel_id TEXT NOT NULL REFERENCES personel(id),
+        yil         INTEGER NOT NULL,
+        hak_gun     INTEGER NOT NULL DEFAULT 0 CHECK (hak_gun >= 0),
+        devir_gun   INTEGER NOT NULL DEFAULT 0 CHECK (devir_gun >= 0),
+        olusturuldu TEXT NOT NULL DEFAULT (date('now')),
+        UNIQUE (personel_id, yil)
+    )
+    """)
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_izin_devir_personel "
+        "ON izin_devir(personel_id, yil)"
+    )
+    logger.info("v7: izin_devir tablosu olusturuldu.")
+
+
+def _v8(db: Database) -> None:
+    """v8 — Lookup alias/esanlamli esleme tablosu (lookup_alias)."""
+    db.execute("""
+    CREATE TABLE IF NOT EXISTS lookup_alias (
+        id          TEXT PRIMARY KEY,
+        kategori    TEXT NOT NULL,
+        alias       TEXT NOT NULL,
+        alias_norm  TEXT NOT NULL,
+        lookup_deger TEXT NOT NULL,
+        aktif       INTEGER NOT NULL DEFAULT 1,
+        kaynak      TEXT NOT NULL DEFAULT 'manuel',
+        olusturuldu TEXT NOT NULL DEFAULT (date('now')),
+        UNIQUE (kategori, alias_norm)
+    )
+    """)
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_lookup_alias_kategori "
+        "ON lookup_alias(kategori, alias_norm)"
+    )
+    logger.info("v8: lookup_alias tablosu olusturuldu.")
+
+
 def _rbac_modul_izin_seed(db: Database) -> None:
     from uuid import uuid4
     for rol_adi, izinler in _VARSAYILAN_MODUL_IZINLERI.items():
@@ -526,7 +568,7 @@ def _rbac_modul_izin_seed(db: Database) -> None:
 
 # ── Migration kaydı ───────────────────────────────────────────────
 
-_MIGRATIONS = {1: _v1, 2: _v2, 3: _v3, 4: _v4, 5: _v5, 6: _v6}   # Yeni migration eklenince buraya da ekle
+_MIGRATIONS = {1: _v1, 2: _v2, 3: _v3, 4: _v4, 5: _v5, 6: _v6, 7: _v7, 8: _v8}   # Yeni migration eklenince buraya da ekle
 
 
 # ══════════════════════════════════════════════════════════════════
