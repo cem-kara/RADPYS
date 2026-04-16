@@ -203,6 +203,22 @@ class IzinService:
         """
         return self._ekle_ortak(veri, limit_kontrol=False, pasif_guncelle=False)
 
+    def guncelle_veya_ekle_arsiv(self, veri: dict) -> str:
+        """
+        Düzeltme upload'u için upsert:
+        - Aynı (personel_id, tur, baslama) kaydı varsa günceller.
+        - Yoksa yeni arşiv kaydı olarak ekler.
+        """
+        personel_id = str(veri.get("personel_id") or "").strip()
+        tur         = str(veri.get("tur") or "").strip()
+        baslama     = str(veri.get("baslama") or "").strip()
+
+        mevcut = self._repo.bul_personel_tur_baslama(personel_id, tur, baslama)
+        if mevcut:
+            self._repo.guncelle(mevcut["id"], veri)
+            return mevcut["id"]
+        return self.ekle_arsiv(veri)
+
     def iptal(self, pk: str) -> None:
         """
         İzni iptal eder.

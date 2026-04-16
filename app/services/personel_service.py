@@ -121,3 +121,28 @@ class PersonelService:
             ayrilik_tarihi,
             ayrilik_nedeni,
         )
+
+    def guncelle_veya_ekle_import(self, veri: dict) -> str:
+        """
+        Import düzeltme akışı için upsert davranışı sağlar.
+
+        - TC ile kayıt varsa personeli günceller.
+        - TC ile kayıt yoksa yeni personel ekler.
+        """
+        tc = str(veri.get("tc_kimlik") or "").strip()
+        mevcut = self._repo.tc_ile_getir(tc) if tc else None
+        if mevcut:
+            personel_id = str(mevcut.get("id") or "").strip()
+            payload = dict(veri)
+
+            # Boş gönderilen alanlar mevcut değeri silmesin; sadece dolu alanları güncelle.
+            payload = {
+                k: v
+                for k, v in payload.items()
+                if str(v or "").strip()
+            }
+            if payload:
+                personel_guncelle(self._repo, self._gy_repo, personel_id, payload)
+            return personel_id
+
+        return personel_ekle(self._repo, self._gy_repo, veri)

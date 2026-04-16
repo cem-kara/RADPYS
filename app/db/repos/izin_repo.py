@@ -103,6 +103,32 @@ class IzinRepo(BaseRepo):
         )
         return pk
 
+    def bul_personel_tur_baslama(
+        self,
+        personel_id: str,
+        tur: str,
+        baslama: str,
+    ) -> dict | None:
+        """Aynı personel + tür + başlama tarihine sahip aktif/arşiv kayıt."""
+        return self._db.fetchone(
+            "SELECT * FROM izin WHERE personel_id=? AND tur=? AND baslama=? AND durum != 'iptal'",
+            (personel_id, tur, baslama),
+        )
+
+    def guncelle(self, pk: str, veri: dict) -> None:
+        """Varolan izin kaydını günceller (kaynak: düzeltme upload'u)."""
+        self._db.execute(
+            """UPDATE izin
+               SET gun=?, bitis=?, aciklama=?
+               WHERE id=?""",
+            (
+                veri["gun"],
+                veri["bitis"],
+                veri.get("aciklama") or None,
+                pk,
+            ),
+        )
+
     def iptal(self, pk: str) -> None:
         self._db.execute(
             "UPDATE izin SET durum='iptal' WHERE id=?", (pk,)

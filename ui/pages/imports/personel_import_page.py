@@ -10,7 +10,17 @@ from ui.pages.imports.components.base_import_page import BaseImportPage
 
 
 def _tc_v(v):
-    return validate_tc_kimlik_no(v), "Gecersiz TC Kimlik No"
+    text = _tc_norm(v)
+    if not text:
+        return False, "TC Kimlik No zorunlu"
+    return validate_tc_kimlik_no(text), "Gecersiz TC Kimlik No"
+
+
+def _tc_norm(v) -> str:
+    raw = str(v or "").strip()
+    if raw.endswith(".0"):
+        raw = raw[:-2]
+    return "".join(ch for ch in raw if ch.isdigit())
 
 
 def _mail_v(v):
@@ -26,6 +36,8 @@ def _tel_v(v):
 
 
 def _normalize(kayit: dict) -> dict:
+    kayit["tc_kimlik"] = _tc_norm(kayit.get("tc_kimlik"))
+
     ad_soyad = str(kayit.get("ad_soyad") or "").strip()
     if ad_soyad and (not str(kayit.get("ad") or "").strip() or not str(kayit.get("soyad") or "").strip()):
         parcalar = [p for p in ad_soyad.split() if p]
@@ -48,14 +60,26 @@ def _normalize(kayit: dict) -> dict:
     return kayit
 
 
+class _PersonelImportAdapter:
+    def __init__(self, db):
+        self._svc = PersonelService(db)
+
+    def ekle(self, kayit: dict) -> str:
+        return self._svc.ekle(kayit)
+
+    def guncelle_veya_ekle_import(self, kayit: dict) -> str:
+        return self._svc.guncelle_veya_ekle_import(kayit)
+
+
 def _personel_servis(db):
-    return PersonelService(db)
+    return _PersonelImportAdapter(db)
 
 
 KONFIG = ImportKonfig(
     baslik="Toplu Personel Ice Aktarma",
     servis_fabrika=_personel_servis,
     servis_metod="ekle",
+    servis_metod_upsert="guncelle_veya_ekle_import",
     tablo_adi="personel",
     normalize_fn=_normalize,
     alanlar=[

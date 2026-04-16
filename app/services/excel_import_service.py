@@ -46,6 +46,7 @@ class ImportKonfig:
     alanlar: list[AlanTanimi]
     normalize_fn: Callable[[dict], dict] | None = None
     duplicate: DuplicateKontrol | None = None
+    servis_metod_upsert: str | None = None
 
 
 @dataclass(slots=True)
@@ -54,6 +55,7 @@ class SatirSonucu:
     veri: dict
     basarili: bool
     hata_mesaji: str = ""
+    hata_alani: str = ""        # hangi alan sorunlu (biliniyorsa)
     duzeltilmis_veri: dict | None = None
 
 
@@ -99,6 +101,10 @@ class ExcelImportService:
         except Exception as exc:
             raise RuntimeError("Excel import için pandas kurulmalı.") from exc
 
+        yol = str(dosya_yolu).lower()
+        if yol.endswith(".csv"):
+            # Hata dosyaları UTF-8 BOM ile kaydedilir; ayırıcı ";"
+            return pd.read_csv(dosya_yolu, sep=";", encoding="utf-8-sig", dtype=str)
         return pd.read_excel(dosya_yolu)
 
     def sutun_haritasi_olustur(self, df_kolonlari: list[str], konfig: ImportKonfig) -> dict[str, str]:
@@ -165,10 +171,22 @@ class ExcelImportService:
 
         return satirlar
 
-    def import_et(self, df, harita: dict[str, str], konfig: ImportKonfig, db: Any) -> ImportSonucu:
+    def import_et(
+        self,
+        df,
+        harita: dict[str, str],
+        konfig: ImportKonfig,
+        db: Any,
+        *,
+        upsert: bool = False,
+    ) -> ImportSonucu:
         satirlar = self.satir_onizleme(df, harita, konfig)
         servis = konfig.servis_fabrika(db)
-        metod = getattr(servis, konfig.servis_metod)
+
+        metod_adi = konfig.servis_metod
+        if upsert and konfig.servis_metod_upsert:
+            metod_adi = konfig.servis_metod_upsert
+        metod = getattr(servis, metod_adi)
 
         basarili = 0
         for satir in satirlar:
@@ -183,7 +201,13 @@ class ExcelImportService:
                 basarili += 1
             except Exception as exc:
                 satir.basarili = False
-                satir.hata_mesaji = str(exc)
+                mesaj = str(exc)
+                satir.hata_mesaji = mesaj
+                # Hata mesajından alan tespiti — "xxx: <alan_adi>" kalıbı
+                for alan in konfig.alanlar:
+                    if alan.etiket.lower() in mesaj.lower() or alan.ad.lower() in mesaj.lower():
+                        satir.hata_alani = alan.etiket
+                        break
 
         toplam = len(satirlar)
         return ImportSonucu(

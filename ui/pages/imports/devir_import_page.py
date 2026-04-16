@@ -84,6 +84,9 @@ class _DevirImportAdapter:
 
         return self._devir_repo.kaydet(personel_id, yil, hak_gun, devir_gun)
 
+    def guncelle_veya_ekle(self, kayit: dict) -> str:
+        return self.ekle(kayit)
+
 
 def _devir_servis(db):
     return _DevirImportAdapter(db)
@@ -93,6 +96,7 @@ KONFIG = ImportKonfig(
     baslik="Izin Devir / Bakiye Referans Aktarma",
     servis_fabrika=_devir_servis,
     servis_metod="ekle",
+    servis_metod_upsert="guncelle_veya_ekle",
     tablo_adi="izin_devir",
     normalize_fn=_normalize,
     alanlar=[

@@ -24,9 +24,19 @@ class ImportCenterPage(QWidget):
         tabs.addTab(IzinImportPage(db=self._db), "Izin")
         tabs.addTab(DevirImportPage(db=self._db), "Izin Devir / Bakiye")
 
-        placeholder = QWidget(self)
-        p_lay = QVBoxLayout(placeholder)
-        p_lay.addWidget(QLabel("Diger import sekmeleri ikinci adimda eklenecek."))
-        tabs.addTab(placeholder, "Yakinda")
+        rehber = QWidget(self)
+        r_lay = QVBoxLayout(rehber)
+        bilgi = QLabel(
+            "Standart Import Akisi:\n"
+            "1) Excel/CSV dosyasini sec\n"
+            "2) Sutun eslestirmeyi kontrol et\n"
+            "3) Onizle ve aktar\n"
+            "4) Hata varsa: Hata Dosyasi Kaydet veya Hatali Kayitlari Duzenle\n"
+            "5) Duzeltme dosyasi tekrar yuklendiginda sistem guncelle/ekle moduna gecer"
+        )
+        bilgi.setWordWrap(True)
+        r_lay.addWidget(bilgi)
+        r_lay.addStretch(1)
+        tabs.addTab(rehber, "Import Rehberi")
 
         root.addWidget(tabs)

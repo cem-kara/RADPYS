@@ -158,6 +158,22 @@ class _IzinImportAdapter:
         }
         return self._izin.ekle_arsiv(payload)
 
+    def guncelle_veya_ekle_arsiv(self, kayit: dict) -> str:
+        personel_id = self._personel_id_bul(kayit)
+        tur = str(kayit.get("tur") or "").strip()
+        baslama = str(kayit.get("baslama") or "").strip()
+        if not baslama:
+            raise DogrulamaHatasi("Baslama tarihi zorunludur.")
+
+        payload = {
+            "personel_id": personel_id,
+            "tur": self._izin_tur_norm(tur),
+            "baslama": baslama,
+            "gun": self._gun_hesapla(kayit),
+            "aciklama": str(kayit.get("aciklama") or "").strip() or None,
+        }
+        return self._izin.guncelle_veya_ekle_arsiv(payload)
+
 
 def _izin_servis_fabrikasi(otomatik_ekle: bool):
     def _fabrika(db):
@@ -170,6 +186,7 @@ def _konfig_olustur(otomatik_ekle: bool) -> ImportKonfig:
         baslik="Toplu Izin Ice Aktarma",
         servis_fabrika=_izin_servis_fabrikasi(otomatik_ekle),
         servis_metod="ekle",
+        servis_metod_upsert="guncelle_veya_ekle_arsiv",
         tablo_adi="izin",
         normalize_fn=_normalize,
         alanlar=[

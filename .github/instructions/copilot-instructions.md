@@ -738,6 +738,99 @@ except Exception as exc:
 
 ---
 
+## 10. IMPORT STANDARTLARI (ZORUNLU)
+
+Bu standart, **bundan sonraki tum import sayfalari** icin zorunludur.
+
+### 10.1 Tek Altyapi Kurali
+
+- Tum import sayfalari `BaseImportPage` uzerinden yazilir:
+    `ui/pages/imports/components/base_import_page.py`
+- Ortak import cekirdegi olarak sadece `ExcelImportService` kullanilir:
+    `app/services/excel_import_service.py`
+- Hata duzeltme dialogu olarak sadece `HataDuzeltmeDialog` kullanilir:
+    `ui/pages/imports/components/hata_duzeltme_dialog.py`
+
+### 10.2 Zorunlu ImportKonfig Sozlesmesi
+
+Her yeni importta `ImportKonfig` asagidaki sozlesmeye uygun tanimlanir:
+
+- `servis_metod`: ilk yuklemede normal ekleme metodu
+- `servis_metod_upsert`: ikinci yukleme/duzeltme dosyasi icin guncelle-veya-ekle metodu
+- `normalize_fn`: tarih/TC/metin normallestirmesi bu adimda yapilir
+
+Ornek:
+
+```python
+ImportKonfig(
+        baslik="...",
+        servis_fabrika=_servis,
+        servis_metod="ekle",
+        servis_metod_upsert="guncelle_veya_ekle_import",
+        tablo_adi="...",
+        normalize_fn=_normalize,
+        alanlar=[...],
+)
+```
+
+### 10.3 Hata Akisi (Dosya + Program Ici)
+
+Tum importlarda asagidaki iki yol birlikte desteklenir:
+
+1. Dosya tabanli duzeltme
+- Import sonrasi hatali satirlar `import_hata_duzeltme.csv` olarak disari alinabilir.
+- Bu dosya `__hata__` marker kolonu icerir.
+- Dosya tekrar yuklenince sistem otomatik `upsert` moduna gecer.
+
+2. Program ici duzeltme
+- Kullanici `Hatali Kayitlari Duzenle` ekraninda satir duzeltir.
+- `Yeniden Aktar` adiminda `upsert=True` ile import tekrar calisir.
+
+### 10.4 Upsert Is Kurali
+
+- Upsert mantigi **servis katmaninda** tanimlanir.
+- Repository sadece gerekli SQL metodlarini saglar (bul/guncelle/ekle).
+- UI veya import page katmaninda SQL yazilmaz.
+
+Onerilen metod isimleri:
+
+- `guncelle_veya_ekle_import`
+- `guncelle_veya_ekle_arsiv`
+- `guncelle_veya_ekle`
+
+### 10.5 Veri Guvenligi Kurali
+
+- Duzeltme importunda bos deger gelen alanlar mevcut DB degerini silmemelidir.
+- Servis tarafinda, yalnizca dolu alanlar guncellemeye alinmalidir.
+- Zorunlu alan dogrulamalari ikinci yuklemede de calismaya devam etmelidir.
+
+### 10.6 Teknik Davranis Kurali
+
+- Import dosya secicisi `xlsx/xls/csv` destekler.
+- CSV duzeltme dosyalari `utf-8-sig` + `;` ayirici ile okunur/yazilir.
+- Tarih donusumleri `app/date_utils.py` ile yapilir.
+- Turkce metin donusumleri `app/text_utils.py` ile yapilir.
+
+### 10.7 Yeni Import Gelistirme Checklist'i
+
+Yeni bir import eklendiginde Copilot su adimlari zorunlu uygular:
+
+1. `ui/pages/imports/<modul>_import_page.py` olustur ve `BaseImportPage` turet.
+2. `ImportKonfig` icinde `servis_metod_upsert` tanimla.
+3. Servis katmanina `guncelle_veya_ekle_*` metodu ekle.
+4. Gerekirse repository'ye bul/guncelle SQL metodlari ekle.
+5. `import_center.py` sekmesine ekle.
+6. Ilgili servis/import testlerini calistir (en az ilk import + duzeltme import senaryosu).
+
+### 10.8 Yasaklar (Import Icin)
+
+- `BaseImportPage` disinda sifirdan ayri import UI iskeleti yazma.
+- Hata dosyasini marker kolonsuz kaydetme.
+- Ikinci yuklemede tekrar sadece `ekle` cagirip duplicate hatalarina birakma.
+- Import katmaninda `QMessageBox` ile hata yonetimi yapma; `AlertBar` kullan.
+
+---
+
 ## 13. YARDIMCI MODÜLLER
 
 ### 13.1 `app/text_utils.py` — Türkçe Metin Formatlama
