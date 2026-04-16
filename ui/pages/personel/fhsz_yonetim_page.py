@@ -161,7 +161,7 @@ class FhszYonetimPage(QWidget):
         yl.setStyleSheet(f"color:{T.text2}; font-size:11px;")
         self._yil = QComboBox(self)
         bugun = date.today()
-        for y in range(bugun.year - 2, bugun.year + 3):
+        for y in range(2021, bugun.year + 3):
             self._yil.addItem(str(y), y)
         self._yil.setCurrentText(str(bugun.year))
         self._yil.currentIndexChanged.connect(self._donem_guncelle)

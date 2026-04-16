@@ -14,9 +14,10 @@ from __future__ import annotations
 from app.db.database import Database
 from app.db.repos.personel_repo import PersonelRepo
 from app.db.repos.lookup_repo import LookupRepo, GorevYeriRepo
-from app.exceptions import KayitBulunamadi
+from app.exceptions import DogrulamaHatasi, KayitBulunamadi
 from app.usecases.personel import personel_ekle, personel_guncelle, personel_pasife_al
 from app.config import LookupKategori
+from app.validators import parse_tarih, zorunlu
 
 
 class PersonelService:
@@ -63,6 +64,70 @@ class PersonelService:
     def say(self, durum: str | None = None) -> int:
         """Toplam veya duruma göre personel sayısı."""
         return self._repo.say(durum)
+
+    def gorev_gecmisi(self, personel_id: str) -> list[dict]:
+        """Personelin gorev yeri gecmis kayitlarini döner."""
+        self.getir(personel_id)  # Kayit yoksa standart hata davranisi
+        return self._repo.gorev_gecmisi_listele(personel_id)
+
+    def gorev_gecmisi_ekle(
+        self,
+        personel_id: str,
+        gorev_yeri_id: str,
+        baslama_tarihi: str,
+        bitis_tarihi: str | None = None,
+        aciklama: str = "",
+    ) -> str:
+        """Personel icin manuel gorev gecmisi kaydi olusturur."""
+        self.getir(personel_id)
+        zorunlu(gorev_yeri_id, "Gorev yeri")
+        zorunlu(baslama_tarihi, "Baslama tarihi")
+
+        bas = parse_tarih(baslama_tarihi)
+        if bas is None:
+            raise DogrulamaHatasi("Baslama tarihi gecersiz.")
+
+        bitis = (bitis_tarihi or "").strip() or None
+        if bitis:
+            bit = parse_tarih(bitis)
+            if bit is None:
+                raise DogrulamaHatasi("Bitis tarihi gecersiz.")
+            if bit < bas:
+                raise DogrulamaHatasi("Bitis tarihi baslama tarihinden once olamaz.")
+
+        return self._repo.gorev_gecmisi_ekle(
+            personel_id,
+            gorev_yeri_id.strip(),
+            baslama_tarihi.strip(),
+            bitis,
+            aciklama,
+        )
+
+    def gorev_gecmisi_guncelle(self, personel_id: str, kayit_id: str, veri: dict) -> None:
+        """Personelin bir gorev gecmisi kaydini gunceller."""
+        self.getir(personel_id)
+        kayit = self._repo.gorev_gecmisi_getir(kayit_id)
+        if not kayit or str(kayit.get("personel_id") or "") != str(personel_id):
+            raise KayitBulunamadi("Gorev gecmisi kaydi bulunamadi.")
+
+        payload = dict(veri or {})
+        baslama = str(payload.get("baslama_tarihi") or kayit.get("baslama_tarihi") or "").strip()
+        bitis = str(payload.get("bitis_tarihi") or "").strip()
+        if not bitis:
+            payload["bitis_tarihi"] = None
+
+        bas_tarih = parse_tarih(baslama)
+        if bas_tarih is None:
+            raise DogrulamaHatasi("Baslama tarihi gecersiz.")
+
+        if bitis:
+            bit_tarih = parse_tarih(bitis)
+            if bit_tarih is None:
+                raise DogrulamaHatasi("Bitis tarihi gecersiz.")
+            if bit_tarih < bas_tarih:
+                raise DogrulamaHatasi("Bitis tarihi baslama tarihinden once olamaz.")
+
+        self._repo.gorev_gecmisi_guncelle(kayit_id, payload)
 
     # ── Dropdown Verileri ──────────────────────────────────────────
 

@@ -51,9 +51,10 @@ class PersonelEklePage(QWidget):
 
     form_closed = Signal()
 
-    def __init__(self, db, edit_data: dict | None = None, on_saved=None, parent=None):
+    def __init__(self, db, edit_data: dict | None = None, on_saved=None, oturum: dict | None = None, parent=None):
         super().__init__(parent)
         self._db = db
+        self._oturum = oturum
         self._svc = PersonelService(db)
         self._onboarding = PersonelOnboardingService(db)
         self._edit_data = edit_data

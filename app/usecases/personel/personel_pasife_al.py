@@ -26,3 +26,4 @@ def execute(
             "ayrilik_nedeni": ayrilik_nedeni or "",
         },
     )
+    personel_repo.aktif_gorev_gecmisini_kapat(personel_id, ayrilik_tarihi)

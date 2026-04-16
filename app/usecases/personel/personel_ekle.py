@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from app.exceptions import KayitZatenVar
 from app.usecases.personel._helpers import gorev_yeri_id_bul
-from app.validators import tc_dogrula_veya_hata, zorunlu
+from app.validators import bugun, tc_dogrula_veya_hata, zorunlu
 
 
 def execute(personel_repo, gorev_yeri_repo, veri: dict) -> str:
@@ -23,4 +23,16 @@ def execute(personel_repo, gorev_yeri_repo, veri: dict) -> str:
             payload.pop("gorev_yeri_ad"),
         )
 
-    return personel_repo.ekle(payload)
+    personel_id = personel_repo.ekle(payload)
+
+    gorev_yeri_id = payload.get("gorev_yeri_id")
+    if gorev_yeri_id:
+        baslama_tarihi = str(payload.get("memuriyet_baslama") or bugun())
+        personel_repo.gorev_gecmisi_ekle(
+            personel_id,
+            str(gorev_yeri_id),
+            baslama_tarihi,
+            aciklama="Ilk atama",
+        )
+
+    return personel_id

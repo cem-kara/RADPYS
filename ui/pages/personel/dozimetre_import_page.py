@@ -360,8 +360,8 @@ class DozimetreImportPage(QWidget):
         if not isinstance(yil, int) or yil <= 0:
             self._alert.goster("PDF basligindan yil bilgisi okunamadi. Kayit durduruldu.", "danger")
             return
-        if not isinstance(periyot, int) or periyot < 1 or periyot > 4:
-            self._alert.goster("PDF basligindan periyot bilgisi okunamadi (1-4). Kayit durduruldu.", "danger")
+        if not isinstance(periyot, int) or periyot < 1:
+            self._alert.goster("PDF basligindan periyot bilgisi okunamadi (>=1). Kayit durduruldu.", "danger")
             return
 
         rapor_no = str(self._header.get("RaporNo") or "").strip()

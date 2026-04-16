@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """ui/pages/kullanici/kullanici_page.py �?" RBAC kullanici giris modulu"""
 from __future__ import annotations
 

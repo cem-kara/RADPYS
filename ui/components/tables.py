@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """ui/components/tables.py �?" Standart veri tablosu"""
 from __future__ import annotations
 from PySide6.QtWidgets import (

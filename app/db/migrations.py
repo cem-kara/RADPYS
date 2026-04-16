@@ -22,7 +22,7 @@ from app.db.database import Database
 logger = logging.getLogger("radpys.db.migration")
 
 # Hedef şema versiyonu — her migration eklenince artır
-HEDEF_VERSIYON = 8
+HEDEF_VERSIYON = 10
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -549,6 +549,120 @@ def _v8(db: Database) -> None:
     logger.info("v8: lookup_alias tablosu olusturuldu.")
 
 
+def _v9(db: Database) -> None:
+    """v9 — dozimetre.periyot kontrolünü 1-4 yerine >=1 yapar."""
+    # FK bağımlılığı nedeniyle önce child tabloyu taşıyoruz.
+    db.execute("""
+    CREATE TABLE IF NOT EXISTS dozimetre_yeni (
+        id              TEXT PRIMARY KEY,
+        personel_id     TEXT NOT NULL REFERENCES personel(id),
+        rapor_no        TEXT,
+        yil             INTEGER NOT NULL,
+        periyot         INTEGER NOT NULL CHECK (periyot >= 1),
+        periyot_adi     TEXT,
+        dozimetre_no    TEXT,
+        tur             TEXT,
+        bolge           TEXT,
+        hp10            REAL,
+        hp007           REAL,
+        durum           TEXT,
+        olusturuldu     TEXT NOT NULL DEFAULT (date('now')),
+        UNIQUE (personel_id, yil, periyot, dozimetre_no)
+    )
+    """)
+
+    db.execute("""
+    INSERT INTO dozimetre_yeni (
+        id, personel_id, rapor_no, yil, periyot, periyot_adi,
+        dozimetre_no, tur, bolge, hp10, hp007, durum, olusturuldu
+    )
+    SELECT
+        id, personel_id, rapor_no, yil, periyot, periyot_adi,
+        dozimetre_no, tur, bolge, hp10, hp007, durum, olusturuldu
+    FROM dozimetre
+    """)
+
+    db.execute("""
+    CREATE TABLE IF NOT EXISTS doz_form_yeni (
+        id              TEXT PRIMARY KEY,
+        dozimetre_id    TEXT NOT NULL REFERENCES dozimetre(id),
+        personel_id     TEXT NOT NULL REFERENCES personel(id),
+        pdf_yolu        TEXT,
+        olusturuldu     TEXT NOT NULL DEFAULT (date('now')),
+        UNIQUE (dozimetre_id)
+    )
+    """)
+
+    db.execute("""
+    INSERT INTO doz_form_yeni (id, dozimetre_id, personel_id, pdf_yolu, olusturuldu)
+    SELECT id, dozimetre_id, personel_id, pdf_yolu, olusturuldu
+    FROM doz_form
+    """)
+
+    db.execute("DROP TABLE doz_form")
+    db.execute("DROP TABLE dozimetre")
+
+    db.execute("ALTER TABLE dozimetre_yeni RENAME TO dozimetre")
+    db.execute("ALTER TABLE doz_form_yeni RENAME TO doz_form")
+
+    db.execute("CREATE INDEX IF NOT EXISTS idx_doz_personel ON dozimetre(personel_id)")
+    logger.info("v9: dozimetre periyot CHECK kısıtı >=1 olarak güncellendi.")
+
+
+def _v10(db: Database) -> None:
+    """v10 — personel gorev yeri gecmis kayit tablosu."""
+    db.execute("""
+    CREATE TABLE IF NOT EXISTS personel_gorev_gecmis (
+        id              TEXT PRIMARY KEY,
+        personel_id     TEXT NOT NULL REFERENCES personel(id),
+        gorev_yeri_id   TEXT NOT NULL REFERENCES gorev_yeri(id),
+        baslama_tarihi  TEXT NOT NULL,
+        bitis_tarihi    TEXT,
+        aciklama        TEXT,
+        olusturuldu     TEXT NOT NULL DEFAULT (date('now')),
+        guncellendi     TEXT,
+        CHECK (bitis_tarihi IS NULL OR bitis_tarihi >= baslama_tarihi),
+        UNIQUE (personel_id, gorev_yeri_id, baslama_tarihi)
+    )
+    """)
+
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_pg_gecmis_personel "
+        "ON personel_gorev_gecmis(personel_id, baslama_tarihi DESC)"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_pg_gecmis_aktif "
+        "ON personel_gorev_gecmis(personel_id, bitis_tarihi)"
+    )
+
+    # Mevcut personel verilerinden ilk gecmis kaydini olustur.
+    db.execute("""
+    INSERT INTO personel_gorev_gecmis (
+        id, personel_id, gorev_yeri_id, baslama_tarihi, bitis_tarihi, aciklama, olusturuldu
+    )
+    SELECT
+        lower(hex(randomblob(16))),
+        p.id,
+        p.gorev_yeri_id,
+        COALESCE(NULLIF(p.memuriyet_baslama, ''), NULLIF(p.olusturuldu, ''), date('now')),
+        CASE
+            WHEN p.durum = 'ayrildi' THEN NULLIF(p.ayrilik_tarihi, '')
+            ELSE NULL
+        END,
+        'v10 migration backfill',
+        date('now')
+    FROM personel p
+    WHERE p.gorev_yeri_id IS NOT NULL
+      AND NOT EXISTS (
+          SELECT 1
+          FROM personel_gorev_gecmis pg
+          WHERE pg.personel_id = p.id
+      )
+    """)
+
+    logger.info("v10: personel gorev yeri gecmis tablosu olusturuldu.")
+
+
 def _rbac_modul_izin_seed(db: Database) -> None:
     from uuid import uuid4
     for rol_adi, izinler in _VARSAYILAN_MODUL_IZINLERI.items():
@@ -568,7 +682,18 @@ def _rbac_modul_izin_seed(db: Database) -> None:
 
 # ── Migration kaydı ───────────────────────────────────────────────
 
-_MIGRATIONS = {1: _v1, 2: _v2, 3: _v3, 4: _v4, 5: _v5, 6: _v6, 7: _v7, 8: _v8}   # Yeni migration eklenince buraya da ekle
+_MIGRATIONS = {
+    1: _v1,
+    2: _v2,
+    3: _v3,
+    4: _v4,
+    5: _v5,
+    6: _v6,
+    7: _v7,
+    8: _v8,
+    9: _v9,
+    10: _v10,
+}   # Yeni migration eklenince buraya da ekle
 
 
 # ══════════════════════════════════════════════════════════════════

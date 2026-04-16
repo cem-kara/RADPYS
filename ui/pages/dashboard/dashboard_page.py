@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """ui/pages/dashboard/dashboard_page.py - Dashboard ana sayfasi."""
 from __future__ import annotations
 from PySide6.QtWidgets import (

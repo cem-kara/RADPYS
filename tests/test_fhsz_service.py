@@ -193,3 +193,47 @@ def test_donem_hesapla_yarim_gun_tatil_duser(tmp_path):
         assert row["fiili_saat"] == (float(beklenen_tam_gun) - 0.5) * 7.0
     finally:
         db.close()
+
+
+def test_donem_hesapla_birim_gecmisinden_kosul_belirler(tmp_path):
+    db = Database(tmp_path / "test.db")
+    migrate(db)
+    try:
+        psvc = PersonelService(db)
+        fsvc = FhszService(db)
+
+        gy_a = db.fetchone("SELECT id, ad FROM gorev_yeri WHERE sua_hakki = 1 ORDER BY ad LIMIT 1")
+        gy_b = db.fetchone("SELECT id, ad FROM gorev_yeri WHERE sua_hakki = 0 ORDER BY ad LIMIT 1")
+        assert gy_a is not None and gy_b is not None
+
+        pid = psvc.ekle(
+            {
+                "tc_kimlik": "14522068356",
+                "ad": "Veli",
+                "soyad": "Kaya",
+                "memuriyet_baslama": "2020-01-01",
+                "hizmet_sinifi": "Radyasyon Gorevlisi",
+                "gorev_yeri_id": gy_b["id"],
+            }
+        )
+
+        # Donem baslangici 2026-01-15 oldugu icin bu tarihte gorev yeri A olmali.
+        db.execute(
+            "UPDATE personel_gorev_gecmis SET bitis_tarihi=? WHERE personel_id=? AND bitis_tarihi IS NULL",
+            ("2026-01-14", pid),
+        )
+        db.execute(
+            "INSERT INTO personel_gorev_gecmis "
+            "(id, personel_id, gorev_yeri_id, baslama_tarihi, aciklama) "
+            "VALUES (?,?,?,?,?)",
+            ("gh1", pid, gy_a["id"], "2026-01-15", "Test gecis"),
+        )
+
+        rows = fsvc.donem_hesapla(yil=2026, donem=1)
+        row = next(r for r in rows if r["personel_id"] == pid)
+
+        assert row["calisma_kosulu"] == "A"
+        assert row["gorev_yeri"] == gy_a["ad"]
+        assert row["fiili_saat"] > 0
+    finally:
+        db.close()

@@ -16,28 +16,47 @@ class DozimetreRepo(BaseRepo):
         birim: str | None = None,
     ) -> list[dict]:
         sql = (
-            "SELECT d.*, p.ad, p.soyad, p.tc_kimlik, gy.ad AS birim "
-            "FROM dozimetre d "
-            "JOIN personel p ON p.id = d.personel_id "
-            "LEFT JOIN gorev_yeri gy ON gy.id = p.gorev_yeri_id "
-            "WHERE 1=1"
+            "WITH yil_periyot AS ("
+            "  SELECT yil, MAX(periyot) AS max_periyot"
+            "  FROM dozimetre"
+            "  GROUP BY yil"
+            "), cozum AS ("
+            "  SELECT d.*, p.ad, p.soyad, p.tc_kimlik,"
+            "  COALESCE("
+            "    (SELECT gy2.ad FROM personel_gorev_gecmis pgg"
+            "     JOIN gorev_yeri gy2 ON gy2.id = pgg.gorev_yeri_id"
+            "     WHERE pgg.personel_id = d.personel_id"
+            "       AND pgg.baslama_tarihi <= printf('%04d-%02d-15', d.yil,"
+            "           MIN(12, MAX(1, CAST(((d.periyot - 1) * 12.0 / CASE WHEN yp.max_periyot > 0 THEN yp.max_periyot ELSE 1 END) AS INTEGER) + 1)))"
+            "       AND (pgg.bitis_tarihi IS NULL"
+            "            OR pgg.bitis_tarihi >= printf('%04d-%02d-15', d.yil,"
+            "               MIN(12, MAX(1, CAST(((d.periyot - 1) * 12.0 / CASE WHEN yp.max_periyot > 0 THEN yp.max_periyot ELSE 1 END) AS INTEGER) + 1))))"
+            "     ORDER BY pgg.baslama_tarihi DESC, pgg.olusturuldu DESC"
+            "     LIMIT 1),"
+            "    gy.ad"
+            "  ) AS birim"
+            "  FROM dozimetre d"
+            "  JOIN personel p ON p.id = d.personel_id"
+            "  LEFT JOIN gorev_yeri gy ON gy.id = p.gorev_yeri_id"
+            "  LEFT JOIN yil_periyot yp ON yp.yil = d.yil"
+            ") SELECT * FROM cozum WHERE 1=1"
         )
         params: list = []
 
         if yil is not None:
-            sql += " AND d.yil = ?"
+            sql += " AND yil = ?"
             params.append(int(yil))
         if periyot is not None:
-            sql += " AND d.periyot = ?"
+            sql += " AND periyot = ?"
             params.append(int(periyot))
         if personel_id:
-            sql += " AND d.personel_id = ?"
+            sql += " AND personel_id = ?"
             params.append(str(personel_id))
         if birim:
-            sql += " AND gy.ad = ?"
+            sql += " AND birim = ?"
             params.append(str(birim))
 
-        sql += " ORDER BY d.yil DESC, d.periyot DESC, p.soyad, p.ad"
+        sql += " ORDER BY yil DESC, periyot DESC, soyad, ad"
         return self._db.fetchall(sql, tuple(params))
 
     def rapor_listele(self, rapor_no: str) -> list[dict]:

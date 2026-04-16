@@ -9,11 +9,11 @@ from script.fix_mojibake import fix_content, fix_python_docstrings
 
 
 def test_fix_python_docstrings_module_ve_fonksiyon_docstringlerini_duzeltir():
-    kaynak = '''"""DÃ¶kÃ¼man basligi"""
+    kaynak = '''"""Döküman basligi"""
 
 
 def ornek():
-    """FonkÃ§iyon aÃ§iklamasi"""
+    """Fonkçiyon açiklamasi"""
     return 1
 '''
 
@@ -30,7 +30,7 @@ def test_fix_content_python_dosyasinda_docstringleri_yakalar():
 
 
 def belge():
-    """DÃ¶kÃ¼man metni"""
+    """Döküman metni"""
     return 2
 '''
 

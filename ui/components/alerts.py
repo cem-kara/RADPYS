@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """ui/components/alerts.py — Uyarı bandı bileşeni"""
 from __future__ import annotations
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton

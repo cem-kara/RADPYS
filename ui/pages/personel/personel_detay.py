@@ -27,8 +27,8 @@ from ui.styles.icons import ic
 class PersonelDetayPage(PersonelEklePage):
     """Personel duzenleme icin ayrilmis form."""
 
-    def __init__(self, db, edit_data: dict, on_saved=None, parent=None):
-        super().__init__(db=db, edit_data=edit_data or {}, on_saved=on_saved, parent=parent)
+    def __init__(self, db, edit_data: dict, on_saved=None, oturum: dict | None = None, parent=None):
+        super().__init__(db=db, edit_data=edit_data or {}, on_saved=on_saved, oturum=oturum, parent=parent)
         self._detail_tabs: dict[str, dict] = {}
         self._section_states: dict[str, bool] = {
             "iletisim": False,

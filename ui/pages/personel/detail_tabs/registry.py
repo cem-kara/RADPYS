@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Callable
 from PySide6.QtWidgets import QWidget
 
 from ui.pages.personel.detail_tabs.dozimetre_tab import PersonelDozimetreTab
+from ui.pages.personel.detail_tabs.birim_gecmisi_tab import PersonelBirimGecmisiTab
 from ui.pages.personel.detail_tabs.fhsz_bilgileri_tab import PersonelFhszBilgileriTab
 from ui.pages.personel.detail_tabs.izin_bilgileri_tab import PersonelIzinBilgileriTab
 from ui.pages.personel.detail_tabs.nobet_mesai_tab import PersonelNobetMesaiTab
@@ -52,6 +53,15 @@ def _fhsz_tab_factory(host: "PersonelDetayPage", db) -> QWidget:
     )
 
 
+def _birim_gecmisi_tab_factory(host: "PersonelDetayPage", db) -> QWidget:
+    return PersonelBirimGecmisiTab(
+        db=db,
+        personel_id_getter=lambda: host._personel_id,
+        oturum_getter=lambda: getattr(host, "_oturum", None),
+        parent=host,
+    )
+
+
 def _saglik_tab_factory(host: "PersonelDetayPage", db) -> QWidget:
     return PersonelSaglikTab(
         db=db,
@@ -86,6 +96,12 @@ def build_detail_tab_registrations() -> list[DetailTabRegistration]:
             tab_id="fhsz",
             label="Fiili Hizmet",
             factory=_fhsz_tab_factory,
+        ),
+        DetailTabRegistration(
+            tab_id="birim_gecmisi",
+            label="Birim Gecmisi",
+            factory=_birim_gecmisi_tab_factory,
+            refresh_on_sections=frozenset({"kurumsal"}),
         ),
         DetailTabRegistration(
             tab_id="saglik",

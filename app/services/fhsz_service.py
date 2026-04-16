@@ -138,7 +138,7 @@ class FhszService:
         donem_bas, donem_bit = self.donem_tarih_araligi(yil_int, donem_int)
 
         if donem_bit < self.FHSZ_ESIK:
-            raise ValueError("26.04.2022 oncesi donemler icin FHSZ hesaplanamaz.")
+            raise ValueError("26.04.2022 tarihli Resmî Gazete’de yayımlanan Radyoloji Hizmetleri Yönetmeliği gereğince, bu tarihten önceki süreler için fiili hizmet süresi zammı ve şua izni hesaplaması yapılamamaktadır. Lütfen hesaplama başlangıç tarihini kontrol ediniz.")
 
         hesap_bas = max(donem_bas, self.FHSZ_ESIK)
         tam_tatiller, yarim_tatiller = self._tatil_setleri(hesap_bas, donem_bit)
@@ -147,6 +147,8 @@ class FhszService:
         kayit_map: dict[str, dict] = {
             str(r.get("personel_id") or ""): r for r in kayitli if r.get("personel_id")
         }
+
+        hesap_bas_iso = hesap_bas.strftime("%Y-%m-%d")
 
         rows: list[dict] = []
         personeller = self._p_repo.listele(aktif_only=False)
@@ -168,13 +170,26 @@ class FhszService:
                 continue
 
             mevcut = kayit_map.get(pid, {})
+            birim_gecmisi = self._p_repo.gorev_yeri_tarihte_getir(pid, hesap_bas_iso) or {}
+
             kosul = str(mevcut.get("calisma_kosulu") or "").strip().upper()
             if kosul not in {"A", "B"}:
-                kosul = "A" if int(p.get("sua_hakki") or 0) == 1 else "B"
+                sua_hakki = int(
+                    birim_gecmisi.get("sua_hakki")
+                    if birim_gecmisi.get("sua_hakki") is not None
+                    else (p.get("sua_hakki") or 0)
+                )
+                kosul = "A" if sua_hakki == 1 else "B"
 
             izin_gun = float(mevcut.get("izin_gun") or 0.0)
             if izin_gun <= 0:
                 izin_gun = self._izin_kesisim_gun_hesapla(pid, hesap_bas, donem_bit, tam_tatiller)
+
+            gorev_yeri_ad = str(
+                birim_gecmisi.get("gorev_yeri_ad")
+                or p.get("gorev_yeri_ad")
+                or ""
+            )
 
             fiili_saat = self.fiili_saat_hesapla(aylik_gun, izin_gun, kosul)
             rows.append(
@@ -182,7 +197,7 @@ class FhszService:
                     "personel_id": pid,
                     "tc_kimlik": str(p.get("tc_kimlik") or ""),
                     "ad_soyad": f"{p.get('ad') or ''} {p.get('soyad') or ''}".strip(),
-                    "gorev_yeri": str(p.get("gorev_yeri_ad") or ""),
+                    "gorev_yeri": gorev_yeri_ad,
                     "calisma_kosulu": kosul,
                     "aylik_gun": aylik_gun,
                     "izin_gun": izin_gun,

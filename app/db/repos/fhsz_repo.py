@@ -15,13 +15,22 @@ class FhszRepo(BaseRepo):
         personel_id: str | None = None,
     ) -> list[dict]:
         sql = (
-            "SELECT f.*, p.ad, p.soyad, p.tc_kimlik, p.gorev_yeri_ad, p.sua_hakki "
+            "SELECT f.*, p.ad, p.soyad, p.tc_kimlik, "
+            "COALESCE(gyh.ad, gy_cur.ad) AS gorev_yeri_ad, "
+            "COALESCE(gyh.sua_hakki, gy_cur.sua_hakki, 0) AS sua_hakki "
             "FROM fhsz f "
-            "JOIN ("
-            "  SELECT p0.*, gy.ad AS gorev_yeri_ad, gy.sua_hakki "
-            "  FROM personel p0 "
-            "  LEFT JOIN gorev_yeri gy ON gy.id = p0.gorev_yeri_id"
-            ") p ON p.id = f.personel_id "
+            "JOIN personel p ON p.id = f.personel_id "
+            "LEFT JOIN gorev_yeri gy_cur ON gy_cur.id = p.gorev_yeri_id "
+            "LEFT JOIN personel_gorev_gecmis pg ON pg.id = ("
+            "  SELECT pg2.id "
+            "  FROM personel_gorev_gecmis pg2 "
+            "  WHERE pg2.personel_id = f.personel_id "
+            "    AND pg2.baslama_tarihi <= printf('%04d-%02d-15', f.yil, f.donem) "
+            "    AND (pg2.bitis_tarihi IS NULL OR pg2.bitis_tarihi >= printf('%04d-%02d-15', f.yil, f.donem)) "
+            "  ORDER BY pg2.baslama_tarihi DESC, pg2.olusturuldu DESC "
+            "  LIMIT 1"
+            ") "
+            "LEFT JOIN gorev_yeri gyh ON gyh.id = pg.gorev_yeri_id "
             "WHERE 1=1"
         )
         params: list = []

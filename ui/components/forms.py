@@ -168,10 +168,10 @@ class TextField(FieldBase):
 
 class PasswordField(FieldBase):
     """
-    Åifre girişi -?" saşda göster/gizle butonu.
+    Şifre girişi -?" saşda göster/gizle butonu.
 
     Kullanım:
-        alan = PasswordField("Åifre", zorunlu=True)
+        alan = PasswordField("Şifre", zorunlu=True)
         sifre = alan.deger()
     """
 
@@ -198,7 +198,7 @@ class PasswordField(FieldBase):
         self._btn_goz.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn_goz.setIcon(ic("goz_kapali", size=T.icon_sm, color=T.text3))
         self._btn_goz.setIconSize(QSize(T.icon_sm, T.icon_sm))
-        self._btn_goz.setToolTip("Åifreyi göster")
+        self._btn_goz.setToolTip("Şifreyi göster")
         self._btn_goz.setCheckable(True)
         self._btn_goz.toggled.connect(self._toggle_gozuk)
 
@@ -211,11 +211,11 @@ class PasswordField(FieldBase):
         if goster:
             self._line.setEchoMode(QLineEdit.EchoMode.Normal)
             self._btn_goz.setIcon(ic("goz", size=T.icon_sm, color=T.accent))
-            self._btn_goz.setToolTip("Åifreyi gizle")
+            self._btn_goz.setToolTip("Şifreyi gizle")
         else:
             self._line.setEchoMode(QLineEdit.EchoMode.Password)
             self._btn_goz.setIcon(ic("goz_kapali", size=T.icon_sm, color=T.text3))
-            self._btn_goz.setToolTip("Åifreyi göster")
+            self._btn_goz.setToolTip("Şifreyi göster")
 
     def deger(self) -> str:
         return self._line.text()

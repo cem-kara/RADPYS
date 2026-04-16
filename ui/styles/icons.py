@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-ui/styles/icons.py - RADPYS v2 Â· SVG İkon Kütüphanesi
+ui/styles/icons.py - RADPYS v2 · SVG İkon Kütüphanesi
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Profesyonel SVG icon sistemi. Lucide Icons ve Tabler Icons

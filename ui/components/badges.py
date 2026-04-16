@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """ui/components/badges.py �?" Durum rozetleri"""
 from __future__ import annotations
 from PySide6.QtWidgets import QLabel

@@ -742,6 +742,7 @@ class PersonelListesi(QWidget):
                     db=self._db,
                     edit_data=edit_data or {},
                     on_saved=self.load_data,
+                    oturum=self._oturum,
                     parent=form_host,
                 )
             else:
@@ -749,6 +750,7 @@ class PersonelListesi(QWidget):
                     db=self._db,
                     edit_data=None,
                     on_saved=self.load_data,
+                    oturum=self._oturum,
                     parent=form_host,
                 )
             form.form_closed.connect(lambda: self._close_mdi_child(mdi_key))
@@ -771,6 +773,7 @@ class PersonelListesi(QWidget):
                 db=self._db,
                 edit_data=edit_data or {},
                 on_saved=self.load_data,
+                oturum=self._oturum,
                 parent=dlg,
             )
         else:
@@ -778,6 +781,7 @@ class PersonelListesi(QWidget):
                 db=self._db,
                 edit_data=None,
                 on_saved=self.load_data,
+                oturum=self._oturum,
                 parent=dlg,
             )
         form.form_closed.connect(dlg.close)
