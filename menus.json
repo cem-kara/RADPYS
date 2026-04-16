@@ -74,6 +74,14 @@
       "page_cls": "ui.pages.personel.dozimetre_takip_page.DozimetreTakipPage"
     },
     {
+      "id": "nobet",
+      "label": "Nöbet Planı",
+      "icon": "nobet",
+      "bolum": "personel",
+      "sira": 50,
+      "page_cls": "ui.pages.nobet.nobet_plan_page.NobetPlanPage"
+    },
+    {
       "id": "cihaz",
       "label": "Cihaz Listesi",
       "icon": "cihaz",
@@ -107,14 +115,7 @@
       "sira": 40,
       "page_cls": "ui.pages.placeholder.PlaceholderPage"
     },
-    {
-      "id": "nobet",
-      "label": "Nöbet Planı",
-      "icon": "nobet",
-      "bolum": "nobet",
-      "sira": 10,
-      "page_cls": "ui.pages.placeholder.PlaceholderPage"
-    },
+    
     {
       "id": "dokumanlar",
       "label": "Dökümanlar",

@@ -22,7 +22,7 @@ from app.db.database import Database
 logger = logging.getLogger("radpys.db.migration")
 
 # Hedef şema versiyonu — her migration eklenince artır
-HEDEF_VERSIYON = 10
+HEDEF_VERSIYON = 12
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -663,6 +663,103 @@ def _v10(db: Database) -> None:
     logger.info("v10: personel gorev yeri gecmis tablosu olusturuldu.")
 
 
+def _v11(db: Database) -> None:
+    """v11 — nobet birim/personel kosul tablolari ve vardiya saat kolonlari."""
+    db.execute(
+        "CREATE TABLE IF NOT EXISTS nb_birim_kural ("
+        "id TEXT PRIMARY KEY,"
+        "birim_id TEXT NOT NULL REFERENCES nb_birim(id),"
+        "min_dinlenme_saat REAL NOT NULL DEFAULT 12,"
+        "resmi_tatil_calisma INTEGER NOT NULL DEFAULT 1 CHECK (resmi_tatil_calisma IN (0,1)),"
+        "dini_tatil_calisma INTEGER NOT NULL DEFAULT 1 CHECK (dini_tatil_calisma IN (0,1)),"
+        "arefe_baslangic_saat TEXT NOT NULL DEFAULT '13:00',"
+        "max_fazla_mesai_saat REAL NOT NULL DEFAULT 0,"
+        "tolerans_saat REAL NOT NULL DEFAULT 7,"
+        "max_devreden_saat REAL NOT NULL DEFAULT 12,"
+        "manuel_limit_asimina_izin INTEGER NOT NULL DEFAULT 1 CHECK (manuel_limit_asimina_izin IN (0,1)),"
+        "guncellendi TEXT,"
+        "UNIQUE (birim_id)"
+        ")"
+    )
+
+    db.execute(
+        "CREATE TABLE IF NOT EXISTS nb_personel_kural ("
+        "id TEXT PRIMARY KEY,"
+        "birim_id TEXT NOT NULL REFERENCES nb_birim(id),"
+        "personel_id TEXT NOT NULL REFERENCES personel(id),"
+        "ister_24_saat INTEGER NOT NULL DEFAULT 0 CHECK (ister_24_saat IN (0,1)),"
+        "mesai_istemiyor INTEGER NOT NULL DEFAULT 0 CHECK (mesai_istemiyor IN (0,1)),"
+        "max_fazla_mesai_saat REAL NOT NULL DEFAULT 0,"
+        "tolerans_saat REAL NOT NULL DEFAULT 7,"
+        "max_devreden_saat REAL NOT NULL DEFAULT 12,"
+        "guncellendi TEXT,"
+        "UNIQUE (birim_id, personel_id)"
+        ")"
+    )
+
+    if not _kolon_var_mi(db, "nb_vardiya", "baslangic_saat"):
+        db.execute("ALTER TABLE nb_vardiya ADD COLUMN baslangic_saat TEXT")
+    if not _kolon_var_mi(db, "nb_vardiya", "bitis_saat"):
+        db.execute("ALTER TABLE nb_vardiya ADD COLUMN bitis_saat TEXT")
+
+    db.execute(
+        "INSERT OR IGNORE INTO nb_birim_kural ("
+        "id, birim_id, min_dinlenme_saat, resmi_tatil_calisma, dini_tatil_calisma, "
+        "arefe_baslangic_saat, max_fazla_mesai_saat, tolerans_saat, max_devreden_saat, manuel_limit_asimina_izin"
+        ") "
+        "SELECT lower(hex(randomblob(16))), b.id, 12, 1, 1, '13:00', 0, 7, 12, 1 "
+        "FROM nb_birim b"
+    )
+
+    db.execute(
+        "UPDATE nb_vardiya "
+        "SET baslangic_saat = COALESCE(baslangic_saat, CASE WHEN lower(ad) LIKE '%gunduz%' THEN '08:00' WHEN lower(ad) LIKE '%gece%' THEN '20:00' ELSE '08:00' END), "
+        "bitis_saat = COALESCE(bitis_saat, CASE WHEN lower(ad) LIKE '%gunduz%' THEN '20:00' WHEN lower(ad) LIKE '%gece%' THEN '08:00' ELSE '16:00' END)"
+    )
+
+    logger.info("v11: nobet kosul tablolari ve vardiya saat kolonlari eklendi.")
+
+
+def _v12(db: Database) -> None:
+    """v12 — Vardiya şablon tablosu; nb_vardiya'ya max_personel ve sablon_id kolonları."""
+
+    db.execute(
+        "CREATE TABLE IF NOT EXISTS nb_vardiya_sablon ("
+        "id             TEXT PRIMARY KEY,"
+        "ad             TEXT NOT NULL,"
+        "baslangic_saat TEXT NOT NULL,"
+        "bitis_saat     TEXT NOT NULL,"
+        "saat_suresi    REAL NOT NULL,"
+        "aciklama       TEXT,"
+        "aktif          INTEGER NOT NULL DEFAULT 1,"
+        "olusturuldu    TEXT NOT NULL DEFAULT (date('now')),"
+        "UNIQUE (ad)"
+        ")"
+    )
+
+    if not _kolon_var_mi(db, "nb_vardiya", "max_personel"):
+        db.execute("ALTER TABLE nb_vardiya ADD COLUMN max_personel INTEGER NOT NULL DEFAULT 1")
+    if not _kolon_var_mi(db, "nb_vardiya", "sablon_id"):
+        db.execute("ALTER TABLE nb_vardiya ADD COLUMN sablon_id TEXT REFERENCES nb_vardiya_sablon(id)")
+
+    # Yaygın şablonları seed et
+    _NB_SABLON_SEED = [
+        ("Gunduz (08:00-16:00)",  "08:00", "16:00",  8.0),
+        ("Gece (16:00-08:00)",    "16:00", "08:00", 16.0),
+        ("24 Saat (08:00-08:00)", "08:00", "08:00", 24.0),
+        ("Gunduz (08:00-20:00)",  "08:00", "20:00", 12.0),
+        ("Gece (20:00-08:00)",    "20:00", "08:00", 12.0),
+    ]
+    for ad, bas, bit, sure in _NB_SABLON_SEED:
+        db.execute(
+            "INSERT OR IGNORE INTO nb_vardiya_sablon (id, ad, baslangic_saat, bitis_saat, saat_suresi) "
+            "VALUES (lower(hex(randomblob(16))), ?, ?, ?, ?)",
+            (ad, bas, bit, sure),
+        )
+
+    logger.info("v12: vardiya sablon tablosu ve max_personel kolonu eklendi.")
+
+
 def _rbac_modul_izin_seed(db: Database) -> None:
     from uuid import uuid4
     for rol_adi, izinler in _VARSAYILAN_MODUL_IZINLERI.items():
@@ -693,6 +790,8 @@ _MIGRATIONS = {
     8: _v8,
     9: _v9,
     10: _v10,
+    11: _v11,
+    12: _v12,
 }   # Yeni migration eklenince buraya da ekle
 
 
