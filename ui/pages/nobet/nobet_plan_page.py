@@ -70,7 +70,6 @@ class NobetPlanPage(QWidget):
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(14)
         lay.addWidget(self._birim_kural_karti(), 1)
-        lay.addWidget(self._sablon_yonetim_karti(), 1)
         lay.addWidget(self._personel_kural_karti(), 1)
         return w
 
@@ -101,43 +100,18 @@ class NobetPlanPage(QWidget):
         self._cb_kural_birim.currentIndexChanged.connect(self._kosul_birim_degisti)
         frm.addWidget(self._cb_kural_birim, 1, 0, 1, 2)
 
-        frm.addWidget(self._etiket("Min Dinlenme (saat)"), 2, 0)
-        self._inp_min_dinlenme = QLineEdit(self)
-        self._inp_min_dinlenme.setMinimumHeight(32)
-        self._inp_min_dinlenme.setText("12")
-        frm.addWidget(self._inp_min_dinlenme, 3, 0)
-
-        frm.addWidget(self._etiket("Arefe Baslangic"), 2, 1)
-        self._inp_arefe = QLineEdit(self)
-        self._inp_arefe.setMinimumHeight(32)
-        self._inp_arefe.setText("13:00")
-        frm.addWidget(self._inp_arefe, 3, 1)
-
-        frm.addWidget(self._etiket("Tolerans Saat"), 4, 0)
-        self._inp_tolerans = QLineEdit(self)
-        self._inp_tolerans.setMinimumHeight(32)
-        self._inp_tolerans.setText("7")
-        frm.addWidget(self._inp_tolerans, 5, 0)
-
-        frm.addWidget(self._etiket("Max Devreden Saat"), 4, 1)
+        frm.addWidget(self._etiket("Max Devreden Saat"), 2, 1)
         self._inp_devreden = QLineEdit(self)
         self._inp_devreden.setMinimumHeight(32)
         self._inp_devreden.setText("12")
-        frm.addWidget(self._inp_devreden, 5, 1)
+        frm.addWidget(self._inp_devreden, 3, 1)
 
-        frm.addWidget(self._etiket("Max Fazla Mesai"), 6, 0)
+        frm.addWidget(self._etiket("Max Fazla Mesai"), 2, 0)
         self._inp_max_fazla = QLineEdit(self)
         self._inp_max_fazla.setMinimumHeight(32)
         self._inp_max_fazla.setText("0")
         self._inp_max_fazla.setToolTip("0 = birim limiti tanimsiz")
-        frm.addWidget(self._inp_max_fazla, 7, 0)
-
-        self._chk_resmi = QCheckBox("Resmi tatilde mesaiye dahil")
-        self._chk_dini = QCheckBox("Dini tatilde mesaiye dahil")
-        self._chk_limit_override = QCheckBox("Manuel limit asimi izinli")
-        frm.addWidget(self._chk_resmi, 8, 0, 1, 2)
-        frm.addWidget(self._chk_dini, 9, 0, 1, 2)
-        frm.addWidget(self._chk_limit_override, 10, 0, 1, 2)
+        frm.addWidget(self._inp_max_fazla, 3, 0)
 
         kl.addLayout(frm)
 
@@ -145,116 +119,6 @@ class NobetPlanPage(QWidget):
         self._btn_kural_kaydet.clicked.connect(self._birim_kural_kaydet)
         kl.addWidget(self._btn_kural_kaydet)
         kl.addStretch(1)
-        return kart
-
-    def _sablon_yonetim_karti(self) -> Card:
-        """Global vardiya şablonları ve birime şablon atama."""
-        kart = Card(self)
-        kl = kart.layout_
-
-        title = QLabel("Vardiya Sablonlari")
-        title.setStyleSheet(f"color:{T.text}; font-size:14px; font-weight:700;")
-        kl.addWidget(title)
-
-        # ── Global şablon listesi ──────────────────────────────────
-        lbl_sablon = QLabel("Tum Sablon Listesi")
-        lbl_sablon.setStyleSheet(f"color:{T.text2}; font-size:12px; font-weight:600;")
-        kl.addWidget(lbl_sablon)
-
-        self._tbl_sablon = DataTable(self)
-        self._tbl_sablon.kur_kolonlar(
-            [
-                ("ad", "Sablon Adi", 190),
-                ("baslangic_saat", "Baslangic", 75),
-                ("bitis_saat", "Bitis", 75),
-                ("saat_suresi", "Sure", 55),
-            ],
-            geren="ad",
-        )
-        kl.addWidget(self._tbl_sablon, 1)
-
-        sf = QGridLayout()
-        sf.setHorizontalSpacing(8)
-        sf.setVerticalSpacing(6)
-        sf.addWidget(self._etiket("Sablon Adi"), 0, 0, 1, 2)
-        self._inp_sablon_ad = QLineEdit(self)
-        self._inp_sablon_ad.setPlaceholderText("Orn: Gece (20:00-08:00)")
-        self._inp_sablon_ad.setMinimumHeight(30)
-        sf.addWidget(self._inp_sablon_ad, 1, 0, 1, 2)
-
-        sf.addWidget(self._etiket("Baslangic"), 2, 0)
-        self._inp_sablon_bas = QLineEdit(self)
-        self._inp_sablon_bas.setText("08:00")
-        self._inp_sablon_bas.setMinimumHeight(30)
-        sf.addWidget(self._inp_sablon_bas, 3, 0)
-
-        sf.addWidget(self._etiket("Bitis"), 2, 1)
-        self._inp_sablon_bit = QLineEdit(self)
-        self._inp_sablon_bit.setText("16:00")
-        self._inp_sablon_bit.setMinimumHeight(30)
-        sf.addWidget(self._inp_sablon_bit, 3, 1)
-
-        sf.addWidget(self._etiket("Sure (saat)"), 4, 0)
-        self._inp_sablon_sure = QLineEdit(self)
-        self._inp_sablon_sure.setText("8")
-        self._inp_sablon_sure.setMinimumHeight(30)
-        sf.addWidget(self._inp_sablon_sure, 5, 0)
-        kl.addLayout(sf)
-
-        btn_sablon_ekle = GhostButton("Sablon Ekle")
-        btn_sablon_ekle.clicked.connect(self._sablon_ekle)
-        btn_sablon_pasif = GhostButton("Seciyi Pasife Al")
-        btn_sablon_pasif.clicked.connect(self._sablon_pasife_al)
-        sb = QHBoxLayout()
-        sb.addWidget(btn_sablon_ekle, 1)
-        sb.addWidget(btn_sablon_pasif, 1)
-        kl.addLayout(sb)
-
-        kl.addWidget(self._ayrac())
-
-        # ── Birime şablon atama ───────────────────────────────────
-        lbl_ata = QLabel("Birime Vardiya Ata")
-        lbl_ata.setStyleSheet(f"color:{T.text2}; font-size:12px; font-weight:600;")
-        kl.addWidget(lbl_ata)
-
-        af = QGridLayout()
-        af.setHorizontalSpacing(8)
-        af.setVerticalSpacing(6)
-        af.addWidget(self._etiket("Sablon Sec"), 0, 0, 1, 2)
-        self._cb_ata_sablon = QComboBox(self)
-        self._cb_ata_sablon.setMinimumHeight(30)
-        af.addWidget(self._cb_ata_sablon, 1, 0, 1, 2)
-
-        af.addWidget(self._etiket("Max Personel"), 2, 0)
-        self._inp_ata_max = QLineEdit(self)
-        self._inp_ata_max.setText("1")
-        self._inp_ata_max.setMinimumHeight(30)
-        af.addWidget(self._inp_ata_max, 3, 0)
-        kl.addLayout(af)
-
-        btn_ata = PrimaryButton("Birime Ata")
-        btn_ata.clicked.connect(self._sablon_birime_ata)
-        kl.addWidget(btn_ata)
-
-        lbl_birim_vrd = QLabel("Birim Vardiyalari")
-        lbl_birim_vrd.setStyleSheet(f"color:{T.text2}; font-size:12px; font-weight:600;")
-        kl.addWidget(lbl_birim_vrd)
-
-        self._tbl_slot = DataTable(self)
-        self._tbl_slot.kur_kolonlar(
-            [
-                ("sablon_ad", "Sablon", 150),
-                ("baslangic_saat", "Baslangic", 72),
-                ("bitis_saat", "Bitis", 72),
-                ("max_personel", "Max P.", 55),
-            ],
-            geren="sablon_ad",
-        )
-        kl.addWidget(self._tbl_slot, 1)
-
-        btn_vrd_pasif = GhostButton("Secili Vardiyayi Kaldir")
-        btn_vrd_pasif.clicked.connect(self._birim_vardiya_kaldir)
-        kl.addWidget(btn_vrd_pasif)
         return kart
 
     def _personel_kural_karti(self) -> Card:
@@ -272,7 +136,6 @@ class NobetPlanPage(QWidget):
                 ("ister_24_txt", "24s", 50),
                 ("mesai_txt", "Mesai", 60),
                 ("max_fazla_mesai_saat", "Max FM", 70),
-                ("tolerans_saat", "Tol", 50),
                 ("max_devreden_saat", "Devir", 55),
             ],
             geren="ad_soyad",
@@ -298,17 +161,11 @@ class NobetPlanPage(QWidget):
         self._inp_p_max_fazla.setText("0")
         pf.addWidget(self._inp_p_max_fazla, 3, 0)
 
-        pf.addWidget(self._etiket("Tolerans Saat"), 2, 1)
-        self._inp_p_tolerans = QLineEdit(self)
-        self._inp_p_tolerans.setMinimumHeight(32)
-        self._inp_p_tolerans.setText("7")
-        pf.addWidget(self._inp_p_tolerans, 3, 1)
-
-        pf.addWidget(self._etiket("Max Devreden Saat"), 4, 0)
+        pf.addWidget(self._etiket("Max Devreden Saat"), 2, 1)
         self._inp_p_devreden = QLineEdit(self)
         self._inp_p_devreden.setMinimumHeight(32)
         self._inp_p_devreden.setText("12")
-        pf.addWidget(self._inp_p_devreden, 5, 0)
+        pf.addWidget(self._inp_p_devreden, 3, 1)
         kl.addLayout(pf)
 
         self._btn_personel_kaydet = PrimaryButton("Secili Personel Kosulunu Kaydet")
@@ -449,9 +306,6 @@ class NobetPlanPage(QWidget):
             self._cb_birim.blockSignals(False)
             self._cb_kural_birim.blockSignals(False)
 
-            # Sablon listesini yenile
-            self._sablon_listesini_yukle()
-
             plans = self._svc.planlari_listele()
             for p in plans:
                 p["donem"] = f"{int(p.get('yil') or 0)}-{int(p.get('ay') or 0):02d}"
@@ -494,21 +348,12 @@ class NobetPlanPage(QWidget):
             return
         birim_id = str(self._cb_kural_birim.currentData() or "").strip()
         if not birim_id:
-            self._tbl_slot.set_veri([])
             self._tbl_personel.set_veri([])
             return
         try:
             kural = self._svc.birim_kural_getir(birim_id)
-            self._inp_min_dinlenme.setText(str(kural.get("min_dinlenme_saat") or 12))
-            self._inp_arefe.setText(str(kural.get("arefe_baslangic_saat") or "13:00"))
-            self._inp_tolerans.setText(str(kural.get("tolerans_saat") or 7))
             self._inp_devreden.setText(str(kural.get("max_devreden_saat") or 12))
             self._inp_max_fazla.setText(str(kural.get("max_fazla_mesai_saat") or 0))
-            self._chk_resmi.setChecked(bool(kural.get("resmi_tatil_calisma")))
-            self._chk_dini.setChecked(bool(kural.get("dini_tatil_calisma")))
-            self._chk_limit_override.setChecked(bool(kural.get("manuel_limit_asimina_izin")))
-
-            self._birim_vardiya_listesini_yukle(birim_id)
             self._personel_liste_yenile()
         except AppHatasi as exc:
             self._alert.goster(str(exc), "warning")
@@ -516,126 +361,24 @@ class NobetPlanPage(QWidget):
             exc_logla("NobetPlanPage._kosul_birim_degisti", exc)
             self._alert.goster("Kosul verileri yuklenemedi.", "danger")
 
-    def _sablon_listesini_yukle(self) -> None:
-        if self._svc is None:
-            return
-        sablonlar = self._svc.sablon_listele()
-        self._tbl_sablon.set_veri(sablonlar)
-        self._cb_ata_sablon.blockSignals(True)
-        self._cb_ata_sablon.clear()
-        self._cb_ata_sablon.addItem("Sablon secin", "")
-        for s in sablonlar:
-            etiket = f"{str(s.get('ad') or '')} ({str(s.get('baslangic_saat') or '')}-{str(s.get('bitis_saat') or '')})"
-            self._cb_ata_sablon.addItem(etiket, str(s.get("id") or ""))
-        self._cb_ata_sablon.blockSignals(False)
-
-    def _birim_vardiya_listesini_yukle(self, birim_id: str) -> None:
-        if self._svc is None or not birim_id:
-            self._tbl_slot.set_veri([])
-            return
-        rows = self._svc.vardiya_listele(birim_id)
-        for r in rows:
-            if not str(r.get("sablon_ad") or "").strip():
-                r["sablon_ad"] = str(r.get("ad") or "")
-        self._tbl_slot.set_veri(rows)
-
-    def _sablon_ekle(self) -> None:
-        self._alert.temizle()
-        if self._svc is None:
-            return
-        try:
-            self._svc.sablon_ekle(
-                ad=self._inp_sablon_ad.text(),
-                baslangic_saat=self._inp_sablon_bas.text(),
-                bitis_saat=self._inp_sablon_bit.text(),
-                saat_suresi=float(self._inp_sablon_sure.text() or 0),
-            )
-            self._inp_sablon_ad.clear()
-            self._sablon_listesini_yukle()
-            self._alert.goster("Sablon eklendi.", "success")
-        except AppHatasi as exc:
-            self._alert.goster(str(exc), "warning")
-        except Exception as exc:
-            exc_logla("NobetPlanPage._sablon_ekle", exc)
-            self._alert.goster("Sablon eklenemedi.", "danger")
-
-    def _sablon_pasife_al(self) -> None:
-        self._alert.temizle()
-        if self._svc is None:
-            return
-        row = self._tbl_sablon.secili_satir() or {}
-        sid = str(row.get("id") or "").strip()
-        if not sid:
-            self._alert.goster("Pasife almak icin sablon seciniz.", "warning")
-            return
-        try:
-            self._svc.sablon_pasife_al(sid)
-            self._sablon_listesini_yukle()
-            self._alert.goster("Sablon pasife alindi.", "success")
-        except AppHatasi as exc:
-            self._alert.goster(str(exc), "warning")
-        except Exception as exc:
-            exc_logla("NobetPlanPage._sablon_pasife_al", exc)
-            self._alert.goster("Sablon pasife alinamadi.", "danger")
-
-    def _sablon_birime_ata(self) -> None:
-        self._alert.temizle()
-        if self._svc is None:
-            return
-        birim_id = str(self._cb_kural_birim.currentData() or "").strip()
-        sablon_id = str(self._cb_ata_sablon.currentData() or "").strip()
-        try:
-            max_p = int(self._inp_ata_max.text() or 1)
-        except ValueError:
-            self._alert.goster("Max personel gecerli bir sayi olmalidir.", "warning")
-            return
-        try:
-            self._svc.sablon_birime_ata(birim_id, sablon_id, max_p)
-            self._birim_vardiya_listesini_yukle(birim_id)
-            self._alert.goster("Vardiya birime atandi.", "success")
-        except AppHatasi as exc:
-            self._alert.goster(str(exc), "warning")
-        except Exception as exc:
-            exc_logla("NobetPlanPage._sablon_birime_ata", exc)
-            self._alert.goster("Vardiya atanamadi.", "danger")
-
-    def _birim_vardiya_kaldir(self) -> None:
-        self._alert.temizle()
-        if self._svc is None:
-            return
-        row = self._tbl_slot.secili_satir() or {}
-        vid = str(row.get("id") or "").strip()
-        if not vid:
-            self._alert.goster("Kaldirmak icin birim vardiyasi seciniz.", "warning")
-            return
-        birim_id = str(self._cb_kural_birim.currentData() or "").strip()
-        try:
-            self._svc.vardiya_pasife_al(vid)
-            self._birim_vardiya_listesini_yukle(birim_id)
-            self._alert.goster("Birim vardiyasi kaldirildi.", "success")
-        except AppHatasi as exc:
-            self._alert.goster(str(exc), "warning")
-        except Exception as exc:
-            exc_logla("NobetPlanPage._birim_vardiya_kaldir", exc)
-            self._alert.goster("Kaldirilirken hata olustu.", "danger")
-
     def _birim_kural_kaydet(self) -> None:
         self._alert.temizle()
         if self._svc is None:
             return
         birim_id = str(self._cb_kural_birim.currentData() or "").strip()
         try:
+            mevcut = self._svc.birim_kural_getir(birim_id)
             self._svc.birim_kural_kaydet(
                 birim_id,
                 {
-                    "min_dinlenme_saat": float(self._inp_min_dinlenme.text() or 12),
-                    "resmi_tatil_calisma": self._chk_resmi.isChecked(),
-                    "dini_tatil_calisma": self._chk_dini.isChecked(),
-                    "arefe_baslangic_saat": self._inp_arefe.text(),
+                    "min_dinlenme_saat": float(mevcut.get("min_dinlenme_saat") or 12),
+                    "resmi_tatil_calisma": bool(mevcut.get("resmi_tatil_calisma")),
+                    "dini_tatil_calisma": bool(mevcut.get("dini_tatil_calisma")),
+                    "arefe_baslangic_saat": "13:00",
                     "max_fazla_mesai_saat": float(self._inp_max_fazla.text() or 0),
-                    "tolerans_saat": float(self._inp_tolerans.text() or 7),
+                    "tolerans_saat": float(mevcut.get("tolerans_saat") or 7),
                     "max_devreden_saat": float(self._inp_devreden.text() or 12),
-                    "manuel_limit_asimina_izin": self._chk_limit_override.isChecked(),
+                    "manuel_limit_asimina_izin": bool(mevcut.get("manuel_limit_asimina_izin")),
                 },
             )
             self._alert.goster("Birim kurali kaydedildi.", "success")
@@ -677,7 +420,6 @@ class NobetPlanPage(QWidget):
         self._chk_24.setChecked(bool(row.get("ister_24_saat")))
         self._chk_mesai.setChecked(bool(row.get("mesai_istemiyor")))
         self._inp_p_max_fazla.setText(str(row.get("max_fazla_mesai_saat") or 0))
-        self._inp_p_tolerans.setText(str(row.get("tolerans_saat") or 7))
         self._inp_p_devreden.setText(str(row.get("max_devreden_saat") or 12))
 
     def _personel_kosul_kaydet(self) -> None:
@@ -695,7 +437,6 @@ class NobetPlanPage(QWidget):
                     "ister_24_saat": self._chk_24.isChecked(),
                     "mesai_istemiyor": self._chk_mesai.isChecked(),
                     "max_fazla_mesai_saat": float(self._inp_p_max_fazla.text() or 0),
-                    "tolerans_saat": float(self._inp_p_tolerans.text() or 7),
                     "max_devreden_saat": float(self._inp_p_devreden.text() or 12),
                 },
             )

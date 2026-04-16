@@ -9,6 +9,7 @@ from __future__ import annotations
 from PySide6.QtWidgets import QTabWidget, QVBoxLayout, QWidget
 
 from app.db.database import Database
+from ui.pages.yonetim.nobet_sablon_tab import NobetSablonTab
 from ui.pages.yonetim.sabitler_tab import SabitlerTab
 from ui.pages.yonetim.tatiller_tab import TatillerTab
 from ui.styles import T
@@ -61,6 +62,7 @@ class AyarlarPage(QWidget):
             """
         )
         tabs.addTab(self._sekme_sabitler(), "Sabitler")
+        tabs.addTab(self._sekme_nobet_sablonlari(), "Nobet Sablonlari")
         tabs.addTab(self._sekme_tatiller(), "Tatiller")
         return tabs
 
@@ -80,4 +82,13 @@ class AyarlarPage(QWidget):
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(0)
         lay.addWidget(TatillerTab(self._db, parent=w), 1)
+        return w
+
+    def _sekme_nobet_sablonlari(self) -> QWidget:
+        w = QWidget(self)
+        w.setStyleSheet(f"background:{T.bg1};")
+        lay = QVBoxLayout(w)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(0)
+        lay.addWidget(NobetSablonTab(self._db, parent=w), 1)
         return w
