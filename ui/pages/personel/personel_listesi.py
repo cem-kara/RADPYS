@@ -39,6 +39,8 @@ from PySide6.QtWidgets import (
 
 from app.exceptions import AppHatasi
 from app.logger import exc_logla, logger
+from app.rbac import yetki_var_mi
+from app.security.permission_messages import permission_denied_message
 from app.services.personel_service import PersonelService
 from app.text_utils import turkish_lower, turkish_title_case
 from ui.components.alerts import AlertBar
@@ -299,7 +301,7 @@ class PersonelListesi(QWidget):
         super().__init__(parent)
         self._db = db
         self._oturum = oturum
-        self._svc = PersonelService(db)
+        self._svc = PersonelService(db, oturum=oturum)
         self._mdi_windows: list[QDialog] = []
         self._all_data: list[dict] = []
         self._active_filter = "Aktif"
@@ -313,7 +315,12 @@ class PersonelListesi(QWidget):
 
         self._setup_ui()
         self._connect_signals()
+        self._yetki_uygula()
         self.load_data()
+
+    def _yetki_uygula(self) -> None:
+        ekleme_var = yetki_var_mi(self._oturum, "personel.ekle")
+        self.btn_yeni.setEnabled(ekleme_var)
 
     def _setup_ui(self) -> None:
         main = QVBoxLayout(self)
@@ -690,6 +697,8 @@ class PersonelListesi(QWidget):
         if not row:
             return
 
+        duzenleme_var = yetki_var_mi(self._oturum, "personel.guncelle")
+
         menu = QMenu(self)
         menu.addAction("Detay Goruntule").triggered.connect(lambda: self._open_detay_dialog(row))
 
@@ -698,11 +707,11 @@ class PersonelListesi(QWidget):
         ad = str(row.get("AdSoyad") or "")
 
         menu.addSeparator()
-        if durum != "Aktif":
+        if duzenleme_var and durum != "Aktif":
             menu.addAction("Aktif Yap").triggered.connect(
                 lambda: self._change_durum(pid, ad, "aktif")
             )
-        if durum != "Pasif":
+        if duzenleme_var and durum != "Pasif":
             menu.addAction("Pasif Yap").triggered.connect(
                 lambda: self._change_durum(pid, ad, "pasif")
             )
@@ -710,6 +719,9 @@ class PersonelListesi(QWidget):
         menu.exec(self.table.viewport().mapToGlobal(pos))
 
     def _open_ekle_dialog(self) -> None:
+        if not yetki_var_mi(self._oturum, "personel.ekle"):
+            self._alert.goster(permission_denied_message("personel.ekle"), "warning")
+            return
         self._open_mdi_form("Personel Ekle", None)
 
     def _open_detay_dialog(self, row: dict) -> None:
@@ -808,6 +820,10 @@ class PersonelListesi(QWidget):
     def _change_durum(self, personel_id: str, ad_soyad: str, yeni_durum: str) -> None:
         if not personel_id:
             self._alert.goster("Personel kimligi bulunamadi.", "warning")
+            return
+
+        if not yetki_var_mi(self._oturum, "personel.guncelle"):
+            self._alert.goster(permission_denied_message("personel.guncelle"), "warning")
             return
 
         def _run() -> str:

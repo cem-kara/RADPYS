@@ -14,7 +14,8 @@ from __future__ import annotations
 from app.db.database import Database
 from app.db.repos.personel_repo import PersonelRepo
 from app.db.repos.lookup_repo import LookupRepo, GorevYeriRepo
-from app.exceptions import DogrulamaHatasi, KayitBulunamadi
+from app.exceptions import CakismaHatasi, DogrulamaHatasi, KayitBulunamadi
+from app.security.permissions import require_permission
 from app.usecases.personel import personel_ekle, personel_guncelle, personel_pasife_al
 from app.config import LookupKategori
 from app.validators import parse_tarih, zorunlu
@@ -30,10 +31,17 @@ class PersonelService:
         pid   = svc.ekle({"tc_kimlik": "...", "ad": "Ali", "soyad": "Kaya"})
     """
 
-    def __init__(self, db: Database):
+    def __init__(self, db: Database, oturum: dict | None = None):
         self._repo    = PersonelRepo(db)
         self._lookup  = LookupRepo(db)
         self._gy_repo = GorevYeriRepo(db)
+        self._oturum = oturum
+
+    def _yetki_kontrol(self, yetki: str, oturum: dict | None = None) -> None:
+        aktif_oturum = oturum if oturum is not None else self._oturum
+        if aktif_oturum is None:
+            return
+        require_permission(aktif_oturum, yetki)
 
     # ── Sorgular ──────────────────────────────────────────────────
 
@@ -77,8 +85,10 @@ class PersonelService:
         baslama_tarihi: str,
         bitis_tarihi: str | None = None,
         aciklama: str = "",
+        oturum: dict | None = None,
     ) -> str:
         """Personel icin manuel gorev gecmisi kaydi olusturur."""
+        self._yetki_kontrol("personel.guncelle", oturum)
         self.getir(personel_id)
         zorunlu(gorev_yeri_id, "Gorev yeri")
         zorunlu(baslama_tarihi, "Baslama tarihi")
@@ -95,6 +105,12 @@ class PersonelService:
             if bit < bas:
                 raise DogrulamaHatasi("Bitis tarihi baslama tarihinden once olamaz.")
 
+        self._ensure_gorev_gecmisi_cakisma_yok(
+            personel_id,
+            baslama_tarihi.strip(),
+            bitis,
+        )
+
         return self._repo.gorev_gecmisi_ekle(
             personel_id,
             gorev_yeri_id.strip(),
@@ -103,8 +119,15 @@ class PersonelService:
             aciklama,
         )
 
-    def gorev_gecmisi_guncelle(self, personel_id: str, kayit_id: str, veri: dict) -> None:
+    def gorev_gecmisi_guncelle(
+        self,
+        personel_id: str,
+        kayit_id: str,
+        veri: dict,
+        oturum: dict | None = None,
+    ) -> None:
         """Personelin bir gorev gecmisi kaydini gunceller."""
+        self._yetki_kontrol("personel.guncelle", oturum)
         self.getir(personel_id)
         kayit = self._repo.gorev_gecmisi_getir(kayit_id)
         if not kayit or str(kayit.get("personel_id") or "") != str(personel_id):
@@ -127,9 +150,39 @@ class PersonelService:
             if bit_tarih < bas_tarih:
                 raise DogrulamaHatasi("Bitis tarihi baslama tarihinden once olamaz.")
 
+        self._ensure_gorev_gecmisi_cakisma_yok(
+            personel_id,
+            baslama,
+            bitis or None,
+            haric_kayit_id=kayit_id,
+        )
+
         self._repo.gorev_gecmisi_guncelle(kayit_id, payload)
 
     # ── Dropdown Verileri ──────────────────────────────────────────
+
+    def _ensure_gorev_gecmisi_cakisma_yok(
+        self,
+        personel_id: str,
+        baslama_tarihi: str,
+        bitis_tarihi: str | None,
+        haric_kayit_id: str | None = None,
+    ) -> None:
+        cakisan = self._repo.gorev_gecmisi_cakisma_getir(
+            personel_id,
+            baslama_tarihi,
+            bitis_tarihi,
+            haric_kayit_id=haric_kayit_id,
+        )
+        if not cakisan:
+            return
+        mevcut_baslama = str(cakisan.get("baslama_tarihi") or "")
+        mevcut_bitis = str(cakisan.get("bitis_tarihi") or "") or "Aktif"
+        birim = str(cakisan.get("gorev_yeri_ad") or "Bilinmeyen birim")
+        raise CakismaHatasi(
+            "Gorev gecmisi tarih araligi cakisiyor: "
+            f"{mevcut_baslama} - {mevcut_bitis} ({birim})."
+        )
 
     def hizmet_siniflari(self) -> list[str]:
         return self._lookup.kategori(LookupKategori.HIZMET_SINIFI)
@@ -146,7 +199,7 @@ class PersonelService:
 
     # ── Yazma ─────────────────────────────────────────────────────
 
-    def ekle(self, veri: dict) -> str:
+    def ekle(self, veri: dict, oturum: dict | None = None) -> str:
         """
         Yeni personel ekler.
 
@@ -158,26 +211,30 @@ class PersonelService:
             DogrulamaHatasi    — zorunlu alan boş
             KayitZatenVar      — TC zaten kayıtlı
         """
+        self._yetki_kontrol("personel.ekle", oturum)
         return personel_ekle(self._repo, self._gy_repo, veri)
 
-    def guncelle(self, personel_id: str, veri: dict) -> None:
+    def guncelle(self, personel_id: str, veri: dict, oturum: dict | None = None) -> None:
         """
         Personel bilgilerini günceller.
         tc_kimlik değiştirilemez.
 
         Raises: KayitBulunamadi
         """
+        self._yetki_kontrol("personel.guncelle", oturum)
         self.getir(personel_id)   # Varlık kontrolü
         personel_guncelle(self._repo, self._gy_repo, personel_id, veri)
 
     def pasife_al(self, personel_id: str,
                   ayrilik_tarihi: str,
-                  ayrilik_nedeni: str = "") -> None:
+                  ayrilik_nedeni: str = "",
+                  oturum: dict | None = None) -> None:
         """
         Personeli pasife alır — fiziksel silme yok.
 
         Raises: KayitBulunamadi
         """
+        self._yetki_kontrol("personel.pasife_al", oturum)
         p = self.getir(personel_id)
         personel_pasife_al(
             self._repo,
@@ -187,13 +244,14 @@ class PersonelService:
             ayrilik_nedeni,
         )
 
-    def guncelle_veya_ekle_import(self, veri: dict) -> str:
+    def guncelle_veya_ekle_import(self, veri: dict, oturum: dict | None = None) -> str:
         """
         Import düzeltme akışı için upsert davranışı sağlar.
 
         - TC ile kayıt varsa personeli günceller.
         - TC ile kayıt yoksa yeni personel ekler.
         """
+        self._yetki_kontrol("personel.guncelle", oturum)
         tc = str(veri.get("tc_kimlik") or "").strip()
         mevcut = self._repo.tc_ile_getir(tc) if tc else None
         if mevcut:

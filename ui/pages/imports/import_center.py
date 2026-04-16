@@ -10,9 +10,10 @@ from ui.pages.imports.personel_import_page import PersonelImportPage
 
 
 class ImportCenterPage(QWidget):
-    def __init__(self, db=None, parent=None):
+    def __init__(self, db=None, oturum: dict | None = None, parent=None):
         super().__init__(parent)
         self._db = db
+        self._oturum = oturum
         self._kur_ui()
 
     def _kur_ui(self) -> None:
@@ -20,7 +21,7 @@ class ImportCenterPage(QWidget):
         root.setContentsMargins(0, 0, 0, 0)
 
         tabs = QTabWidget(self)
-        tabs.addTab(PersonelImportPage(db=self._db), "Personel")
+        tabs.addTab(PersonelImportPage(db=self._db, oturum=self._oturum), "Personel")
         tabs.addTab(IzinImportPage(db=self._db), "Izin")
         tabs.addTab(DevirImportPage(db=self._db), "Izin Devir / Bakiye")
 

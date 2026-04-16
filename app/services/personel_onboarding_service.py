@@ -14,15 +14,17 @@ from app.text_utils import normalize_whitespace, turkish_lower
 class PersonelOnboardingService:
     """Personel kaydi + hesap olusturma + hak edis otomasyonu."""
 
-    def __init__(self, db: Database):
+    def __init__(self, db: Database, oturum: dict | None = None):
         self._db = db
-        self._personel = PersonelService(db)
+        self._oturum = oturum
+        self._personel = PersonelService(db, oturum=oturum)
         self._auth_repo = AuthRepository(db)
         self._izin = IzinService(db)
 
-    def kaydet_ve_hazirla(self, veri: dict) -> dict:
+    def kaydet_ve_hazirla(self, veri: dict, oturum: dict | None = None) -> dict:
+        aktif_oturum = oturum if oturum is not None else self._oturum
         with self._db.transaction():
-            personel_id = self._personel.ekle(veri)
+            personel_id = self._personel.ekle(veri, oturum=aktif_oturum)
             personel = self._personel.getir(personel_id)
 
             auth_info = self._hesap_olustur(personel)

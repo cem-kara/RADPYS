@@ -2,6 +2,8 @@
 """Personel import iskeleti."""
 from __future__ import annotations
 
+from app.rbac import yetki_var_mi
+from app.security.permission_messages import permission_denied_message
 from app.services.excel_import_service import AlanTanimi, ImportKonfig
 from app.services.personel_service import PersonelService
 from app.text_utils import turkish_title_case
@@ -61,28 +63,19 @@ def _normalize(kayit: dict) -> dict:
 
 
 class _PersonelImportAdapter:
-    def __init__(self, db):
-        self._svc = PersonelService(db)
+    def __init__(self, db, oturum: dict | None = None):
+        self._oturum = oturum
+        self._svc = PersonelService(db, oturum=oturum)
 
     def ekle(self, kayit: dict) -> str:
-        return self._svc.ekle(kayit)
+        return self._svc.ekle(kayit, oturum=self._oturum)
 
     def guncelle_veya_ekle_import(self, kayit: dict) -> str:
-        return self._svc.guncelle_veya_ekle_import(kayit)
+        return self._svc.guncelle_veya_ekle_import(kayit, oturum=self._oturum)
 
 
-def _personel_servis(db):
-    return _PersonelImportAdapter(db)
-
-
-KONFIG = ImportKonfig(
-    baslik="Toplu Personel Ice Aktarma",
-    servis_fabrika=_personel_servis,
-    servis_metod="ekle",
-    servis_metod_upsert="guncelle_veya_ekle_import",
-    tablo_adi="personel",
-    normalize_fn=_normalize,
-    alanlar=[
+def _alanlar() -> list[AlanTanimi]:
+    return [
         AlanTanimi(
             "tc_kimlik",
             "TC Kimlik No",
@@ -111,10 +104,36 @@ KONFIG = ImportKonfig(
         AlanTanimi("fakulte_2", "Mezun Fakultesi (2)", "str", anahtar_kelimeler=["fakulte2", "mezunolunanfakulte2", "mezunfakulte2", "faculty2"]),
         AlanTanimi("mezuniyet_2", "Mezuniyet Tarihi (2)", "date", anahtar_kelimeler=["mezuniyet2", "mezuniyettarihi2", "graduationdate2"]),
         AlanTanimi("diploma_no_2", "Diploma No (2)", "str", anahtar_kelimeler=["diplomano2", "diploma2"]),
-    ],
-)
+    ]
 
 
 class PersonelImportPage(BaseImportPage):
+    def __init__(self, db, oturum: dict | None = None, parent=None):
+        self._oturum = oturum
+        super().__init__(db=db, parent=parent)
+        self._yetki_uygula()
+
+    def _servis_fabrika(self, db):
+        return _PersonelImportAdapter(db, oturum=self._oturum)
+
     def _konfig(self) -> ImportKonfig:
-        return KONFIG
+        return ImportKonfig(
+            baslik="Toplu Personel Ice Aktarma",
+            servis_fabrika=self._servis_fabrika,
+            servis_metod="ekle",
+            servis_metod_upsert="guncelle_veya_ekle_import",
+            tablo_adi="personel",
+            normalize_fn=_normalize,
+            alanlar=_alanlar(),
+        )
+
+    def _yetki_uygula(self) -> None:
+        if self._oturum is None:
+            return
+        ekleme_var = yetki_var_mi(self._oturum, "personel.ekle")
+        guncelleme_var = yetki_var_mi(self._oturum, "personel.guncelle")
+        if ekleme_var or guncelleme_var:
+            return
+        self._btn_sec.setEnabled(False)
+        self._btn_aktar.setEnabled(False)
+        self._alert.goster(permission_denied_message("personel.ekle"), "warning")

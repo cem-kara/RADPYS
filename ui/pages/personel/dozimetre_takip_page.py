@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.config import HP10_TEHLIKE, HP10_UYARI
 from app.logger import exc_logla
 from app.services.dozimetre_service import DozimetreService
 from ui.pages.personel.dozimetre_import_page import DozimetreImportPage
@@ -282,9 +283,9 @@ class DozimetreTakipPage(QWidget):
                 if c in {6, 7}:
                     hp_val = r.get("hp10") if c == 6 else r.get("hp007")
                     if hp_val is not None:
-                        if float(hp_val) >= 5.0:
+                        if float(hp_val) >= HP10_TEHLIKE:
                             it.setForeground(QColor(T.red2))
-                        elif float(hp_val) >= 2.0:
+                        elif float(hp_val) >= HP10_UYARI:
                             it.setForeground(QColor(T.warning if hasattr(T, "warning") else "#e8a020"))
                         else:
                             it.setForeground(QColor(T.teal2))

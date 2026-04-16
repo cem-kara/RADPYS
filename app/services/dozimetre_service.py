@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 
-from app.config import HP10_TEHLIKE, HP10_UYARI
+from app.config import DOZIMETRE_MIN_PERIYOT, HP10_TEHLIKE, HP10_UYARI
 from app.db.database import Database
 from app.db.repos.dozimetre_repo import DozimetreRepo
 from app.db.repos.personel_repo import PersonelRepo
@@ -167,7 +167,7 @@ class DozimetreService:
             "durum": str(kayit.get("durum") or "").strip() or None,
         }
 
-        if payload["yil"] <= 0 or payload["periyot"] <= 0:
+        if payload["yil"] <= 0 or payload["periyot"] < DOZIMETRE_MIN_PERIYOT:
             raise ValueError("yil ve periyot zorunludur")
 
         try:

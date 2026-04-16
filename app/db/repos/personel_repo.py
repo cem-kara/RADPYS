@@ -141,6 +141,33 @@ class PersonelRepo(BaseRepo):
             tuple(degerler),
         )
 
+    def gorev_gecmisi_cakisma_getir(
+        self,
+        personel_id: str,
+        baslama_tarihi: str,
+        bitis_tarihi: str | None = None,
+        haric_kayit_id: str | None = None,
+    ) -> dict | None:
+        """Verilen tarih araliginin cakistigi ilk gorev gecmisi kaydini getirir."""
+        return self._db.fetchone(
+            "SELECT pg.*, gy.ad AS gorev_yeri_ad "
+            "FROM personel_gorev_gecmis pg "
+            "LEFT JOIN gorev_yeri gy ON gy.id = pg.gorev_yeri_id "
+            "WHERE pg.personel_id = ? "
+            "  AND (? IS NULL OR pg.id != ?) "
+            "  AND pg.baslama_tarihi <= COALESCE(?, '9999-12-31') "
+            "  AND COALESCE(pg.bitis_tarihi, '9999-12-31') >= ? "
+            "ORDER BY pg.baslama_tarihi DESC, pg.olusturuldu DESC "
+            "LIMIT 1",
+            (
+                personel_id,
+                haric_kayit_id,
+                haric_kayit_id,
+                bitis_tarihi,
+                baslama_tarihi,
+            ),
+        )
+
     def aktif_gorev_gecmisini_kapat(self, personel_id: str, bitis_tarihi: str) -> None:
         """Aktif gorev gecmisi kaydini verilen tarihle kapatir."""
         aktif = self.aktif_gorev_gecmisi_getir(personel_id)

@@ -25,6 +25,8 @@ from PySide6.QtWidgets import (
 from app.config import BELGE_DIR
 from app.exceptions import KayitBulunamadi
 from app.logger import exc_logla
+from app.rbac import yetki_var_mi
+from app.security.permission_messages import permission_denied_message
 from app.services.personel_onboarding_service import PersonelOnboardingService
 from app.services.personel_service import PersonelService
 from app.text_utils import (
@@ -55,8 +57,8 @@ class PersonelEklePage(QWidget):
         super().__init__(parent)
         self._db = db
         self._oturum = oturum
-        self._svc = PersonelService(db)
-        self._onboarding = PersonelOnboardingService(db)
+        self._svc = PersonelService(db, oturum=oturum)
+        self._onboarding = PersonelOnboardingService(db, oturum=oturum)
         self._edit_data = edit_data
         self._on_saved = on_saved
         self._is_edit = bool(edit_data)
@@ -66,6 +68,7 @@ class PersonelEklePage(QWidget):
 
         self._build()
         self._load_lookups()
+        self._apply_permission_ui()
         if self._is_edit:
             self._fill_form(edit_data or {})
             self._docs_tab.set_entity("personel", self._personel_id, self.tc.text().strip())
@@ -350,6 +353,15 @@ class PersonelEklePage(QWidget):
         )
         lay.addWidget(self._docs_tab)
 
+    def _apply_permission_ui(self) -> None:
+        yetki = "personel.guncelle" if self._is_edit else "personel.ekle"
+        if self._oturum is None:
+            return
+        if yetki_var_mi(self._oturum, yetki):
+            return
+        self.btn_save.setEnabled(False)
+        self._alert.goster(permission_denied_message(yetki), "warning")
+
     @staticmethod
     def _row(layout: QGridLayout, row: int, l1: str, w1, l2: str, w2) -> None:
         left_lbl = QLabel(l1)
@@ -589,6 +601,11 @@ class PersonelEklePage(QWidget):
         }
 
     def _on_save(self) -> None:
+        yetki = "personel.guncelle" if self._is_edit else "personel.ekle"
+        if self._oturum is not None and not yetki_var_mi(self._oturum, yetki):
+            self._alert.goster(permission_denied_message(yetki), "warning")
+            return
+
         errors = self._validate()
         if errors:
             self._alert.goster("\n".join(errors), "warning")
@@ -614,7 +631,7 @@ class PersonelEklePage(QWidget):
                     "hizmet_yili": 0,
                     "is_edit": True,
                 }
-            data = self._onboarding.kaydet_ve_hazirla(payload)
+            data = self._onboarding.kaydet_ve_hazirla(payload, oturum=self._oturum)
             data["is_edit"] = False
             return data
 

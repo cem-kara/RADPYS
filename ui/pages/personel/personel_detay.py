@@ -16,6 +16,8 @@ from app.text_utils import (
     turkish_lower,
     turkish_title_case,
 )
+from app.rbac import yetki_var_mi
+from app.security.permission_messages import permission_denied_message
 from app.validators import format_tarih, validate_email, validate_phone_number
 from ui.components import IconButton
 from ui.pages.personel.detail_tabs import build_detail_tab_registrations
@@ -135,6 +137,15 @@ class PersonelDetayPage(PersonelEklePage):
         for name in ("iletisim", "kurumsal", "egitim"):
             self._set_section_enabled(name, False)
             self._refresh_section_ui(name)
+
+        duzenleme_var = yetki_var_mi(self._oturum, "personel.guncelle")
+        if not duzenleme_var:
+            self._btn_iletisim.setEnabled(False)
+            self._btn_kurumsal.setEnabled(False)
+            self._btn_egitim.setEnabled(False)
+            self._btn_iletisim_cancel.setVisible(False)
+            self._btn_kurumsal_cancel.setVisible(False)
+            self._btn_egitim_cancel.setVisible(False)
 
     def _section_widgets(self, name: str) -> list:
         if name == "iletisim":
@@ -327,6 +338,10 @@ class PersonelDetayPage(PersonelEklePage):
         self.diploma_no_2.setText(str(snap.get("diploma_no_2") or ""))
 
     def _save_or_edit_section(self, name: str) -> None:
+        if not yetki_var_mi(self._oturum, "personel.guncelle"):
+            self._alert.goster(permission_denied_message("personel.guncelle"), "warning")
+            return
+
         is_editing = self._section_states.get(name, False)
 
         if not is_editing:

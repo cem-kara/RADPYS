@@ -37,7 +37,9 @@ HP10_TEHLIKE     = 5.0    # mSv — periyot tehlike eşiği
 NDK_YILLIK       = 20.0   # mSv — yıllık normal doz kısıtlaması
 NDK_BES_YILLIK   = 100.0  # mSv — 5 yıllık kümülatif limit
 NDK_CALISMA_A    = 6.0    # mSv — Çalışma Koşulu A yıllık eşiği
-DOZIMETRE_PERIYOT_SAYISI = 4   # RADAT → yılda 4 periyot
+DOZIMETRE_MIN_PERIYOT = 1   # Periyot degeri en az 1 olmali
+DOZIMETRE_YIL_AY_SAYISI = 12
+DOZIMETRE_REFERANS_GUN = 15
 TAEK_BILDIRIM_GUN = 30    # Doz aşımında TAEK'e bildirim süresi (gün)
 
 # ── Nöbet Algoritması ─────────────────────────────────────────────

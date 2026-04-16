@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.security.permission_messages import admin_required_message
 from app.services.personel_service import PersonelService
 from app.validators import format_tarih
 from ui.components import AsyncRunner
@@ -227,7 +228,7 @@ class PersonelBirimGecmisiTab(QWidget):
 
     def _add_record(self) -> None:
         if not self._is_admin():
-            self._uyari.setText("Bu islem icin admin yetkisi gerekir.")
+            self._uyari.setText(admin_required_message())
             return
         personel_id = str(self._personel_id_getter() or "").strip()
         payload = self._form_payload()
@@ -242,6 +243,7 @@ class PersonelBirimGecmisiTab(QWidget):
                 payload["baslama_tarihi"],
                 payload["bitis_tarihi"] or None,
                 payload["aciklama"],
+                oturum=self._oturum_getter(),
             ),
             on_done=lambda _id: self._after_write("Kayit eklendi."),
             on_error=self._load_error,
@@ -250,7 +252,7 @@ class PersonelBirimGecmisiTab(QWidget):
 
     def _update_record(self) -> None:
         if not self._is_admin():
-            self._uyari.setText("Bu islem icin admin yetkisi gerekir.")
+            self._uyari.setText(admin_required_message())
             return
         personel_id = str(self._personel_id_getter() or "").strip()
         if not personel_id or not self._selected_id:
@@ -266,6 +268,7 @@ class PersonelBirimGecmisiTab(QWidget):
                 personel_id,
                 self._selected_id,
                 payload,
+                oturum=self._oturum_getter(),
             ),
             on_done=lambda _: self._after_write("Kayit guncellendi."),
             on_error=self._load_error,

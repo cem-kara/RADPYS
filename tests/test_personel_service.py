@@ -9,8 +9,10 @@ from app.db.database import Database
 from app.db.migrations import run as migrate
 from app.services.personel_service import PersonelService
 from app.exceptions import (
+    CakismaHatasi,
     KayitBulunamadi, KayitZatenVar,
     PasifPersonelHatasi,
+    YetkiHatasi,
 )
 from app.exceptions import TCHatasi
 
@@ -223,3 +225,62 @@ class TestDropdown:
         liste = svc.gorev_yerleri()
         arad = next(g for g in liste if g["ad"] == "Acil Radyoloji")
         assert arad["sua_hakki"] == 1
+
+
+class TestGorevGecmisi:
+
+    def test_gorev_gecmisi_cakismazsa_eklenir(self, svc):
+        gy = svc.gorev_yerleri()[0]
+        pid = svc.ekle(
+            {
+                "tc_kimlik": "10000000146",
+                "ad": "Ali",
+                "soyad": "Kaya",
+            }
+        )
+        kid = svc.gorev_gecmisi_ekle(
+            pid,
+            gy["id"],
+            "2024-02-01",
+            "2024-02-28",
+        )
+        assert kid
+
+    def test_gorev_gecmisi_cakisirsa_hata(self, svc):
+        yerler = svc.gorev_yerleri()
+        pid = svc.ekle(
+            {
+                "tc_kimlik": "10000000146",
+                "ad": "Ali",
+                "soyad": "Kaya",
+                "gorev_yeri_id": yerler[0]["id"],
+                "memuriyet_baslama": "2024-01-01",
+            }
+        )
+
+        with pytest.raises(CakismaHatasi):
+            svc.gorev_gecmisi_ekle(
+                pid,
+                yerler[1]["id"],
+                "2024-01-15",
+                "2024-03-01",
+            )
+
+
+class TestYetki:
+
+    def test_ekle_yetkisi_yoksa_hata(self, db):
+        svc = PersonelService(db, oturum={"rol": "kullanici", "yetkiler": []})
+        with pytest.raises(YetkiHatasi):
+            svc.ekle({"tc_kimlik": "10000000146", "ad": "Ali", "soyad": "Kaya"})
+
+    def test_import_upsert_yetkisi_yoksa_hata(self, db):
+        svc = PersonelService(db, oturum={"rol": "kullanici", "yetkiler": []})
+        with pytest.raises(YetkiHatasi):
+            svc.guncelle_veya_ekle_import(
+                {
+                    "tc_kimlik": "14522068356",
+                    "ad": "Veli",
+                    "soyad": "Kaya",
+                }
+            )

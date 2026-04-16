@@ -2,6 +2,7 @@
 """app/db/repos/dozimetre_repo.py - dozimetre tablosu SQL katmani."""
 from __future__ import annotations
 
+from app.config import DOZIMETRE_REFERANS_GUN, DOZIMETRE_YIL_AY_SAYISI
 from app.db.repos.base import BaseRepo
 
 
@@ -26,11 +27,11 @@ class DozimetreRepo(BaseRepo):
             "    (SELECT gy2.ad FROM personel_gorev_gecmis pgg"
             "     JOIN gorev_yeri gy2 ON gy2.id = pgg.gorev_yeri_id"
             "     WHERE pgg.personel_id = d.personel_id"
-            "       AND pgg.baslama_tarihi <= printf('%04d-%02d-15', d.yil,"
-            "           MIN(12, MAX(1, CAST(((d.periyot - 1) * 12.0 / CASE WHEN yp.max_periyot > 0 THEN yp.max_periyot ELSE 1 END) AS INTEGER) + 1)))"
+            f"       AND pgg.baslama_tarihi <= printf('%04d-%02d-{DOZIMETRE_REFERANS_GUN:02d}', d.yil,"
+            f"           MIN({DOZIMETRE_YIL_AY_SAYISI}, MAX(1, CAST(((d.periyot - 1) * {float(DOZIMETRE_YIL_AY_SAYISI)} / CASE WHEN yp.max_periyot > 0 THEN yp.max_periyot ELSE 1 END) AS INTEGER) + 1)))"
             "       AND (pgg.bitis_tarihi IS NULL"
-            "            OR pgg.bitis_tarihi >= printf('%04d-%02d-15', d.yil,"
-            "               MIN(12, MAX(1, CAST(((d.periyot - 1) * 12.0 / CASE WHEN yp.max_periyot > 0 THEN yp.max_periyot ELSE 1 END) AS INTEGER) + 1))))"
+            f"            OR pgg.bitis_tarihi >= printf('%04d-%02d-{DOZIMETRE_REFERANS_GUN:02d}', d.yil,"
+            f"               MIN({DOZIMETRE_YIL_AY_SAYISI}, MAX(1, CAST(((d.periyot - 1) * {float(DOZIMETRE_YIL_AY_SAYISI)} / CASE WHEN yp.max_periyot > 0 THEN yp.max_periyot ELSE 1 END) AS INTEGER) + 1))))"
             "     ORDER BY pgg.baslama_tarihi DESC, pgg.olusturuldu DESC"
             "     LIMIT 1),"
             "    gy.ad"

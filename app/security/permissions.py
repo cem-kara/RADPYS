@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from app.config import RBAC_ROL_YETKILERI
 from app.exceptions import YetkiHatasi
+from app.security.permission_messages import permission_denied_message
 
 
 def _oturum_yetkileri(oturum: dict | None) -> set[str]:
@@ -21,6 +22,6 @@ def has_permission(oturum: dict | None, yetki: str) -> bool:
 
 
 def require_permission(oturum: dict | None, yetki: str) -> None:
-    """Yetki yoksa YetkiHatasi fırlatır."""
+    """Yetki yoksa YetkiHatasi firlatir."""
     if not has_permission(oturum, yetki):
-        raise YetkiHatasi(f"Bu işlem için yetkiniz yok: {yetki}")
+        raise YetkiHatasi(permission_denied_message(yetki))
