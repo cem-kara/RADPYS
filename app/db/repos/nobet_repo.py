@@ -29,6 +29,7 @@ class NobetRepo(BaseRepo):
 
     def birim_kural_upsert(self, birim_id: str, veri: dict) -> None:
         mevcut = self.birim_kural_getir(birim_id)
+        raw_max_ardisik = veri.get("max_ardisik_nobet")
         payload = {
             "min_dinlenme_saat": float(veri.get("min_dinlenme_saat") or 12),
             "resmi_tatil_calisma": int(veri.get("resmi_tatil_calisma") or 0),
@@ -37,6 +38,7 @@ class NobetRepo(BaseRepo):
             "max_fazla_mesai_saat": float(veri.get("max_fazla_mesai_saat") or 0),
             "tolerans_saat": float(veri.get("tolerans_saat") or 7),
             "max_devreden_saat": float(veri.get("max_devreden_saat") or 12),
+            "max_ardisik_nobet": 2 if raw_max_ardisik is None or str(raw_max_ardisik).strip() == "" else int(raw_max_ardisik),
             "manuel_limit_asimina_izin": int(veri.get("manuel_limit_asimina_izin") or 0),
         }
         if mevcut:
@@ -44,7 +46,7 @@ class NobetRepo(BaseRepo):
                 "UPDATE nb_birim_kural SET "
                 "min_dinlenme_saat=?, resmi_tatil_calisma=?, dini_tatil_calisma=?, "
                 "arefe_baslangic_saat=?, max_fazla_mesai_saat=?, tolerans_saat=?, "
-                "max_devreden_saat=?, manuel_limit_asimina_izin=?, guncellendi=date('now') "
+                "max_devreden_saat=?, max_ardisik_nobet=?, manuel_limit_asimina_izin=?, guncellendi=date('now') "
                 "WHERE birim_id=?",
                 (
                     payload["min_dinlenme_saat"],
@@ -54,6 +56,7 @@ class NobetRepo(BaseRepo):
                     payload["max_fazla_mesai_saat"],
                     payload["tolerans_saat"],
                     payload["max_devreden_saat"],
+                    payload["max_ardisik_nobet"],
                     payload["manuel_limit_asimina_izin"],
                     str(birim_id or "").strip(),
                 ),
@@ -63,8 +66,8 @@ class NobetRepo(BaseRepo):
         self._db.execute(
             "INSERT INTO nb_birim_kural ("
             "id, birim_id, min_dinlenme_saat, resmi_tatil_calisma, dini_tatil_calisma, "
-            "arefe_baslangic_saat, max_fazla_mesai_saat, tolerans_saat, max_devreden_saat, manuel_limit_asimina_izin"
-            ") VALUES (?,?,?,?,?,?,?,?,?,?)",
+            "arefe_baslangic_saat, max_fazla_mesai_saat, tolerans_saat, max_devreden_saat, max_ardisik_nobet, manuel_limit_asimina_izin"
+            ") VALUES (?,?,?,?,?,?,?,?,?,?,?)",
             (
                 self._new_id(),
                 str(birim_id or "").strip(),
@@ -75,6 +78,7 @@ class NobetRepo(BaseRepo):
                 payload["max_fazla_mesai_saat"],
                 payload["tolerans_saat"],
                 payload["max_devreden_saat"],
+                payload["max_ardisik_nobet"],
                 payload["manuel_limit_asimina_izin"],
             ),
         )
@@ -170,6 +174,13 @@ class NobetRepo(BaseRepo):
             (str(vardiya_id or "").strip(),),
         )
 
+    def vardiya_getir(self, vardiya_id: str) -> dict | None:
+        return self._db.fetchone(
+            "SELECT id, birim_id, ad, saat_suresi, baslangic_saat, bitis_saat, max_personel, aktif "
+            "FROM nb_vardiya WHERE id = ?",
+            (str(vardiya_id or "").strip(),),
+        )
+
     def sablon_birime_ata(
         self,
         birim_id: str,
@@ -238,6 +249,137 @@ class NobetRepo(BaseRepo):
             "WHERE np.birim_id = ? AND np.aktif = 1 "
             "ORDER BY p.soyad, p.ad",
             (str(birim_id or "").strip(),),
+        )
+
+    def birim_personel_var_mi(self, birim_id: str, personel_id: str) -> bool:
+        return bool(
+            self._db.fetchval(
+                "SELECT 1 FROM nb_personel WHERE birim_id = ? AND personel_id = ? AND aktif = 1",
+                (str(birim_id or "").strip(), str(personel_id or "").strip()),
+            )
+        )
+
+    def personel_kanuni_mesai_listele(self, birim_id: str, aktif_only: bool = True) -> list[dict]:
+        sql = (
+            "SELECT km.id, km.birim_id, km.personel_id, km.baslangic_tarih, km.bitis_tarih, "
+            "km.duzenleme_tipi, km.deger, km.aciklama, km.aktif, "
+            "p.ad, p.soyad "
+            "FROM nb_personel_kanuni_mesai km "
+            "JOIN personel p ON p.id = km.personel_id "
+            "WHERE km.birim_id = ?"
+        )
+        params: list = [str(birim_id or "").strip()]
+        if aktif_only:
+            sql += " AND km.aktif = 1"
+        sql += " ORDER BY km.baslangic_tarih DESC, p.soyad, p.ad"
+        return self._db.fetchall(sql, tuple(params))
+
+    def personel_kanuni_mesai_donem_listele(
+        self,
+        birim_id: str,
+        personel_id: str,
+        ay_bas: str,
+        ay_bit: str,
+    ) -> list[dict]:
+        return self._db.fetchall(
+            "SELECT id, birim_id, personel_id, baslangic_tarih, bitis_tarih, duzenleme_tipi, deger, aciklama "
+            "FROM nb_personel_kanuni_mesai "
+            "WHERE birim_id = ? AND personel_id = ? AND aktif = 1 "
+            "AND baslangic_tarih <= ? "
+            "AND COALESCE(bitis_tarih, '9999-12-31') >= ? "
+            "ORDER BY baslangic_tarih DESC",
+            (
+                str(birim_id or "").strip(),
+                str(personel_id or "").strip(),
+                str(ay_bit or "").strip(),
+                str(ay_bas or "").strip(),
+            ),
+        )
+
+    def personel_kanuni_mesai_ekle(
+        self,
+        birim_id: str,
+        personel_id: str,
+        baslangic_tarih: str,
+        bitis_tarih: str | None,
+        duzenleme_tipi: str,
+        deger: float,
+        aciklama: str = "",
+    ) -> str:
+        kid = self._new_id()
+        self._db.execute(
+            "INSERT INTO nb_personel_kanuni_mesai ("
+            "id, birim_id, personel_id, baslangic_tarih, bitis_tarih, duzenleme_tipi, deger, aciklama, aktif"
+            ") VALUES (?,?,?,?,?,?,?,?,1)",
+            (
+                kid,
+                str(birim_id or "").strip(),
+                str(personel_id or "").strip(),
+                str(baslangic_tarih or "").strip(),
+                str(bitis_tarih or "").strip() or None,
+                str(duzenleme_tipi or "").strip(),
+                float(deger),
+                str(aciklama or "").strip() or None,
+            ),
+        )
+        return kid
+
+    def personel_kanuni_mesai_pasife_al(self, kayit_id: str) -> None:
+        self._db.execute(
+            "UPDATE nb_personel_kanuni_mesai SET aktif = 0, guncellendi = date('now') WHERE id = ?",
+            (str(kayit_id or "").strip(),),
+        )
+
+    def tatil_aralik_listele(self, bas: str, bit: str) -> list[dict]:
+        return self._db.fetchall(
+            "SELECT tarih, yarim_gun FROM tatil WHERE tarih >= ? AND tarih <= ? ORDER BY tarih",
+            (str(bas or "").strip(), str(bit or "").strip()),
+        )
+
+    def personel_devir_onceki_getir(self, birim_id: str, personel_id: str, yil: int, ay: int) -> float:
+        row = self._db.fetchone(
+            "SELECT devir_saat FROM nb_personel_devir "
+            "WHERE birim_id = ? AND personel_id = ? "
+            "AND (yil < ? OR (yil = ? AND ay < ?)) "
+            "ORDER BY yil DESC, ay DESC LIMIT 1",
+            (
+                str(birim_id or "").strip(),
+                str(personel_id or "").strip(),
+                int(yil),
+                int(yil),
+                int(ay),
+            ),
+        )
+        return float((row or {}).get("devir_saat") or 0.0)
+
+    def personel_devir_upsert(self, birim_id: str, personel_id: str, yil: int, ay: int, devir_saat: float) -> None:
+        mevcut = self._db.fetchval(
+            "SELECT 1 FROM nb_personel_devir WHERE birim_id = ? AND personel_id = ? AND yil = ? AND ay = ?",
+            (str(birim_id or "").strip(), str(personel_id or "").strip(), int(yil), int(ay)),
+        )
+        if mevcut:
+            self._db.execute(
+                "UPDATE nb_personel_devir SET devir_saat = ?, guncellendi = date('now') "
+                "WHERE birim_id = ? AND personel_id = ? AND yil = ? AND ay = ?",
+                (
+                    float(devir_saat),
+                    str(birim_id or "").strip(),
+                    str(personel_id or "").strip(),
+                    int(yil),
+                    int(ay),
+                ),
+            )
+            return
+        self._db.execute(
+            "INSERT INTO nb_personel_devir (id, birim_id, personel_id, yil, ay, devir_saat) VALUES (?,?,?,?,?,?)",
+            (
+                self._new_id(),
+                str(birim_id or "").strip(),
+                str(personel_id or "").strip(),
+                int(yil),
+                int(ay),
+                float(devir_saat),
+            ),
         )
 
     def personel_kural_upsert(self, birim_id: str, personel_id: str, veri: dict) -> None:
@@ -353,3 +495,53 @@ class NobetRepo(BaseRepo):
             ),
         )
         return pid
+
+    def plan_satir_listele(self, plan_id: str) -> list[dict]:
+        return self._db.fetchall(
+            "SELECT id, plan_id, personel_id, vardiya_id, tarih, saat_suresi, kaynak, olusturuldu "
+            "FROM nb_satir WHERE plan_id = ? ORDER BY tarih, vardiya_id, personel_id",
+            (str(plan_id or "").strip(),),
+        )
+
+    def plan_satir_detay_listele(self, plan_id: str) -> list[dict]:
+        return self._db.fetchall(
+            "SELECT s.id, s.plan_id, s.personel_id, s.vardiya_id, s.tarih, s.saat_suresi, s.kaynak, "
+            "p.ad, p.soyad, v.ad AS vardiya_ad "
+            "FROM nb_satir s "
+            "JOIN personel p ON p.id = s.personel_id "
+            "JOIN nb_vardiya v ON v.id = s.vardiya_id "
+            "WHERE s.plan_id = ? "
+            "ORDER BY s.tarih, p.soyad, p.ad",
+            (str(plan_id or "").strip(),),
+        )
+
+    def plan_satirlari_sil(self, plan_id: str) -> None:
+        self._db.execute(
+            "DELETE FROM nb_satir WHERE plan_id = ?",
+            (str(plan_id or "").strip(),),
+        )
+
+    def plan_satir_ekle(
+        self,
+        plan_id: str,
+        personel_id: str,
+        vardiya_id: str,
+        tarih: str,
+        saat_suresi: float,
+        kaynak: str = "algoritma",
+    ) -> str:
+        sid = self._new_id()
+        self._db.execute(
+            "INSERT INTO nb_satir (id, plan_id, personel_id, vardiya_id, tarih, saat_suresi, kaynak) "
+            "VALUES (?,?,?,?,?,?,?)",
+            (
+                sid,
+                str(plan_id or "").strip(),
+                str(personel_id or "").strip(),
+                str(vardiya_id or "").strip(),
+                str(tarih or "").strip(),
+                float(saat_suresi),
+                str(kaynak or "algoritma").strip() or "algoritma",
+            ),
+        )
+        return sid

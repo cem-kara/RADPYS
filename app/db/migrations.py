@@ -22,7 +22,7 @@ from app.db.database import Database
 logger = logging.getLogger("radpys.db.migration")
 
 # Hedef şema versiyonu — her migration eklenince artır
-HEDEF_VERSIYON = 12
+HEDEF_VERSIYON = 16
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -760,6 +760,120 @@ def _v12(db: Database) -> None:
     logger.info("v12: vardiya sablon tablosu ve max_personel kolonu eklendi.")
 
 
+def _v13(db: Database) -> None:
+    """v13 — personel bazli kanuni mesai duzenleme tablosu."""
+
+    db.execute(
+        "CREATE TABLE IF NOT EXISTS nb_personel_kanuni_mesai ("
+        "id TEXT PRIMARY KEY,"
+        "birim_id TEXT NOT NULL REFERENCES nb_birim(id),"
+        "personel_id TEXT NOT NULL REFERENCES personel(id),"
+        "baslangic_tarih TEXT NOT NULL,"
+        "bitis_tarih TEXT,"
+        "duzenleme_tipi TEXT NOT NULL CHECK (duzenleme_tipi IN ('saat_dusum','oran','manuel_hedef')),"
+        "deger REAL NOT NULL,"
+        "aciklama TEXT,"
+        "aktif INTEGER NOT NULL DEFAULT 1 CHECK (aktif IN (0,1)),"
+        "guncellendi TEXT,"
+        "olusturuldu TEXT NOT NULL DEFAULT (date('now'))"
+        ")"
+    )
+
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_nb_km_birim_personel "
+        "ON nb_personel_kanuni_mesai (birim_id, personel_id)"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_nb_km_aktif "
+        "ON nb_personel_kanuni_mesai (aktif)"
+    )
+
+    logger.info("v13: personel kanuni mesai duzenleme tablosu eklendi.")
+
+
+def _v14(db: Database) -> None:
+    """v14 — personel aylik devir saat tablosu."""
+
+    db.execute(
+        "CREATE TABLE IF NOT EXISTS nb_personel_devir ("
+        "id TEXT PRIMARY KEY,"
+        "birim_id TEXT NOT NULL REFERENCES nb_birim(id),"
+        "personel_id TEXT NOT NULL REFERENCES personel(id),"
+        "yil INTEGER NOT NULL,"
+        "ay INTEGER NOT NULL CHECK (ay BETWEEN 1 AND 12),"
+        "devir_saat REAL NOT NULL DEFAULT 0,"
+        "olusturuldu TEXT NOT NULL DEFAULT (date('now'))," 
+        "guncellendi TEXT,"
+        "UNIQUE (birim_id, personel_id, yil, ay)"
+        ")"
+    )
+
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_nb_devir_birim_personel "
+        "ON nb_personel_devir (birim_id, personel_id, yil, ay)"
+    )
+
+    logger.info("v14: personel aylik devir tablosu eklendi.")
+
+
+def _v15(db: Database) -> None:
+    """v15 — kanuni mesai duzenleme tiplerini genisletir."""
+
+    db.execute(
+        "CREATE TABLE IF NOT EXISTS nb_personel_kanuni_mesai_yeni ("
+        "id TEXT PRIMARY KEY,"
+        "birim_id TEXT NOT NULL REFERENCES nb_birim(id),"
+        "personel_id TEXT NOT NULL REFERENCES personel(id),"
+        "baslangic_tarih TEXT NOT NULL,"
+        "bitis_tarih TEXT,"
+        "duzenleme_tipi TEXT NOT NULL CHECK (duzenleme_tipi IN ('saat_dusum','oran','manuel_hedef','sut_0_6','sut_6_12','yarim_zamanli')),"
+        "deger REAL NOT NULL,"
+        "aciklama TEXT,"
+        "aktif INTEGER NOT NULL DEFAULT 1 CHECK (aktif IN (0,1)),"
+        "guncellendi TEXT,"
+        "olusturuldu TEXT NOT NULL DEFAULT (date('now'))"
+        ")"
+    )
+
+    db.execute(
+        "INSERT INTO nb_personel_kanuni_mesai_yeni ("
+        "id, birim_id, personel_id, baslangic_tarih, bitis_tarih, duzenleme_tipi, deger, aciklama, aktif, guncellendi, olusturuldu"
+        ") "
+        "SELECT id, birim_id, personel_id, baslangic_tarih, bitis_tarih, duzenleme_tipi, deger, aciklama, aktif, guncellendi, olusturuldu "
+        "FROM nb_personel_kanuni_mesai"
+    )
+
+    db.execute("DROP TABLE nb_personel_kanuni_mesai")
+    db.execute("ALTER TABLE nb_personel_kanuni_mesai_yeni RENAME TO nb_personel_kanuni_mesai")
+
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_nb_km_birim_personel "
+        "ON nb_personel_kanuni_mesai (birim_id, personel_id)"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_nb_km_aktif "
+        "ON nb_personel_kanuni_mesai (aktif)"
+    )
+
+    logger.info("v15: kanuni mesai duzenleme tipleri genisletildi.")
+
+
+def _v16(db: Database) -> None:
+    """v16 — birim kurala max_ardisik_nobet kolonu ekler."""
+
+    if not _kolon_var_mi(db, "nb_birim_kural", "max_ardisik_nobet"):
+        db.execute("ALTER TABLE nb_birim_kural ADD COLUMN max_ardisik_nobet INTEGER NOT NULL DEFAULT 2")
+
+    db.execute(
+        "UPDATE nb_birim_kural "
+        "SET max_ardisik_nobet = CASE "
+        "WHEN max_ardisik_nobet IS NULL OR max_ardisik_nobet < 1 THEN 2 "
+        "ELSE max_ardisik_nobet END"
+    )
+
+    logger.info("v16: max_ardisik_nobet kolonu eklendi.")
+
+
 def _rbac_modul_izin_seed(db: Database) -> None:
     from uuid import uuid4
     for rol_adi, izinler in _VARSAYILAN_MODUL_IZINLERI.items():
@@ -792,6 +906,10 @@ _MIGRATIONS = {
     10: _v10,
     11: _v11,
     12: _v12,
+    13: _v13,
+    14: _v14,
+    15: _v15,
+    16: _v16,
 }   # Yeni migration eklenince buraya da ekle
 
 
