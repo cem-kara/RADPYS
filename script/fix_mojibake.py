@@ -53,10 +53,10 @@ LATIN1_TO_UTF8_MAP = {
     # Türkçe karakterler
     "ü": "ü", "ö": "ö", "ç": "ç", "ş": "ş", "ı": "ı",
     "İ": "İ", "Ç": "Ç", "Ö": "Ö", "Ü": "Ü", "Ş": "Ş",
-    "Ğ": "Ğ", "ğ": "ğ", "": "",
+    "Ğ": "Ğ", "ğ": "ğ",
 
     # Yaygın işaretler
-    "'": "'", "“": "\u201c", "â€\u009d": "\u201d",
+    "â€œ": "\u201c", "â€\u009d": "\u201d",
     "–": "–", "—": "—", "…": "…",
     "©": "©", "®": "®", "°": "°", "·": "·",
     "€": "€", "£": "£", "¥": "¥",
@@ -68,10 +68,10 @@ LATIN1_TO_UTF8_MAP = {
     "ò": "ò", "ó": "ó", "ô": "ô", "õ": "õ",
     "ù": "ù", "ú": "ú", "û": "û",
     "ñ": "ñ", "ÿ": "ÿ", "ı": "ı",
-    "À": "À", "Ï": "Á", "": "", "Ï": "Ï",
+    "À": "À", "Á": "Á", "Ï": "Ï",
     "Ä": "Ä", "Å": "Å", "Æ": "Æ", "Ç": "Ç",
     "È": "È", "É": "É", "Ê": "Ê", "Ë": "Ë",
-    "Ì": "Ì", "Ï": "Í", "Î": "Î", "Ï": "Ï",
+    "Ì": "Ì", "Í": "Í", "Î": "Î",
     "Ñ": "Ñ", "Ù": "Ù", "Ú": "Ú", "Û": "Û",
     "ß": "ß",
 }
@@ -420,11 +420,15 @@ def fix_python_docstrings(text: str, aggressive: bool = False) -> tuple[str, lis
 
     replacements: list[tuple[int, int, str]] = []
 
+    taranan_docstring = 0
+
     degisen_docstring = 0
 
 
 
     for node in _iter_docstring_nodes(tree):
+
+        taranan_docstring += 1
 
         if not all(hasattr(node, attr) for attr in ("lineno", "col_offset", "end_lineno", "end_col_offset")):
 
@@ -466,6 +470,10 @@ def fix_python_docstrings(text: str, aggressive: bool = False) -> tuple[str, lis
 
     if not replacements:
 
+        if taranan_docstring:
+
+            return text, [f"{taranan_docstring} docstring tarandi"]
+
         return text, []
 
 
@@ -478,7 +486,7 @@ def fix_python_docstrings(text: str, aggressive: bool = False) -> tuple[str, lis
 
 
 
-    return sonuc, [f"{degisen_docstring} docstring tarandi ve duzeltildi"]
+    return sonuc, [f"{taranan_docstring} docstring tarandi, {degisen_docstring} docstring duzeltildi"]
 
 
 

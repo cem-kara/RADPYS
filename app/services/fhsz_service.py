@@ -138,7 +138,7 @@ class FhszService:
         donem_bas, donem_bit = self.donem_tarih_araligi(yil_int, donem_int)
 
         if donem_bit < self.FHSZ_ESIK:
-            raise ValueError("26.04.2022 tarihli Resmî Gazete’de yayımlanan Radyoloji Hizmetleri Yönetmeliği gereğince, bu tarihten önceki süreler için fiili hizmet süresi zammı ve şua izni hesaplaması yapılamamaktadır. Lütfen hesaplama başlangıç tarihini kontrol ediniz.")
+            raise ValueError("26.04.2022 tarihli Resmî Gazete'de yayımlanan Radyoloji Hizmetleri Yönetmeliği gereğince, bu tarihten önceki süreler için fiili hizmet süresi zammı ve şua izni hesaplaması yapılamamaktadır. Lütfen hesaplama başlangıç tarihini kontrol ediniz.")
 
         hesap_bas = max(donem_bas, self.FHSZ_ESIK)
         tam_tatiller, yarim_tatiller = self._tatil_setleri(hesap_bas, donem_bit)
